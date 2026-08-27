@@ -1,7 +1,7 @@
 :root {
   --gold: #d4af37;
   --gold-bright: #fae17d;
-  --panel-bg: rgba(14, 10, 8, 0.94);
+  --panel-bg: rgba(14, 10, 8, 0.96);
   --border: #5a452d;
 }
 
@@ -17,55 +17,98 @@ html, body {
 .brush-title { font-family: 'Noto Serif SC', 'Cinzel', serif; font-weight: 900; }
 #app { width: 100%; height: 100%; position: relative; }
 
-/* Login */
+/* หน้าจอ Login & Register สไตล์ AAA */
 #login-screen {
   position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center;
-  background: radial-gradient(circle at 60% 40%, #26150c 0%, #050302 85%);
+  background: radial-gradient(circle at 60% 40%, #2a160c 0%, #050302 85%);
   z-index: 100;
 }
 #login-box {
   background: var(--panel-bg);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 26px;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 30px;
   width: 480px; max-width: 92%;
-  display: flex; flex-direction: column; gap: 12px;
-  box-shadow: 0 12px 50px rgba(0,0,0,0.9);
+  display: flex; flex-direction: column; gap: 14px;
+  box-shadow: 0 16px 60px rgba(0,0,0,0.95), inset 0 0 20px rgba(212,175,55,0.05);
+  max-height: 94vh;
+  overflow-y: auto;
 }
-.header-tag { font-size: .85em; letter-spacing: .3em; text-align: center; color: #a89779; }
-.main-title { font-size: 2.0em; text-align: center; color: var(--gold-bright); text-shadow: 0 0 20px rgba(250,225,125,.4); }
-.sub-desc { font-size: .85em; color: #bfae91; text-align: center; margin-top: -6px; }
 
-.field { display: flex; flex-direction: column; gap: 4px; text-align: left; }
-.field label { font-size: .78em; color: #d2c4a7; font-weight: 600; }
+.header-tag { font-size: .85em; letter-spacing: .35em; text-align: center; color: #a89779; }
+.main-title { font-size: 2.2em; text-align: center; color: var(--gold-bright); text-shadow: 0 0 25px rgba(250,225,125,.4); }
+.sub-desc { font-size: .85em; color: #bfae91; text-align: center; margin-top: -8px; margin-bottom: 4px; }
+
+/* แท็บสลับ เข้าสู่ระบบ / สมัครจอมยุทธ์ใหม่ */
+.auth-tabs {
+  display: flex;
+  background: #150e0a;
+  border: 1px solid #4a3822;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+.auth-tab-btn {
+  flex: 1;
+  padding: 10px 0;
+  background: transparent;
+  border: none;
+  color: #a89779;
+  font-size: .88em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+.auth-tab-btn.active {
+  background: linear-gradient(180deg, #382515, #22140a);
+  color: var(--gold-bright);
+  font-weight: 700;
+  box-shadow: inset 0 -2px 0 var(--gold);
+}
+.auth-tab-btn:hover:not(.active) {
+  background: rgba(255,255,255,0.03);
+  color: #dcd2be;
+}
+
+/* ฟิลด์กรอกข้อมูล */
+.field { display: flex; flex-direction: column; gap: 5px; text-align: left; }
+.field label { font-size: .82em; color: #d2c4a7; font-weight: 600; }
 .field input {
-  background: #1c140e;
-  border: 1px solid var(--border);
-  color: #efe6d5;
-  padding: 8px 12px;
-  border-radius: 4px;
-  font-size: .95em; outline: none;
+  background: #18100a !important;
+  border: 1px solid #5a452d !important;
+  color: #efe6d5 !important;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: .95em;
+  outline: none;
+  transition: border-color .2s;
 }
-.field input:focus { border-color: var(--gold-bright); }
+.field input:focus {
+  border-color: var(--gold-bright) !important;
+  box-shadow: 0 0 10px rgba(250,225,125,0.2);
+}
 
+/* Grid ตัวเลือกอาชีพ & ชุด */
 .grid-opt { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
 .grid-opt-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
 .opt-btn {
-  background: #1c140e;
+  background: #18100a;
   border: 1px solid #4a3822;
   color: #bfae91;
   padding: 8px 4px;
-  border-radius: 4px;
+  border-radius: 5px;
   font-size: .78em;
   cursor: pointer;
   text-align: center;
+  transition: all .15s;
 }
 .opt-btn.active {
   border-color: var(--gold-bright);
   color: var(--gold-bright);
   background: #312316;
   font-weight: 700;
+  box-shadow: 0 0 8px rgba(212,175,55,0.2);
 }
 
 button { cursor: pointer; border: none; font-family: 'Noto Sans Thai', sans-serif; font-weight: 600; }
@@ -73,13 +116,16 @@ button { cursor: pointer; border: none; font-family: 'Noto Sans Thai', sans-seri
   width: 100%;
   background: linear-gradient(180deg, #f3d36b, var(--gold));
   color: #1a1205;
-  padding: 12px;
+  padding: 13px;
   font-size: 1.05em;
-  border-radius: 4px;
+  border-radius: 6px;
   font-weight: 700;
-  margin-top: 4px;
-  box-shadow: 0 4px 15px rgba(212,175,55,.3);
+  margin-top: 6px;
+  box-shadow: 0 4px 18px rgba(212,175,55,.35);
+  transition: filter .15s;
 }
+#startBtn:hover { filter: brightness(1.1); }
+#startBtn:disabled { filter: grayscale(0.8); cursor: not-allowed; }
 
 /* In-game HUD */
 #game-view { width: 100%; height: 100%; display: none; position: relative; }
