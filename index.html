@@ -2,6 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>刃義 · ยุทธภพเปิด v2</title>
 
 <script>
@@ -209,7 +210,7 @@ const ATTACK_COOLDOWN=480;
 const DAMAGE=9;
 const MONSTER_MAX_HP=150;
 const MAX_PLAYERS=4;
-const TRACK_MS=110;
+const TRACK_MS=220; // ปรับเพิ่มเพื่อลดภาระ WebSocket ป้องกัน CLOSED/Timeout
 const EXP_PER_KILL=20;
 
 const MONSTER_SPAWNS = [
@@ -228,6 +229,7 @@ let lastAttackCooldownUntil=0, lastTrack=0;
 let hostLastProcessed = {};
 let killsTotalSeen = 0;
 let lastDropSeenTs = 0;
+let hasMoved = false;
 
 let me = {
   x:200,y:230, facing:1, attacking:false, attackUntil:0,
@@ -315,13 +317,13 @@ async function joinRoom(){
     sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
     debugLog('สร้าง supabase client แล้ว');
 
-    // load or create persistent player row
+    // โหลดหรือสร้างข้อมูลผู้เล่น
     const { data: prow, error: prowErr } = await sb.from('mmo_players').select('*').eq('name', myName).maybeSingle();
-    if(prowErr){ debugLog('อ่าน mmo_players ผิดพลาด: ' + prowErr.message, 'error'); }
+    if(prowErr){ debugLog('อ่าน mmo_players ผิดพลาด: ' + prowErr.message, 'warn'); }
     if(prow){
       debugLog('พบผู้เล่นเดิม: Lv.' + prow.level);
-      myProgress.level = prow.level;
-      myProgress.exp = prow.exp;
+      myProgress.level = prow.level || 1;
+      myProgress.exp = prow.exp || 0;
       myProgress.unlockedCostumes = prow.unlocked_costumes || [myClass];
       myProgress.inventory = prow.inventory || [];
       if(gd) myGuild = gd; else myGuild = prow.guild || '';
@@ -332,13 +334,13 @@ async function joinRoom(){
       const { error: insErr } = await sb.from('mmo_players').insert({
         name: myName, level:1, exp:0, guild:myGuild, costume:myClass, unlocked_costumes:[myClass], inventory:[]
       });
-      if(insErr) debugLog('สร้างผู้เล่นใหม่ผิดพลาด: ' + insErr.message, 'error');
+      if(insErr) debugLog('สร้างผู้เล่นใหม่ผิดพลาด: ' + insErr.message, 'warn');
       else debugLog('สร้างผู้เล่นใหม่สำเร็จ');
     }
 
-    // load or create room row
+    // โหลดหรือสร้างข้อมูลห้อง
     const { data: rrow, error: rrowErr } = await sb.from('mmo_rooms').select('*').eq('room_code', roomCode).maybeSingle();
-    if(rrowErr){ debugLog('อ่าน mmo_rooms ผิดพลาด: ' + rrowErr.message, 'error'); }
+    if(rrowErr){ debugLog('อ่าน mmo_rooms ผิดพลาด: ' + rrowErr.message, 'warn'); }
     if(rrow){
       debugLog('พบห้องเดิม: kills=' + rrow.kills);
       roomKillsTotal = rrow.kills || 0;
@@ -346,7 +348,7 @@ async function joinRoom(){
       if(rrow.last_drop) lastDropSeenTs = rrow.last_drop.ts || 0;
     } else {
       const { error: rInsErr } = await sb.from('mmo_rooms').insert({ room_code: roomCode, boss_hp:0, boss_max_hp:0, kills:0, monsters: monsters });
-      if(rInsErr) debugLog('สร้างห้องใหม่ผิดพลาด: ' + rInsErr.message, 'error');
+      if(rInsErr) debugLog('สร้างห้องใหม่ผิดพลาด: ' + rInsErr.message, 'warn');
       else debugLog('สร้างห้องใหม่สำเร็จ');
     }
 
@@ -370,7 +372,7 @@ async function joinRoom(){
         if(metas && metas.length) roster[k] = metas[metas.length-1];
       });
       presenceRoster = roster;
-      debugLog(`presence sync: เห็น ${Object.keys(roster).length} คน [${Object.keys(roster).join(', ')}] (ตัวเอง=${myId})`);
+      debugLog(`presence sync: เห็น ${Object.keys(roster).length} คน`);
       recomputeHost();
       renderRoster();
       if(isHost) processAttacks();
@@ -386,7 +388,6 @@ async function joinRoom(){
     channel.on('postgres_changes',
       { event:'UPDATE', schema:'public', table:'mmo_rooms', filter:`room_code=eq.${roomCode}` },
       (payload)=>{
-        debugLog('ได้รับ postgres_changes update สำหรับห้อง: kills=' + payload.new.kills);
         if(payload.new.monsters) monsters = payload.new.monsters;
         roomKillsTotal = payload.new.kills || 0;
         if(payload.new.last_drop && payload.new.last_drop.ts > lastDropSeenTs){
@@ -402,30 +403,28 @@ async function joinRoom(){
     );
 
     channel.subscribe(async (status, err)=>{
-      debugLog('channel status เปลี่ยนเป็น: ' + status + (err ? (' | error: ' + (err.message||err)) : ''), status==='SUBSCRIBED' ? 'info' : (status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED') ? 'error' : 'warn');
+      debugLog('channel status: ' + status + (err ? (' | ' + (err.message||err)) : ''), status==='SUBSCRIBED' ? 'info' : 'warn');
 
       if(status==='CHANNEL_ERROR' || status==='TIMED_OUT'){
         joinBtn.disabled=false; joinBtn.textContent='เข้าสู่ยุทธภพ';
-        alert('เชื่อมต่อ Realtime ไม่สำเร็จ (' + status + ') — ดูรายละเอียดใน Debug Log มุมขวาล่าง');
+        alert('เชื่อมต่อ Realtime ไม่สำเร็จ (' + status + ') กรุณาลองใหม่');
         return;
       }
 
       if(status==='SUBSCRIBED'){
         const current = channel.presenceState();
-        debugLog('subscribed แล้ว presence ปัจจุบัน: ' + Object.keys(current).length + ' คน');
         if(Object.keys(current).length >= MAX_PLAYERS){
-          alert('ห้องนี้เต็มแล้ว (ปาร์ตี้เต็ม 4 คน) ลองรหัสห้องอื่นครับ');
+          alert('ห้องนี้เต็มแล้ว (ปาร์ตี้เต็ม 4 คน)');
           await channel.unsubscribe();
           joinBtn.disabled=false; joinBtn.textContent='เข้าสู่ยุทธภพ';
           return;
         }
-        const trackResult = await channel.track(me);
-        debugLog('track ผลลัพธ์: ' + JSON.stringify(trackResult));
+        await channel.track(me);
 
         landing.style.display='none';
         gameEl.style.display='flex';
         roomTag.textContent = `ห้อง: ${roomCode}`;
-        statusEl.textContent = 'กำลังมองหาสหายร่วมยุทธภพ...';
+        statusEl.textContent = 'เข้าสู่ยุทธภพแล้ว!';
         updateMeHUD();
         gameActive=true;
         requestAnimationFrame(loop);
@@ -434,9 +433,8 @@ async function joinRoom(){
 
   }catch(err){
     debugLog('join ล้มเหลว: ' + (err.message||err), 'error');
-    console.error(err);
     joinBtn.disabled=false; joinBtn.textContent='เข้าสู่ยุทธภพ';
-    alert('เชื่อมต่อ Supabase ไม่สำเร็จ เช็ค URL/Key/ตารางอีกครั้งครับ');
+    alert('เชื่อมต่อ Supabase ไม่สำเร็จ ตรวจสอบ Key/ฐานข้อมูลอีกครั้ง');
   }
 }
 
@@ -454,7 +452,7 @@ function recomputeHost(){
 async function persistRoomMonsters(extra){
   const payload = Object.assign({ monsters: monsters, kills: roomKillsTotal }, extra||{});
   const { error } = await sb.from('mmo_rooms').update(payload).eq('room_code', roomCode);
-  if(error) debugLog('persistRoomMonsters ผิดพลาด: ' + error.message, 'error');
+  if(error) debugLog('persistRoomMonsters ผิดพลาด: ' + error.message, 'warn');
 }
 
 async function awardKillRewards(killerKey, monsterId){
@@ -462,7 +460,7 @@ async function awardKillRewards(killerKey, monsterId){
   const killerName = killer ? killer.name : null;
   const item = ITEM_POOL[Math.floor(Math.random()*ITEM_POOL.length)];
 
-  // EXP to everyone currently present (party-wide reward)
+  // แจก EXP ทุกคนในห้อง
   const allKeys = Object.keys(presenceRoster);
   for(const k of allKeys){
     const p = presenceRoster[k];
@@ -481,7 +479,7 @@ async function awardKillRewards(killerKey, monsterId){
     }catch(e){}
   }
 
-  // item drop to killer only
+  // ดรอปไอเทมให้ผู้สังหาร
   if(killerName){
     try{
       const { data: row } = await sb.from('mmo_players').select('*').eq('name', killerName).maybeSingle();
@@ -526,7 +524,7 @@ function processAttacks(){
       }
     });
   });
-  // also process own (host's) attack
+  
   if(me.attackAt && hostLastProcessed[myId]!==me.attackAt){
     hostLastProcessed[myId]=me.attackAt;
     monsters.forEach(m=>{
@@ -577,7 +575,7 @@ function updateMeHUD(){
   expBar.style.width = pct+'%';
 }
 
-// costume modal
+// เลือกชุด
 costumeBtn.addEventListener('click', ()=>{
   costumeList.innerHTML='';
   COSTUME_DEFS.forEach((c,idx)=>{
@@ -601,13 +599,14 @@ costumeBtn.addEventListener('click', ()=>{
 });
 closeCostume.addEventListener('click', ()=>{ costumeModal.style.display='none'; });
 
-// ---------- input ----------
+// จัดการ Input
 window.addEventListener('keydown', e=>{
   keys[e.key.toLowerCase()]=true;
   if(e.key===' '){ e.preventDefault(); tryAttack(); }
 });
 window.addEventListener('keyup', e=>{ keys[e.key.toLowerCase()]=false; });
 canvas.addEventListener('mousedown', tryAttack);
+
 function bindHold(id,key){
   const el=document.getElementById(id);
   el.addEventListener('touchstart', e=>{ e.preventDefault(); keys[key]=true; });
@@ -625,6 +624,7 @@ function tryAttack(){
   spawnSlash();
   trackNow();
 }
+
 function spawnSlash(){
   const dir=me.facing;
   const ox=me.x+dir*26, oy=me.y-40;
@@ -641,7 +641,7 @@ function spawnDeathBurstAt(x,y){
   }
 }
 
-// ---------- chat ----------
+// จัดการแชท
 chatform.addEventListener('submit', async e=>{
   e.preventDefault();
   const text = chatInput.value.trim();
@@ -651,6 +651,7 @@ chatform.addEventListener('submit', async e=>{
   addChatLine(myName, text);
   trackNow();
 });
+
 function addChatLine(name,text){
   chatMessages.unshift({name,text});
   chatMessages = chatMessages.slice(0,5);
@@ -659,16 +660,20 @@ function addChatLine(name,text){
 function escapeHtml(s){ return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 let seenChatAt={};
 
-let trackErrLoggedOnce=false;
+let isTracking=false;
 async function trackNow(){
-  if(!channel) return;
+  if(!channel || isTracking) return;
+  isTracking=true;
   try{
-    const res = await channel.track(me);
-    if(res!=='ok' && !trackErrLoggedOnce){ trackErrLoggedOnce=true; debugLog('track() ไม่ได้ผลลัพธ์ ok: ' + JSON.stringify(res), 'warn'); }
-  }catch(e){ debugLog('trackNow error: ' + e.message, 'error'); }
+    await channel.track(me);
+  }catch(e){
+    debugLog('track error: ' + e.message, 'warn');
+  } finally {
+    isTracking=false;
+  }
 }
 
-// ---------- loop ----------
+// Game Loop
 function loop(ts){
   if(!gameActive) return;
 
@@ -677,13 +682,21 @@ function loop(ts){
   if(keys['arrowright']||keys['d']) dx+=MOVE_SPEED;
   if(keys['arrowup']||keys['w']) dy-=MOVE_SPEED;
   if(keys['arrowdown']||keys['s']) dy+=MOVE_SPEED;
+  
   if(dx!==0) me.facing = dx>0?1:-1;
   me.x = Math.max(30, Math.min(ARENA_W-30, me.x+dx));
   me.y = Math.max(60, Math.min(ARENA_H-30, me.y+dy));
 
+  hasMoved = (dx!==0 || dy!==0);
+
   const now=Date.now();
   if(me.attacking && now>me.attackUntil) me.attacking=false;
-  if(ts-lastTrack>TRACK_MS){ lastTrack=ts; trackNow(); }
+
+  // ส่ง track เฉพาะตอนถึงรอบเวลาและมีการขยับตัว
+  if(ts-lastTrack>TRACK_MS){
+    lastTrack=ts;
+    if(hasMoved || me.attacking) trackNow();
+  }
 
   Object.keys(presenceRoster).forEach(k=>{
     if(k===myId) return;
@@ -758,7 +771,6 @@ function drawMonster(m){
   ctx.fillStyle='#ff5a5a'; ctx.shadowColor='#ff5a5a'; ctx.shadowBlur=12; ctx.fill();
   ctx.restore();
 
-  // hp bar above
   ctx.save();
   const w=60;
   ctx.translate(m.x-w/2, m.y-84);
