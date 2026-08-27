@@ -6,35 +6,57 @@ window.CombatSystem = {
     R: { cd: 7500, until: 0, mult: 5.2, range: 16.0 }
   },
   vfxObjects: [],
+
+  // แบ่งโซนเลเวลตามพิกัดและชนิดมอนสเตอร์
   monsters: [
-    { id: 'm1', x: 26, z: -22, hp: 280, maxHp: 280, alive: true, mesh: null, hpBarMesh: null, isBoss: false },
-    { id: 'm2', x: 28, z: 22, hp: 280, maxHp: 280, alive: true, mesh: null, hpBarMesh: null, isBoss: false },
-    { id: 'boss', x: 44, z: 0, hp: 850, maxHp: 850, alive: true, mesh: null, hpBarMesh: null, isBoss: true }
+    // โซน 1: นอกประตูทิศเหนือ (Lv.1 - Lv.3)
+    { id: 'm1', type: 'wolf', name: 'หมาป่าทมิฬ [Lv.2]', x: 15, z: -35, hp: 180, maxHp: 180, reqLvl: 1, alive: true, mesh: null, hpBarMesh: null, isBoss: false },
+    { id: 'm2', type: 'wolf', name: 'หมาป่าทมิฬ [Lv.2]', x: -15, z: -35, hp: 180, maxHp: 180, reqLvl: 1, alive: true, mesh: null, hpBarMesh: null, isBoss: false },
+    
+    // โซน 2: ป่าไผ่ทิศตะวันตก (Lv.4 - Lv.7)
+    { id: 'm3', type: 'bandit', name: 'โจรป่าไผ่ [Lv.5]', x: -45, z: 10, hp: 320, maxHp: 320, reqLvl: 4, alive: true, mesh: null, hpBarMesh: null, isBoss: false },
+    { id: 'm4', type: 'bandit', name: 'โจรป่าไผ่ [Lv.5]', x: -50, z: -15, hp: 320, maxHp: 320, reqLvl: 4, alive: true, mesh: null, hpBarMesh: null, isBoss: false },
+
+    // โซน 3: หุบเขาหินทิศตะวันออก (Lv.8 - Lv.12)
+    { id: 'm5', type: 'golem', name: 'โกเลมหินผา [Lv.9]', x: 45, z: 20, hp: 550, maxHp: 550, reqLvl: 8, alive: true, mesh: null, hpBarMesh: null, isBoss: false },
+    { id: 'm6', type: 'golem', name: 'โกเลมหินผา [Lv.9]', x: 50, z: -20, hp: 550, maxHp: 550, reqLvl: 8, alive: true, mesh: null, hpBarMesh: null, isBoss: false },
+
+    // โซน 4: ลานประลองบอสกลางเวหา (Lv.10+ World Boss)
+    { id: 'boss1', type: 'boss', name: 'มังกรศิลาพันปี [Boss Lv.15]', x: 55, z: 0, hp: 1400, maxHp: 1400, reqLvl: 10, alive: true, mesh: null, hpBarMesh: null, isBoss: true },
+    { id: 'boss2', type: 'boss', name: 'จอมโจรเงาทมิฬ [Elite Lv.8]', x: -55, z: -35, hp: 850, maxHp: 850, reqLvl: 6, alive: true, mesh: null, hpBarMesh: null, isBoss: true }
   ],
 
   initMonsters() {
     this.monsters.forEach(m => {
-      const scale = m.isBoss ? 1.8 : 1.0;
+      const scale = m.isBoss ? 2.0 : (m.type === 'golem' ? 1.4 : 1.0);
       const mon = new THREE.Group();
+      
+      let color = 0x4a1843;
+      if (m.type === 'wolf') color = 0x2b333d;
+      if (m.type === 'bandit') color = 0x5a2d1d;
+      if (m.type === 'golem') color = 0x3d3936;
+      if (m.isBoss) color = 0x54121b;
+
       const body = new THREE.Mesh(
-        new THREE.DodecahedronGeometry(1.2 * scale),
-        new THREE.MeshStandardMaterial({ color: m.isBoss ? 0x2d182e : 0x4a1843, roughness: 0.5 })
+        new THREE.DodecahedronGeometry(1.1 * scale),
+        new THREE.MeshStandardMaterial({ color, roughness: 0.5 })
       );
-      body.position.y = 1.2 * scale;
+      body.position.y = 1.1 * scale;
       body.castShadow = true;
 
-      const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.18 * scale, 8, 8), new THREE.MeshBasicMaterial({ color: 0xff2233 }));
-      eyeL.position.set(-0.35 * scale, 1.4 * scale, 0.95 * scale);
+      const eyeColor = m.isBoss ? 0xffbb00 : 0xff2233;
+      const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.16 * scale, 8, 8), new THREE.MeshBasicMaterial({ color: eyeColor }));
+      eyeL.position.set(-0.35 * scale, 1.35 * scale, 0.9 * scale);
       const eyeR = eyeL.clone();
-      eyeR.position.set(0.35 * scale, 1.4 * scale, 0.95 * scale);
+      eyeR.position.set(0.35 * scale, 1.35 * scale, 0.9 * scale);
       mon.add(body, eyeL, eyeR);
 
-      // หลอดเลือด 3D บนหัวมอนสเตอร์
-      const hpBg = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 0.3), new THREE.MeshBasicMaterial({ color: 0x000000 }));
-      const hpFill = new THREE.Mesh(new THREE.PlaneGeometry(2.3, 0.22), new THREE.MeshBasicMaterial({ color: 0xe63950 }));
+      // หลอดเลือด 3D
+      const hpBg = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.32), new THREE.MeshBasicMaterial({ color: 0x000000 }));
+      const hpFill = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 0.24), new THREE.MeshBasicMaterial({ color: m.isBoss ? 0xffaa00 : 0xe63950 }));
       hpFill.position.z = 0.01;
       hpBg.add(hpFill);
-      hpBg.position.set(0, m.isBoss ? 3.8 : 2.6, 0);
+      hpBg.position.set(0, scale * 2.2 + 0.6, 0);
       mon.add(hpBg);
 
       m.mesh = mon;
@@ -112,18 +134,19 @@ window.CombatSystem = {
         if (m.hp <= 0 && m.alive) {
           m.alive = false;
           m.mesh.visible = false;
-          const rewardExp = m.isBoss ? 260 : 60;
-          const rewardMoney = m.isBoss ? 200 : 35;
+          
+          const rewardExp = m.isBoss ? 450 : (m.type === 'golem' ? 140 : 60);
+          const rewardMoney = m.isBoss ? 300 : (m.type === 'golem' ? 80 : 35);
           const drops = m.isBoss ? ['spiritStone', 'spiritStone', 'potion'] : ['herb', 'spiritStone'];
 
           if (window.channel) {
             window.channel.send({
               type: 'broadcast', event: 'reward',
-              payload: { targetName: atk.name, exp: rewardExp, money: rewardMoney, drops, sourceName: m.isBoss ? 'จอมอสูรหิน' : 'อสูร' }
+              payload: { targetName: atk.name, exp: rewardExp, money: rewardMoney, drops, sourceName: m.name, monsterType: m.type }
             });
           }
           if (atk.name === window.myName) {
-            window.gainRewards(rewardExp, rewardMoney, drops, m.isBoss ? 'จอมอสูรหิน' : 'อสูร');
+            window.gainRewards(rewardExp, rewardMoney, drops, m.name, m.type);
           }
 
           setTimeout(() => {
@@ -131,7 +154,7 @@ window.CombatSystem = {
             m.alive = true;
             m.mesh.visible = true;
             if (m.hpBarMesh) m.hpBarMesh.scale.x = 1.0;
-          }, 8000);
+          }, m.isBoss ? 15000 : 7000);
         }
       }
     });
