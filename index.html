@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>刃義 · ยุทธภพ Sword of Justice v4</title>
+<title>刃義 · ยุทธภพ Sword of Justice</title>
 
 <script>
   window.SUPABASE_URL = "https://mflemycqwksuktvktlko.supabase.co";
@@ -15,31 +15,28 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;900&family=Noto+Sans+Thai:wght@400;600;700&display=swap');
 
 :root{
-  --ink:#0b0806; --ink-2:#16100c; --paper:#efe6d5;
+  --ink:#0d0907; --paper:#efe6d5;
   --gold:#d4af37; --gold-bright:#fae17d;
-  --crimson:#8b1e2f; --crimson-bright:#e63950;
-  --panel-bg: rgba(18, 13, 9, 0.94);
+  --crimson-bright:#e63950;
+  --panel-bg: rgba(18, 13, 9, 0.95);
 }
 *{ box-sizing:border-box; }
-html,body{ margin:0; height:100%; background:radial-gradient(ellipse at 50% 20%,#2a1c12 0%,var(--ink) 85%);
-  color:var(--paper); font-family:'Noto Sans Thai',sans-serif; overflow:hidden; user-select:none; }
-.brush-title{ font-family:'Noto Serif SC','Noto Sans Thai',serif; font-weight:900; letter-spacing:.08em; }
+html,body{ margin:0; height:100%; background:#0d0907; color:var(--paper); font-family:'Noto Sans Thai',sans-serif; overflow:hidden; user-select:none; }
+.brush-title{ font-family:'Noto Serif SC','Noto Sans Thai',serif; font-weight:900; }
 #app{ width:100%; height:100%; display:flex; align-items:center; justify-content:center; flex-direction:column; position:relative; }
 
-#landing{ display:flex; flex-direction:column; align-items:center; gap:14px; padding:32px; max-width:440px; text-align:center; background:var(--panel-bg); border:1px solid #5a452d; border-radius:8px; box-shadow:0 12px 40px rgba(0,0,0,0.8); }
+#landing{ display:flex; flex-direction:column; align-items:center; gap:14px; padding:32px; max-width:440px; text-align:center; background:var(--panel-bg); border:1px solid #5a452d; border-radius:8px; box-shadow:0 12px 40px rgba(0,0,0,0.8); z-index:20; }
 #landing h1{ font-size:2.2em; margin:0; color:var(--gold-bright); text-shadow:0 0 20px rgba(250,225,125,.4); }
 #landing .sub{ color:#bfae91; font-size:.9em; margin-top:-8px; }
-.divider{ width:160px; height:2px; background:linear-gradient(90deg,transparent,var(--gold),transparent); margin:4px 0; }
 .field{ display:flex; flex-direction:column; gap:6px; width:100%; text-align:left; }
 .field label{ font-size:.8em; color:#d2c4a7; font-weight:600; }
-.field input{ background:var(--ink-2); border:1px solid #5a452d; color:var(--paper); padding:11px 14px; border-radius:4px; font-size:1em; font-family:inherit; outline:none; }
+.field input{ background:#1c140e; border:1px solid #5a452d; color:var(--paper); padding:10px 14px; border-radius:4px; font-size:1em; font-family:inherit; outline:none; }
 .field input:focus{ border-color:var(--gold-bright); }
 button{ cursor:pointer; border:none; font-family:'Noto Sans Thai',sans-serif; font-weight:600; }
-#joinBtn{ margin-top:6px; width:100%; background:linear-gradient(180deg,#f3d36b,var(--gold)); color:#1a1205; padding:13px; font-size:1.08em; border-radius:4px; box-shadow:0 4px 20px rgba(212,175,55,.3); font-weight:700; }
-#joinBtn:hover{ filter:brightness(1.1); }
+#joinBtn{ width:100%; background:linear-gradient(180deg,#f3d36b,var(--gold)); color:#1a1205; padding:12px; font-size:1.05em; border-radius:4px; font-weight:700; }
 
 .classpick{ display:flex; gap:8px; width:100%; }
-.classbtn{ flex:1; padding:10px 4px; border:1px solid #5a452d; background:var(--ink-2); color:#bfae91; border-radius:4px; font-size:.78em; }
+.classbtn{ flex:1; padding:8px 4px; border:1px solid #5a452d; background:#1c140e; color:#bfae91; border-radius:4px; font-size:.78em; }
 .classbtn.active{ border-color:var(--gold-bright); color:var(--gold-bright); background:#312415; }
 
 #game{ display:none; flex-direction:column; align-items:center; width:100%; height:100%; position:relative; }
@@ -51,25 +48,22 @@ button{ cursor:pointer; border:none; font-family:'Noto Sans Thai',sans-serif; fo
 .bar-exp{ height:100%; background:linear-gradient(90deg,var(--gold),var(--gold-bright)); transition:width .3s; }
 
 #roster{ display:flex; gap:6px; flex-wrap:wrap; }
-.rostertag{ font-size:.72em; padding:4px 9px; border-radius:4px; border:1px solid #5a452d; color:#8e8067; background:rgba(0,0,0,.3); }
-.rostertag.active{ color:var(--gold-bright); border-color:#826639; background:rgba(212,175,55,.1); }
+.rostertag{ font-size:.72em; padding:4px 9px; border-radius:4px; border:1px solid #5a452d; color:var(--gold-bright); background:rgba(212,175,55,.1); }
 
-canvas{ background:#1c1712; border:2px solid #5a452d; border-radius:6px; box-shadow:0 12px 50px rgba(0,0,0,.8), inset 0 0 100px rgba(0,0,0,.6); touch-action:none; }
+canvas{ background:#1f1812; border:2px solid #5a452d; border-radius:6px; box-shadow:0 12px 50px rgba(0,0,0,.8); touch-action:none; }
 
-/* Action Skills Bar */
 #skillbar{ display:flex; gap:12px; margin-top:10px; z-index:10; }
-.skill-btn{ width:60px; height:60px; border-radius:8px; background:linear-gradient(145deg, #2a1f18, #140d09); border:2px solid #6b5334; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--gold-bright); position:relative; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,.5); }
-.skill-btn:active{ transform:scale(0.95); }
+.skill-btn{ width:60px; height:60px; border-radius:8px; background:linear-gradient(145deg, #2a1f18, #140d09); border:2px solid #6b5334; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--gold-bright); position:relative; overflow:hidden; cursor:pointer; }
 .skill-btn .key{ font-size:.7em; color:#a89679; position:absolute; top:2px; left:4px; }
 .skill-btn .name{ font-size:.72em; font-weight:700; margin-top:14px; }
-.skill-btn .cd-overlay{ position:absolute; inset:0; background:rgba(0,0,0,0.7); height:0%; top:0; transition:height .1s linear; }
+.skill-btn .cd-overlay{ position:absolute; inset:0; background:rgba(0,0,0,0.7); height:0%; top:0; }
 
-#status{ margin-top:6px; font-size:.82em; color:#dcd2be; min-height:1.2em; }
+#status{ margin-top:6px; font-size:.82em; color:#dcd2be; }
 #room-tag{ position:absolute; top:12px; left:50%; transform:translateX(-50%); font-size:.75em; color:#a39274; background:rgba(0,0,0,.5); padding:3px 12px; border-radius:12px; border:1px solid #4a3822; }
 
 #chatlog{ position:absolute; left:16px; bottom:16px; width:260px; max-height:120px; overflow:hidden; font-size:.75em; color:#dcd2be; display:flex; flex-direction:column-reverse; gap:3px; pointer-events:none; }
 #chatform{ display:flex; gap:6px; margin-top:6px; width:min(960px,94vw); }
-#chatInput{ flex:1; background:var(--ink-2); border:1px solid #5a452d; color:var(--paper); padding:8px 12px; border-radius:4px; font-family:inherit; font-size:.85em; outline:none; }
+#chatInput{ flex:1; background:#1c140e; border:1px solid #5a452d; color:var(--paper); padding:8px 12px; border-radius:4px; font-family:inherit; font-size:.85em; outline:none; }
 #chatSendBtn{ background:linear-gradient(180deg,#f3d36b,var(--gold)); color:#1a1205; padding:0 16px; border-radius:4px; font-size:.85em; font-weight:700; }
 
 #toast{ position:absolute; top:60px; left:50%; transform:translateX(-50%); font-size:.88em; color:var(--gold-bright); background:rgba(18,13,9,.92); padding:8px 20px; border-radius:20px; border:1px solid var(--gold); display:none; z-index:40; }
@@ -82,7 +76,6 @@ canvas{ background:#1c1712; border:2px solid #5a452d; border-radius:6px; box-sha
     <div class="brush-title" style="font-size:.85em;letter-spacing:.3em;color:#a89779;">刃 義</div>
     <h1 class="brush-title">เมืองลั่วหยาง</h1>
     <div class="sub">Sword of Justice · สกิลวิชายุทธ์เต็มรูปแบบ</div>
-    <div class="divider"></div>
 
     <div class="field">
       <label>ชื่อจอมยุทธ์</label>
@@ -102,7 +95,7 @@ canvas{ background:#1c1712; border:2px solid #5a452d; border-radius:6px; box-sha
     </div>
     <div class="field">
       <label>รหัสห้องเมือง</label>
-      <input id="roomInput" maxlength="16" placeholder="เช่น luoyang888" />
+      <input id="roomInput" maxlength="16" placeholder="เช่น tpe888" />
     </div>
 
     <button id="joinBtn">เข้าสู่เมืองยุทธภพ</button>
@@ -122,7 +115,6 @@ canvas{ background:#1c1712; border:2px solid #5a452d; border-radius:6px; box-sha
 
     <canvas id="canvas" width="960" height="460"></canvas>
 
-    <!-- Skill Bar -->
     <div id="skillbar">
       <div class="skill-btn" id="btnAtk" onclick="tryAttack()">
         <span class="key">Space</span>
@@ -146,7 +138,7 @@ canvas{ background:#1c1712; border:2px solid #5a452d; border-radius:6px; box-sha
       </div>
     </div>
 
-    <div id="status">กำลังเชื่อมต่อ...</div>
+    <div id="status">ยินดีต้อนรับสู่ลานเมืองยุทธภพ</div>
 
     <form id="chatform">
       <input id="chatInput" maxlength="60" placeholder="พิมพ์คุยในเมือง..." autocomplete="off" />
@@ -161,16 +153,15 @@ canvas{ background:#1c1712; border:2px solid #5a452d; border-radius:6px; box-sha
 (function(){
 "use strict";
 
-const ARENA_W=960, ARENA_H=460;
-const MOVE_SPEED=4.0;
-const PLAYER_MAX_HP=150;
-const MONSTER_MAX_HP=250;
-const EXP_PER_KILL=50;
+const ARENA_W = 960, ARENA_H = 460;
+const MOVE_SPEED = 4.2;
+const PLAYER_MAX_HP = 150;
+const MONSTER_MAX_HP = 250;
+const EXP_PER_KILL = 50;
 
-// ตำแหน่งมอนสเตอร์นอกประตูลานเมือง
 const MONSTER_SPAWNS = [
-  { id:'m1', x:750, y:180 },
-  { id:'m2', x:750, y:320 },
+  { id:'m1', x:780, y:180, hp:MONSTER_MAX_HP, maxHp:MONSTER_MAX_HP, alive:true },
+  { id:'m2', x:780, y:330, hp:MONSTER_MAX_HP, maxHp:MONSTER_MAX_HP, alive:true },
 ];
 
 let sb=null, channel=null;
@@ -184,49 +175,47 @@ let petals=[];
 let chatMessages=[];
 let lastSyncTime=0;
 
-// Cooldowns
 let cooldowns = {
-  atk: { cd: 400, until: 0 },
-  Q: { cd: 2500, until: 0, dmg: 35, range: 120 },
-  E: { cd: 5000, until: 0, dmg: 55, range: 160 },
-  R: { cd: 8000, until: 0, dmg: 85, range: 200 }
+  atk: { cd: 380, until: 0, dmg: 20, range: 90 },
+  Q: { cd: 2000, until: 0, dmg: 40, range: 140 },
+  E: { cd: 4500, until: 0, dmg: 60, range: 180 },
+  R: { cd: 7500, until: 0, dmg: 95, range: 220 }
 };
 
 let me = {
   id:'', x:250, y:230, facing:1, attacking:false, attackUntil:0,
-  name:'', classIdx:0, guild:'', costume:0,
+  name:'', classIdx:0, guild:'',
   hp:PLAYER_MAX_HP, maxHp:PLAYER_MAX_HP, isDead:false, respawnAt:0,
   joinedAt:0
 };
 
 let otherPlayers = {};
 let myProgress = { level:1, exp:0 };
-let monsters = MONSTER_SPAWNS.map(s=>({ id:s.id, x:s.x, y:s.y, hp:MONSTER_MAX_HP, maxHp:MONSTER_MAX_HP, alive:true }));
+let monsters = JSON.parse(JSON.stringify(MONSTER_SPAWNS));
 
-const landing=document.getElementById('landing');
-const gameEl=document.getElementById('game');
-const joinBtn=document.getElementById('joinBtn');
-const nameInput=document.getElementById('nameInput');
-const roomInput=document.getElementById('roomInput');
-const guildInput=document.getElementById('guildInput');
-const classPick=document.getElementById('classPick');
-const statusEl=document.getElementById('status');
-const roomTag=document.getElementById('room-tag');
-const rosterEl=document.getElementById('roster');
-const chatlogEl=document.getElementById('chatlog');
-const chatform=document.getElementById('chatform');
-const chatInput=document.getElementById('chatInput');
-const canvas=document.getElementById('canvas');
-const ctx=canvas.getContext('2d');
-const lvText=document.getElementById('lvText');
-const guildText=document.getElementById('guildText');
-const myHpBar=document.getElementById('myHpBar');
-const expBar=document.getElementById('expBar');
-const toastEl=document.getElementById('toast');
+const landing = document.getElementById('landing');
+const gameEl = document.getElementById('game');
+const joinBtn = document.getElementById('joinBtn');
+const nameInput = document.getElementById('nameInput');
+const roomInput = document.getElementById('roomInput');
+const guildInput = document.getElementById('guildInput');
+const classPick = document.getElementById('classPick');
+const statusEl = document.getElementById('status');
+const roomTag = document.getElementById('room-tag');
+const rosterEl = document.getElementById('roster');
+const chatlogEl = document.getElementById('chatlog');
+const chatform = document.getElementById('chatform');
+const chatInput = document.getElementById('chatInput');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const lvText = document.getElementById('lvText');
+const guildText = document.getElementById('guildText');
+const myHpBar = document.getElementById('myHpBar');
+const expBar = document.getElementById('expBar');
+const toastEl = document.getElementById('toast');
 
-// สร้างกลีบดอกท้อปลิวในเมือง
-for(let i=0; i<30; i++){
-  petals.push({ x:Math.random()*ARENA_W, y:Math.random()*ARENA_H, vx:0.8+Math.random()*1.2, vy:0.4+Math.random()*0.8, size:3+Math.random()*3 });
+for(let i=0; i<25; i++){
+  petals.push({ x:Math.random()*ARENA_W, y:Math.random()*ARENA_H, vx:0.8+Math.random(), vy:0.4+Math.random(), size:3+Math.random()*3 });
 }
 
 classPick.querySelectorAll('.classbtn').forEach(btn=>{
@@ -241,16 +230,16 @@ joinBtn.addEventListener('click', joinRoom);
 [nameInput, roomInput, guildInput].forEach(inp=> inp.addEventListener('keydown', e=>{ if(e.key==='Enter') joinRoom(); }));
 
 function genId(){ return 'p_' + Math.random().toString(36).slice(2,8); }
-function expNeeded(level){ return 120 * level; }
+function expNeeded(level){ return 100 * level; }
 function showToast(msg){
   toastEl.textContent = msg;
   toastEl.style.display='block';
   clearTimeout(showToast._t);
-  showToast._t = setTimeout(()=>{ toastEl.style.display='none'; }, 3200);
+  showToast._t = setTimeout(()=>{ toastEl.style.display='none'; }, 3000);
 }
 
-function addDamagePopup(x, y, text, color='#ffd13b'){
-  popups.push({ x: x + (Math.random()-0.5)*20, y: y - 25, text, color, life: 1.0 });
+function addDamagePopup(x, y, text, color='#fae17d'){
+  popups.push({ x: x + (Math.random()-0.5)*20, y: y - 30, text, color, life: 1.0 });
 }
 
 async function joinRoom(){
@@ -284,29 +273,25 @@ async function joinRoom(){
     });
 
     channel.on('broadcast', { event: 'pos' }, ({ payload }) => {
-      if(payload.id && payload.id !== myId){
+      if(payload && payload.id && payload.id !== myId){
         otherPlayers[payload.id] = Object.assign(otherPlayers[payload.id] || {}, payload);
       }
     });
 
     channel.on('broadcast', { event: 'skill' }, ({ payload }) => {
-      if(payload.id !== myId){
+      if(payload && payload.id !== myId){
         triggerSkillVisuals(payload.skill, payload.x, payload.y, payload.facing);
       }
       if(isHost) checkSkillHitMonster(payload);
       checkSkillHitMe(payload);
     });
 
-    channel.on('broadcast', { event: 'monsters' }, ({ payload }) => {
-      if(!isHost && payload.monsters) monsters = payload.monsters;
-    });
-
     channel.on('broadcast', { event: 'reward' }, ({ payload }) => {
-      if(payload.targetName === myName) gainExp(payload.exp, payload.sourceName);
+      if(payload && payload.targetName === myName) gainExp(payload.exp, payload.sourceName);
     });
 
     channel.on('broadcast', { event: 'chat' }, ({ payload }) => {
-      addChatLine(payload.name, payload.text);
+      if(payload) addChatLine(payload.name, payload.text);
     });
 
     channel.on('presence', { event: 'sync' }, () => {
@@ -336,7 +321,6 @@ async function joinRoom(){
         landing.style.display = 'none';
         gameEl.style.display = 'flex';
         roomTag.textContent = `ลานเมือง: ${roomCode}`;
-        statusEl.textContent = 'ยินดีต้อนรับสู่ลานเมืองยุทธภพ';
         updateMeHUD();
         gameActive = true;
         requestAnimationFrame(loop);
@@ -348,7 +332,6 @@ async function joinRoom(){
   }
 }
 
-// ---------------- สกิล & การต่อสู้ ----------------
 window.castSkill = function(skillKey){
   if(!gameActive || me.isDead) return;
   const sk = cooldowns[skillKey];
@@ -371,39 +354,36 @@ window.tryAttack = function(){
 
 function triggerSkillVisuals(skill, x, y, facing){
   if(skill === 'atk' || skill === 'Q'){
-    // คลื่นดาบตัดเมฆาพุ่ง
     const color = skill === 'Q' ? '#fae17d' : '#ffffff';
     skillProjectiles.push({
-      x: x + facing*30, y: y-35, vx: facing * (skill==='Q'?9:6), vy: 0,
-      size: skill==='Q'?30:15, life: 1, color, skill
+      x: x + facing*35, y: y-30, vx: facing * (skill==='Q'?10:7),
+      size: skill==='Q'?26:14, life: 1, color
     });
   } else if(skill === 'E'){
-    // ฝนหมื่นกระบี่หล่นจากฟ้า
     for(let i=0; i<12; i++){
       setTimeout(()=>{
         particles.push({
           x: x + (Math.random()-0.5)*180, y: y - 160,
           vx: (Math.random()-0.5)*2, vy: 10 + Math.random()*4,
-          life: 1, decay: 0.04, r: 3, color: '#68d391', type: 'sword'
+          life: 1, decay: 0.035, r: 3.5, color: '#48bb78'
         });
       }, i * 30);
     }
   } else if(skill === 'R'){
-    // ปราณมังกรระเบิดรอบทิศทาง
     for(let i=0; i<45; i++){
       const angle = (i / 45) * Math.PI * 2;
       particles.push({
-        x: x, y: y-30,
-        vx: Math.cos(angle) * (6 + Math.random()*3),
-        vy: Math.sin(angle) * (6 + Math.random()*3),
-        life: 1, decay: 0.03, r: 4, color: '#f56565', type: 'fire'
+        x: x, y: y-25,
+        vx: Math.cos(angle) * (7 + Math.random()*3),
+        vy: Math.sin(angle) * (7 + Math.random()*3),
+        life: 1, decay: 0.03, r: 4, color: '#e63950'
       });
     }
   }
 }
 
 function checkSkillHitMe(atk){
-  if(me.isDead) return;
+  if(me.isDead || !atk) return;
   const dist = Math.hypot(atk.x - me.x, atk.y - me.y);
   if(dist < atk.range){
     me.hp = Math.max(0, me.hp - atk.dmg);
@@ -413,7 +393,7 @@ function checkSkillHitMe(atk){
     if(me.hp <= 0){
       me.isDead = true;
       me.respawnAt = Date.now() + 3500;
-      showToast(`ท่านพ่ายแพ้ให้กับวิชาของ [${atk.name}] !`);
+      showToast(`ท่านพ่ายแพ้ให้กับ [${atk.name}] !`);
       if(channel){
         channel.send({
           type: 'broadcast',
@@ -426,14 +406,13 @@ function checkSkillHitMe(atk){
 }
 
 function checkSkillHitMonster(atk){
-  let changed = false;
+  if(!atk) return;
   monsters.forEach(m => {
     if(!m.alive) return;
     const dist = Math.hypot(atk.x - m.x, atk.y - m.y);
     if(dist < atk.range){
       m.hp = Math.max(0, m.hp - atk.dmg);
-      addDamagePopup(m.x, m.y, `CRIT -${atk.dmg}!`, '#fae17d');
-      changed = true;
+      addDamagePopup(m.x, m.y, `-${atk.dmg}`, '#ffd13b');
       if(m.hp <= 0 && m.alive){
         m.alive = false;
         if(channel){
@@ -446,13 +425,12 @@ function checkSkillHitMonster(atk){
         if(atk.name === myName) gainExp(EXP_PER_KILL, 'อสูรนอกเมือง');
 
         setTimeout(() => {
-          m.hp = m.maxHp; m.alive = true;
-          if(channel) channel.send({ type:'broadcast', event:'monsters', payload:{ monsters } });
+          m.hp = m.maxHp || MONSTER_MAX_HP;
+          m.alive = true;
         }, 5000);
       }
     }
   });
-  if(changed && channel) channel.send({ type:'broadcast', event:'monsters', payload:{ monsters } });
 }
 
 async function gainExp(amount, fromWho){
@@ -473,7 +451,7 @@ function renderRoster(state){
   userKeys.forEach(k => {
     const u = state[k]?.[0] || {};
     const span = document.createElement('span');
-    span.className = 'rostertag active';
+    span.className = 'rostertag';
     span.textContent = (u.guild ? `[${u.guild}] ` : '') + (u.name || 'จอมยุทธ์');
     rosterEl.appendChild(span);
   });
@@ -486,7 +464,6 @@ function updateMeHUD(){
   expBar.style.width = Math.min(100, (myProgress.exp / expNeeded(myProgress.level)) * 100) + '%';
 }
 
-// Key Inputs
 window.addEventListener('keydown', e=>{
   keys[e.key.toLowerCase()] = true;
   if(e.key === ' ') { e.preventDefault(); tryAttack(); }
@@ -497,7 +474,6 @@ window.addEventListener('keydown', e=>{
 window.addEventListener('keyup', e=>{ keys[e.key.toLowerCase()] = false; });
 canvas.addEventListener('mousedown', tryAttack);
 
-// Chat
 chatform.addEventListener('submit', e=>{
   e.preventDefault();
   const text = chatInput.value.trim();
@@ -513,7 +489,6 @@ function addChatLine(name, text){
   chatlogEl.innerHTML = chatMessages.map(m=>`<div><b style="color:var(--gold-bright)">${m.name}:</b> ${m.text}</div>`).join('');
 }
 
-// ---------------- Game Loop ----------------
 function loop(ts){
   if(!gameActive) return;
 
@@ -537,7 +512,6 @@ function loop(ts){
     me.y = Math.max(80, Math.min(ARENA_H - 40, me.y + dy));
   }
 
-  // Update Cooldown Overlays
   const now = Date.now();
   ['atk','Q','E','R'].forEach(k => {
     const el = document.getElementById('cd' + (k==='atk'?'Atk':k));
@@ -548,7 +522,6 @@ function loop(ts){
     }
   });
 
-  // Sync Position
   if(ts - lastSyncTime > 160 && channel){
     lastSyncTime = ts;
     channel.send({
@@ -557,26 +530,20 @@ function loop(ts){
       payload: {
         id: myId, name: myName, guild: myGuild,
         x: me.x, y: me.y, facing: me.facing,
-        classIdx: me.classIdx, hp: me.hp, maxHp: me.maxHp, isDead: me.isDead
+        hp: me.hp, maxHp: me.maxHp, isDead: me.isDead
       }
     });
   }
 
-  // Petals
   petals.forEach(p => {
     p.x += p.vx; p.y += p.vy;
     if(p.x > ARENA_W) p.x = 0;
     if(p.y > ARENA_H) p.y = 0;
   });
 
-  // Projectiles
-  skillProjectiles.forEach(p => {
-    p.x += p.vx;
-    p.life -= 0.03;
-  });
+  skillProjectiles.forEach(p => { p.x += p.vx; p.life -= 0.03; });
   skillProjectiles = skillProjectiles.filter(p => p.life > 0);
 
-  // Particles
   particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.life -= p.decay; });
   particles = particles.filter(p => p.life > 0);
 
@@ -587,37 +554,35 @@ function loop(ts){
   requestAnimationFrame(loop);
 }
 
-// ---------------- วาดฉากเมือง & ตัวละคร ----------------
 function drawCityEnvironment(){
-  // 1. พื้นลานหินปูเมือง
-  ctx.fillStyle = '#221a14';
+  // ลานเมืองหิน
+  ctx.fillStyle = '#261e17';
   ctx.fillRect(0, 0, ARENA_W, ARENA_H);
 
-  ctx.strokeStyle = '#32261c';
+  ctx.strokeStyle = '#382c22';
   ctx.lineWidth = 1;
-  for(let gx=0; gx<ARENA_W; gx+=60){ ctx.beginPath(); ctx.moveTo(gx,0); ctx.lineTo(gx,ARENA_H); ctx.stroke(); }
-  for(let gy=0; gy<ARENA_H; gy+=60){ ctx.beginPath(); ctx.moveTo(0,gy); ctx.lineTo(ARENA_W,gy); ctx.stroke(); }
+  for(let gx=0; gx<ARENA_W; gx+=50){ ctx.beginPath(); ctx.moveTo(gx,0); ctx.lineTo(gx,ARENA_H); ctx.stroke(); }
+  for(let gy=0; gy<ARENA_H; gy+=50){ ctx.beginPath(); ctx.moveTo(0,gy); ctx.lineTo(ARENA_W,gy); ctx.stroke(); }
 
-  // 2. ซุ้มประตูเมืองจีน & ศาลา (ด้านซ้ายและบน)
-  ctx.fillStyle = '#421616';
-  ctx.fillRect(40, 20, 160, 24); // คานซุ้มประตู
+  // ซุ้มประตูเมือง
+  ctx.fillStyle = '#6b1d1d';
+  ctx.fillRect(40, 20, 180, 26);
   ctx.fillStyle = '#d4af37';
-  ctx.fillRect(44, 16, 152, 4);
+  ctx.fillRect(44, 16, 172, 4);
 
-  // โคมไฟแดงห้อย
-  [60, 180, 520, 680].forEach(lx => {
-    ctx.beginPath(); ctx.arc(lx, 50, 9, 0, Math.PI*2);
-    ctx.fillStyle = '#e63950'; ctx.shadowColor = '#ff4d4d'; ctx.shadowBlur = 12; ctx.fill();
-    ctx.shadowBlur = 0;
+  // โคมไฟแดง
+  [60, 200, 520, 700].forEach(lx => {
+    ctx.beginPath(); ctx.arc(lx, 50, 10, 0, Math.PI*2);
+    ctx.fillStyle = '#e63950'; ctx.fill();
   });
 
-  // 3. ป้ายชื่อเมืองกลางลาน
-  ctx.font = 'bold 22px "Noto Serif SC"';
-  ctx.fillStyle = 'rgba(212,175,55,0.15)';
+  // ป้ายชื่อเมือง
+  ctx.font = 'bold 22px "Noto Serif SC", serif';
+  ctx.fillStyle = 'rgba(212,175,55,0.2)';
   ctx.textAlign = 'center';
   ctx.fillText('洛 陽 城 (ลานเมืองลั่วหยาง)', 480, 240);
 
-  // 4. วาดกลีบดอกท้อปลิว
+  // กลีบดอกท้อ
   petals.forEach(p => {
     ctx.beginPath();
     ctx.ellipse(p.x, p.y, p.size, p.size/2, Math.PI/4, 0, Math.PI*2);
@@ -627,146 +592,140 @@ function drawCityEnvironment(){
 }
 
 function drawHero(p){
+  if(!p) return;
+  const px = p.x || 200;
+  const py = p.y || 200;
+
   if(p.isDead){
     ctx.save();
-    ctx.translate(p.x, p.y);
+    ctx.translate(px, py);
     ctx.fillStyle = 'rgba(0,0,0,0.5)';
     ctx.beginPath(); ctx.ellipse(0, 0, 24, 7, 0, Math.PI*2); ctx.fill();
-    ctx.font = '11px "Noto Sans Thai"'; ctx.fillStyle = '#ff5a5a'; ctx.textAlign = 'center';
+    ctx.font = '12px "Noto Sans Thai"'; ctx.fillStyle = '#ff5a5a'; ctx.textAlign = 'center';
     ctx.fillText('สลบ...', 0, -12);
     ctx.restore();
     return;
   }
 
   ctx.save();
-  ctx.translate(p.x, p.y);
+  ctx.translate(px, py);
   ctx.scale(p.facing || 1, 1);
 
   // เงา
   ctx.beginPath(); ctx.ellipse(0, 4, 22, 6, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fill();
+  ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fill();
 
-  // ผ้าคลุมจอมยุทธ์ยาวพริ้ว
+  // ผ้าคลุมสีแดงเลือดหมู
   ctx.beginPath();
   ctx.moveTo(-8, -48); ctx.quadraticCurveTo(-26, -20, -18, -2);
   ctx.lineTo(-4, -2); ctx.quadraticCurveTo(-8, -25, -2, -48);
-  ctx.fillStyle = '#6b1420'; ctx.fill();
+  ctx.fillStyle = '#8b1e2f'; ctx.fill();
 
-  // ชุดจอมยุทธ์ Hanfu พริ้วไหว
+  // ชุดจอมยุทธ์ทองคำพริ้วไหว
   ctx.beginPath();
-  ctx.moveTo(-10, -50); ctx.lineTo(10, -50);
-  ctx.quadraticCurveTo(16, -20, 11, 0); ctx.lineTo(-11, 0);
-  ctx.quadraticCurveTo(-16, -20, -10, -50);
+  ctx.moveTo(-12, -50); ctx.lineTo(12, -50);
+  ctx.quadraticCurveTo(18, -20, 12, 0); ctx.lineTo(-12, 0);
+  ctx.quadraticCurveTo(-18, -20, -12, -50);
   ctx.fillStyle = '#d4af37'; ctx.fill();
-  ctx.strokeStyle = '#2d1e12'; ctx.lineWidth = 1.2; ctx.stroke();
+  ctx.strokeStyle = '#2d1e12'; ctx.lineWidth = 1.5; ctx.stroke();
 
-  // ผ้าคาดเอว
-  ctx.fillStyle = '#fae17d'; ctx.fillRect(-11, -26, 22, 6);
+  // ผ้าคาดเอวสีทองสว่าง
+  ctx.fillStyle = '#fae17d'; ctx.fillRect(-12, -26, 24, 6);
 
-  // หัว & ทรงผมจอมยุทธ์
-  ctx.beginPath(); ctx.arc(0, -60, 10, 0, Math.PI * 2); ctx.fillStyle = '#fce5cd'; ctx.fill();
-  ctx.fillStyle = '#1c1510';
-  ctx.fillRect(3, -62, 3, 2); // ตา
+  // หัว & ใบหน้า
+  ctx.beginPath(); ctx.arc(0, -60, 11, 0, Math.PI * 2); ctx.fillStyle = '#fce5cd'; ctx.fill();
+  ctx.fillStyle = '#1c1510'; ctx.fillRect(3, -62, 3, 2);
 
-  // หมวกงอบไม้ไผ่ยอดฝีมือ
+  // หมวกงอบไม้ไผ่
   ctx.beginPath();
-  ctx.moveTo(-18, -66); ctx.lineTo(0, -78); ctx.lineTo(18, -66);
-  ctx.fillStyle = '#bfa15f'; ctx.fill();
-  ctx.strokeStyle = '#5a421b'; ctx.stroke();
+  ctx.moveTo(-20, -66); ctx.lineTo(0, -80); ctx.lineTo(20, -66);
+  ctx.fillStyle = '#c5a059'; ctx.fill();
+  ctx.strokeStyle = '#5a421b'; ctx.lineWidth = 1.2; ctx.stroke();
 
-  // ดาบสะพายหลัง
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(8, -48, 3, 34);
+  // กระบี่เรืองแสง
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(8, -48, 4, 34);
 
   ctx.restore();
 
   // หลอดเลือดและชื่อ
   ctx.save();
-  ctx.font = '11px "Noto Sans Thai",sans-serif'; ctx.textAlign = 'center';
+  ctx.font = 'bold 12px "Noto Sans Thai",sans-serif'; ctx.textAlign = 'center';
   ctx.fillStyle = (p.id === myId) ? '#fae17d' : '#ffffff';
-  ctx.fillText((p.guild ? `[${p.guild}] ` : '') + (p.name || ''), p.x, p.y - 84);
+  ctx.fillText((p.guild ? `[${p.guild}] ` : '') + (p.name || 'จอมยุทธ์'), px, py - 86);
 
-  const barW = 44, barH = 4;
-  ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(p.x - barW/2, p.y - 80, barW, barH);
-  ctx.fillStyle = '#e63950'; ctx.fillRect(p.x - barW/2, p.y - 80, barW * Math.max(0, (p.hp || PLAYER_MAX_HP) / (p.maxHp || PLAYER_MAX_HP)), barH);
+  const curHp = p.hp != null ? p.hp : PLAYER_MAX_HP;
+  const maxHp = p.maxHp || PLAYER_MAX_HP;
+  const barW = 46, barH = 5;
+  ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillRect(px - barW/2, py - 82, barW, barH);
+  ctx.fillStyle = '#e63950'; ctx.fillRect(px - barW/2, py - 82, barW * Math.max(0, Math.min(1, curHp / maxHp)), barH);
   ctx.restore();
 }
 
 function drawMonster(m){
+  if(!m || !m.alive) return;
+  const mx = m.x || 700;
+  const my = m.y || 200;
+
   ctx.save();
-  ctx.translate(m.x, m.y);
-  if(!m.alive){ ctx.restore(); return; }
+  ctx.translate(mx, my);
 
   // เงา
-  ctx.beginPath(); ctx.ellipse(0, 8, 40, 10, 0, Math.PI * 2); ctx.fillStyle = 'rgba(0,0,0,.45)'; ctx.fill();
+  ctx.beginPath(); ctx.ellipse(0, 8, 42, 12, 0, Math.PI * 2); ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.fill();
 
-  // ตัวอสูรเงา
+  // ตัวอสูรสีม่วงเข้ม
   ctx.beginPath();
-  ctx.moveTo(-30, 10); ctx.quadraticCurveTo(-44, -30, -10, -56);
-  ctx.quadraticCurveTo(0, -62, 10, -56); ctx.quadraticCurveTo(44, -30, 30, 10);
+  ctx.moveTo(-32, 10); ctx.quadraticCurveTo(-46, -30, -10, -58);
+  ctx.quadraticCurveTo(0, -64, 10, -58); ctx.quadraticCurveTo(46, -30, 32, 10);
   ctx.closePath();
-  ctx.fillStyle = '#2d182e'; ctx.fill();
-  ctx.strokeStyle = '#802671'; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.fillStyle = '#5c1d56'; ctx.fill();
+  ctx.strokeStyle = '#fae17d'; ctx.lineWidth = 2; ctx.stroke();
 
-  // ตาแดง
-  ctx.beginPath(); ctx.arc(-8, -34, 4, 0, Math.PI * 2); ctx.arc(8, -34, 4, 0, Math.PI * 2);
-  ctx.fillStyle = '#ff3344'; ctx.shadowColor = '#ff3344'; ctx.shadowBlur = 10; ctx.fill();
+  // ตาแดงเรืองแสง
+  ctx.beginPath(); ctx.arc(-10, -34, 5, 0, Math.PI * 2); ctx.arc(10, -34, 5, 0, Math.PI * 2);
+  ctx.fillStyle = '#ff3344'; ctx.fill();
+
   ctx.restore();
 
-  // หลอดเลือด
+  // หลอดเลือดมอนสเตอร์
   ctx.save();
-  const w = 50;
-  ctx.translate(m.x - w/2, m.y - 74);
-  ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(0, 0, w, 5);
-  ctx.fillStyle = '#e63950'; ctx.fillRect(0, 0, w * (m.hp / m.maxHp), 5);
+  const curHp = m.hp != null ? m.hp : MONSTER_MAX_HP;
+  const maxHp = m.maxHp || MONSTER_MAX_HP;
+  const w = 54;
+  ctx.translate(mx - w/2, my - 76);
+  ctx.fillStyle = 'rgba(0,0,0,.7)'; ctx.fillRect(0, 0, w, 6);
+  ctx.fillStyle = '#e63950'; ctx.fillRect(0, 0, w * Math.max(0, Math.min(1, curHp / maxHp)), 6);
   ctx.restore();
 }
 
 function render(){
   ctx.clearRect(0, 0, ARENA_W, ARENA_H);
 
-  // วาดฉากเมือง
   drawCityEnvironment();
-
-  // วาดมอนสเตอร์
   monsters.forEach(drawMonster);
 
-  // วาดผู้เล่นอื่น
   Object.values(otherPlayers).forEach(drawHero);
-
-  // วาดตัวเอง
   drawHero(me);
 
-  // วาดคมดาบพุ่ง (Projectiles)
   skillProjectiles.forEach(p => {
     ctx.save();
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
-    ctx.fillStyle = p.color;
-    ctx.shadowColor = p.color; ctx.shadowBlur = 18;
-    ctx.fill();
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+    ctx.fillStyle = p.color; ctx.fill();
     ctx.restore();
   });
 
-  // วาด Particles สกิล
   particles.forEach(p => {
     ctx.save();
     ctx.globalAlpha = Math.max(0, p.life);
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-    ctx.fillStyle = p.color;
-    ctx.shadowColor = p.color; ctx.shadowBlur = 8;
-    ctx.fill();
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = p.color; ctx.fill();
     ctx.restore();
   });
 
-  // ตัวเลขดาเมจ
   popups.forEach(p => {
     ctx.save();
     ctx.globalAlpha = Math.max(0, p.life);
-    ctx.font = 'bold 15px "Noto Sans Thai",sans-serif';
+    ctx.font = 'bold 16px "Noto Sans Thai",sans-serif';
     ctx.fillStyle = p.color;
-    ctx.shadowColor = '#000'; ctx.shadowBlur = 4;
     ctx.textAlign = 'center';
     ctx.fillText(p.text, p.x, p.y);
     ctx.restore();
