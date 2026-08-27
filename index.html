@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>刃義 · ยุทธภพ Sword of Justice v5</title>
+<title>刃義 · ยุทธภพ Sword of Justice</title>
 
 <script>
   window.SUPABASE_URL = "https://mflemycqwksuktvktlko.supabase.co";
@@ -49,7 +49,7 @@ button{ cursor:pointer; border:none; font-family:'Noto Sans Thai',sans-serif; fo
 #roster{ display:flex; gap:6px; flex-wrap:wrap; }
 .rostertag{ font-size:.72em; padding:4px 9px; border-radius:4px; border:1px solid #5a452d; color:var(--gold-bright); background:rgba(212,175,55,.1); }
 
-canvas{ background:#1b1510; border:2px solid #5a452d; border-radius:6px; box-shadow:0 12px 50px rgba(0,0,0,.8); touch-action:none; }
+canvas{ background:#15100c; border:2px solid #5a452d; border-radius:6px; box-shadow:0 12px 50px rgba(0,0,0,.8); touch-action:none; }
 
 #skillbar{ display:flex; gap:12px; margin-top:10px; z-index:10; }
 .skill-btn{ width:60px; height:60px; border-radius:8px; background:linear-gradient(145deg, #2a1f18, #140d09); border:2px solid #6b5334; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--gold-bright); position:relative; overflow:hidden; cursor:pointer; }
@@ -81,7 +81,7 @@ canvas{ background:#1b1510; border:2px solid #5a452d; border-radius:6px; box-sha
   <div id="landing">
     <div class="brush-title" style="font-size:.85em;letter-spacing:.3em;color:#a89779;">刃 義</div>
     <h1 class="brush-title">เมืองลั่วหยาง</h1>
-    <div class="sub">Sword of Justice · สกิลวิชายุทธ์เต็มรูปแบบ</div>
+    <div class="sub">Sword of Justice · ลานเมืองหลวง & สกิลวิชายุทธ์</div>
 
     <div class="field">
       <label>ชื่อจอมยุทธ์</label>
@@ -242,7 +242,7 @@ const myHpBar = document.getElementById('myHpBar');
 const expBar = document.getElementById('expBar');
 const toastEl = document.getElementById('toast');
 
-for(let i=0; i<30; i++){
+for(let i=0; i<35; i++){
   petals.push({ x:Math.random()*ARENA_W, y:Math.random()*ARENA_H, vx:0.8+Math.random(), vy:0.4+Math.random(), size:3+Math.random()*3 });
 }
 
@@ -260,7 +260,7 @@ document.getElementById('btnE').addEventListener('click', ()=>castSkill('E'));
 document.getElementById('btnR').addEventListener('click', ()=>castSkill('R'));
 
 joinBtn.addEventListener('click', joinRoom);
-[nameInput, roomInput, guildInput].forEach(inp=> inp.addEventListener('keydown', e=>{ if(e.key==='Enter') joinRoom(); }));
+[nameInput, roomInput, guildInput].forEach(inp=> inp.addEventListener('keydown', e=>{ if(e && e.key==='Enter') joinRoom(); }));
 
 function genId(){ return 'p_' + Math.random().toString(36).slice(2,8); }
 function expNeeded(level){ return 100 * level; }
@@ -510,14 +510,20 @@ function updateMeHUD(){
   expBar.style.width = Math.min(100, (myProgress.exp / expNeeded(myProgress.level)) * 100) + '%';
 }
 
+// แก้ไข Key Handler ให้ปลอดภัยจากค่า undefined
 window.addEventListener('keydown', e=>{
-  keys[e.key.toLowerCase()] = true;
+  if(!e || !e.key) return;
+  const k = e.key.toLowerCase();
+  keys[k] = true;
   if(e.key === ' ') { e.preventDefault(); castSkill('atk'); }
-  if(e.key.toLowerCase() === 'q') castSkill('Q');
-  if(e.key.toLowerCase() === 'e') castSkill('E');
-  if(e.key.toLowerCase() === 'r') castSkill('R');
+  if(k === 'q') castSkill('Q');
+  if(k === 'e') castSkill('E');
+  if(k === 'r') castSkill('R');
 });
-window.addEventListener('keyup', e=>{ keys[e.key.toLowerCase()] = false; });
+window.addEventListener('keyup', e=>{
+  if(!e || !e.key) return;
+  keys[e.key.toLowerCase()] = false;
+});
 canvas.addEventListener('mousedown', ()=>castSkill('atk'));
 
 chatform.addEventListener('submit', e=>{
@@ -600,30 +606,109 @@ function loop(ts){
   requestAnimationFrame(loop);
 }
 
+// ---------------- ออกแบบฉากเมืองลั่วหยาง ----------------
 function drawCityEnvironment(){
-  ctx.fillStyle = '#261e17';
+  ctx.fillStyle = '#1e1711';
   ctx.fillRect(0, 0, ARENA_W, ARENA_H);
 
-  ctx.strokeStyle = '#382c22';
+  ctx.strokeStyle = '#2d2219';
   ctx.lineWidth = 1;
-  for(let gx=0; gx<ARENA_W; gx+=50){ ctx.beginPath(); ctx.moveTo(gx,0); ctx.lineTo(gx,ARENA_H); ctx.stroke(); }
-  for(let gy=0; gy<ARENA_H; gy+=50){ ctx.beginPath(); ctx.moveTo(0,gy); ctx.lineTo(ARENA_W,gy); ctx.stroke(); }
+  for(let gx=0; gx<ARENA_W; gx+=45){ ctx.beginPath(); ctx.moveTo(gx,0); ctx.lineTo(gx,ARENA_H); ctx.stroke(); }
+  for(let gy=0; gy<ARENA_H; gy+=45){ ctx.beginPath(); ctx.moveTo(0,gy); ctx.lineTo(ARENA_W,gy); ctx.stroke(); }
 
-  ctx.fillStyle = '#6b1d1d';
-  ctx.fillRect(40, 20, 180, 26);
-  ctx.fillStyle = '#d4af37';
-  ctx.fillRect(44, 16, 172, 4);
+  // สระบัว (แก้ ellipse ให้ครบ 7 พารามิเตอร์)
+  ctx.fillStyle = '#0f2420';
+  ctx.beginPath();
+  ctx.ellipse(800, 80, 130, 60, 0, 0, Math.PI*2);
+  ctx.fill();
+  ctx.strokeStyle = '#324a40'; ctx.lineWidth = 3; ctx.stroke();
 
-  [60, 200, 520, 700].forEach(lx => {
-    ctx.beginPath(); ctx.arc(lx, 50, 10, 0, Math.PI*2);
-    ctx.fillStyle = '#e63950'; ctx.fill();
+  ctx.fillStyle = '#22543d';
+  [ [750, 60], [820, 90], [860, 65], [780, 100] ].forEach(([lx, ly]) => {
+    ctx.beginPath(); ctx.arc(lx, ly, 9, 0, Math.PI*2); ctx.fill();
   });
 
-  ctx.font = 'bold 22px "Noto Serif SC", serif';
-  ctx.fillStyle = 'rgba(212,175,55,0.2)';
+  // สะพานหิน
+  ctx.fillStyle = '#3a2d22';
+  ctx.fillRect(710, 65, 80, 30);
+  ctx.fillStyle = '#524032';
+  ctx.fillRect(710, 62, 80, 4);
+  ctx.fillRect(710, 94, 80, 4);
+
+  // โรงเตี๊ยม
+  ctx.fillStyle = '#381e14';
+  ctx.fillRect(30, 20, 240, 95);
+  ctx.strokeStyle = '#5a3422'; ctx.lineWidth = 2; ctx.strokeRect(30, 20, 240, 95);
+
+  ctx.fillStyle = '#180d09';
+  ctx.fillRect(130, 65, 40, 50);
+  ctx.fillRect(50, 45, 34, 30);
+  ctx.fillRect(215, 45, 34, 30);
+  
+  ctx.strokeStyle = '#d4af37'; ctx.lineWidth = 1;
+  ctx.strokeRect(50, 45, 34, 30);
+  ctx.strokeRect(215, 45, 34, 30);
+
+  // หลังคาจีน
+  ctx.fillStyle = '#7a1c25';
+  ctx.beginPath();
+  ctx.moveTo(10, 30);
+  ctx.quadraticCurveTo(150, 0, 290, 30);
+  ctx.lineTo(270, 15);
+  ctx.quadraticCurveTo(150, -12, 30, 15);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#d4af37'; ctx.lineWidth = 2.5; ctx.stroke();
+
+  ctx.fillStyle = '#5c141c';
+  ctx.beginPath();
+  ctx.moveTo(50, 15);
+  ctx.quadraticCurveTo(150, -5, 250, 15);
+  ctx.lineTo(235, 4);
+  ctx.quadraticCurveTo(150, -16, 65, 4);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = '#d4af37';
+  ctx.fillRect(135, 40, 30, 16);
+  ctx.font = 'bold 10px "Noto Serif SC"';
+  ctx.fillStyle = '#000';
+  ctx.textAlign = 'center';
+  ctx.fillText('客棧', 150, 52);
+
+  // ต้นท้อ
+  ctx.strokeStyle = '#422817';
+  ctx.lineWidth = 12;
+  ctx.beginPath();
+  ctx.moveTo(40, 450);
+  ctx.quadraticCurveTo(70, 390, 50, 330);
+  ctx.stroke();
+
+  ctx.lineWidth = 6;
+  ctx.beginPath();
+  ctx.moveTo(50, 350);
+  ctx.quadraticCurveTo(100, 320, 120, 300);
+  ctx.stroke();
+
+  ctx.fillStyle = 'rgba(255, 183, 197, 0.9)';
+  ctx.beginPath(); ctx.arc(45, 310, 36, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(80, 295, 30, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(115, 295, 25, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(35, 275, 24, 0, Math.PI*2); ctx.fill();
+
+  // โคมไฟแดง
+  [45, 255, 520, 680].forEach(lx => {
+    ctx.beginPath(); ctx.arc(lx, 50, 11, 0, Math.PI*2);
+    ctx.fillStyle = '#e63950'; ctx.fill();
+    ctx.strokeStyle = '#fae17d'; ctx.lineWidth = 1.2; ctx.stroke();
+  });
+
+  ctx.font = 'bold 24px "Noto Serif SC", serif';
+  ctx.fillStyle = 'rgba(212,175,55,0.18)';
   ctx.textAlign = 'center';
   ctx.fillText('洛 陽 城 (ลานเมืองลั่วหยาง)', 480, 240);
 
+  // กลีบดอกท้อ (แก้ ellipse ให้ครบ 7 พารามิเตอร์)
   petals.forEach(p => {
     ctx.beginPath();
     ctx.ellipse(p.x, p.y, p.size, p.size/2, Math.PI/4, 0, Math.PI*2);
@@ -642,7 +727,7 @@ function drawHero(p){
     ctx.save();
     ctx.translate(px, py);
     ctx.fillStyle = 'rgba(0,0,0,0.5)';
-    ctx.beginPath(); ctx.ellipse(0, 0, 24, 7, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(0, 0, 24, 7, 0, 0, Math.PI*2); ctx.fill();
     ctx.font = '12px "Noto Sans Thai"'; ctx.fillStyle = '#ff5a5a'; ctx.textAlign = 'center';
     ctx.fillText('สลบ...', 0, -12);
     ctx.restore();
@@ -653,14 +738,17 @@ function drawHero(p){
   ctx.translate(px, py);
   ctx.scale(pFacing, 1);
 
-  ctx.beginPath(); ctx.ellipse(0, 4, 22, 6, 0, Math.PI * 2);
+  // เงา (แก้ ellipse ให้ครบ 7 พารามิเตอร์)
+  ctx.beginPath(); ctx.ellipse(0, 4, 22, 6, 0, 0, Math.PI * 2);
   ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fill();
 
+  // ผ้าคลุม
   ctx.beginPath();
   ctx.moveTo(-8, -48); ctx.quadraticCurveTo(-26, -20, -18, -2);
   ctx.lineTo(-4, -2); ctx.quadraticCurveTo(-8, -25, -2, -48);
   ctx.fillStyle = '#8b1e2f'; ctx.fill();
 
+  // ชุดจอมยุทธ์
   ctx.beginPath();
   ctx.moveTo(-12, -50); ctx.lineTo(12, -50);
   ctx.quadraticCurveTo(18, -20, 12, 0); ctx.lineTo(-12, 0);
@@ -668,20 +756,25 @@ function drawHero(p){
   ctx.fillStyle = '#d4af37'; ctx.fill();
   ctx.strokeStyle = '#2d1e12'; ctx.lineWidth = 1.5; ctx.stroke();
 
+  // ผ้าคาดเอว
   ctx.fillStyle = '#fae17d'; ctx.fillRect(-12, -26, 24, 6);
 
+  // หัว & ใบหน้า
   ctx.beginPath(); ctx.arc(0, -60, 11, 0, Math.PI * 2); ctx.fillStyle = '#fce5cd'; ctx.fill();
   ctx.fillStyle = '#1c1510'; ctx.fillRect(3, -62, 3, 2);
 
+  // หมวกงอบไม้ไผ่
   ctx.beginPath();
   ctx.moveTo(-20, -66); ctx.lineTo(0, -80); ctx.lineTo(20, -66);
   ctx.fillStyle = '#c5a059'; ctx.fill();
   ctx.strokeStyle = '#5a421b'; ctx.lineWidth = 1.2; ctx.stroke();
 
+  // กระบี่
   ctx.fillStyle = '#ffffff'; ctx.fillRect(8, -48, 4, 34);
 
   ctx.restore();
 
+  // หลอดเลือดและชื่อ
   ctx.save();
   ctx.font = 'bold 12px "Noto Sans Thai",sans-serif'; ctx.textAlign = 'center';
   ctx.fillStyle = (p.id === myId) ? '#fae17d' : '#ffffff';
@@ -703,8 +796,10 @@ function drawMonster(m){
   ctx.save();
   ctx.translate(mx, my);
 
-  ctx.beginPath(); ctx.ellipse(0, 8, 42, 12, 0, Math.PI * 2); ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.fill();
+  // เงา (แก้ ellipse ให้ครบ 7 พารามิเตอร์)
+  ctx.beginPath(); ctx.ellipse(0, 8, 42, 12, 0, 0, Math.PI * 2); ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.fill();
 
+  // ตัวอสูร
   ctx.beginPath();
   ctx.moveTo(-32, 10); ctx.quadraticCurveTo(-46, -30, -10, -58);
   ctx.quadraticCurveTo(0, -64, 10, -58); ctx.quadraticCurveTo(46, -30, 32, 10);
@@ -712,11 +807,13 @@ function drawMonster(m){
   ctx.fillStyle = '#5c1d56'; ctx.fill();
   ctx.strokeStyle = '#fae17d'; ctx.lineWidth = 2; ctx.stroke();
 
+  // ตาแดง
   ctx.beginPath(); ctx.arc(-10, -34, 5, 0, Math.PI * 2); ctx.arc(10, -34, 5, 0, Math.PI * 2);
   ctx.fillStyle = '#ff3344'; ctx.fill();
 
   ctx.restore();
 
+  // หลอดเลือด
   ctx.save();
   const curHp = Number(m.hp != null ? m.hp : MONSTER_MAX_HP);
   const maxHp = Number(m.maxHp || MONSTER_MAX_HP);
