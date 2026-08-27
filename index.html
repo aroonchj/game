@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>WHERE WINDS MEET · REALISTIC 3D MMORPG</title>
+<title>WHERE WINDS MEET · XIANXIA 3D MMORPG</title>
 
 <script>
   window.SUPABASE_URL = "https://mflemycqwksuktvktlko.supabase.co";
@@ -624,7 +624,6 @@ window.World3D = {
     this.renderer.toneMappingExposure = 1.1;
     container.appendChild(this.renderer.domElement);
 
-    // Realistic Lighting
     const hemiLight = new THREE.HemisphereLight(0xffecd0, 0x1a2130, 0.7);
     this.scene.add(hemiLight);
 
@@ -633,15 +632,8 @@ window.World3D = {
     sun.castShadow = true;
     sun.shadow.mapSize.width = 2048;
     sun.shadow.mapSize.height = 2048;
-    sun.shadow.camera.near = 0.5;
-    sun.shadow.camera.far = 250;
-    sun.shadow.camera.left = -90;
-    sun.shadow.camera.right = 90;
-    sun.shadow.camera.top = 90;
-    sun.shadow.camera.bottom = -90;
     this.scene.add(sun);
 
-    // Realistic Ground with Stone Walkways
     const ground = new THREE.Mesh(
       new THREE.PlaneGeometry(300, 300),
       new THREE.MeshStandardMaterial({ color: 0x14100c, roughness: 0.85, metalness: 0.15 })
@@ -659,7 +651,6 @@ window.World3D = {
     stoneWalk.receiveShadow = true;
     this.scene.add(stoneWalk);
 
-    // Realistic Reflective Water
     const water = new THREE.Mesh(
       new THREE.PlaneGeometry(300, 100),
       new THREE.MeshStandardMaterial({ color: 0x05131a, roughness: 0.08, metalness: 0.9 })
@@ -687,7 +678,6 @@ window.World3D = {
     pagoda.position.set(0, 0, -22);
     this.scene.add(pagoda);
 
-    // Realistic Bamboo Forest
     const bambooMat = new THREE.MeshStandardMaterial({ color: 0x234d2c, roughness: 0.6 });
     for (let i = 0; i < 35; i++) {
       const b = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.18, 10), bambooMat);
@@ -696,7 +686,6 @@ window.World3D = {
       this.scene.add(b);
     }
 
-    // Rocks in Boss Canyon
     const rockMat = new THREE.MeshStandardMaterial({ color: 0x2d2522, roughness: 0.9 });
     for (let i = 0; i < 10; i++) {
       const r = new THREE.Mesh(new THREE.DodecahedronGeometry(3 + Math.random() * 3), rockMat);
@@ -746,7 +735,6 @@ window.PlayerManager = {
     const goldMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.85, roughness: 0.25 });
     const ironMat = new THREE.MeshStandardMaterial({ color: 0x4a4a4a, metalness: 0.8, roughness: 0.3 });
 
-    // 1. ลำตัวและชุดตามเพศ
     const bodyW = isFemale ? 0.3 : 0.38;
     const bodyBottom = isFemale ? 0.55 : 0.68;
     const body = new THREE.Mesh(new THREE.CylinderGeometry(bodyW, bodyBottom, 1.7, 12), bodyMat);
@@ -759,16 +747,13 @@ window.PlayerManager = {
     hair.position.set(0, 1.85, -0.2); hair.rotation.x = -0.3;
     hero.add(head, hair);
 
-    // 2. รูปร่างและอาวุธเอกลักษณ์เฉพาะ 4 สำนัก
     if (classIdx === 0) {
-      // กระบี่เมฆา: กระบี่ทองคำยาว & ผ้าคลุม
       const cape = new THREE.Mesh(new THREE.BoxGeometry(0.85, 1.6, 0.05), new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.7 }));
       cape.position.set(0, 1.0, -0.38);
       const sword = new THREE.Mesh(new THREE.BoxGeometry(0.06, 2.0, 0.2), goldMat);
       sword.position.set(0.35, 1.2, -0.42); sword.rotation.z = Math.PI / 6;
       hero.add(cape, sword);
     } else if (classIdx === 1) {
-      // ดาบสุริยัน: ดาบยักษ์สะพายหลัง & สนับไหล่เหล็ก
       const shoulderL = new THREE.Mesh(new THREE.SphereGeometry(0.24, 8, 8), ironMat);
       shoulderL.position.set(-0.48, 1.65, 0);
       const shoulderR = shoulderL.clone(); shoulderR.position.set(0.48, 1.65, 0);
@@ -776,13 +761,11 @@ window.PlayerManager = {
       broadSword.position.set(0.25, 1.3, -0.45); broadSword.rotation.z = Math.PI / 5;
       hero.add(shoulderL, shoulderR, broadSword);
     } else if (classIdx === 2) {
-      // หมัดมังกร: สนับมือเพลิง & ออร่าหมัด
       const gloveL = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 8), goldMat);
       gloveL.position.set(-0.45, 0.8, 0.2);
       const gloveR = gloveL.clone(); gloveR.position.set(0.45, 0.8, 0.2);
       hero.add(gloveL, gloveR);
     } else if (classIdx === 3) {
-      // ธนูพฤกษา: คันธนูไม้ยักษ์ & กระบอกศร
       const bow = new THREE.Mesh(new THREE.TorusGeometry(0.8, 0.05, 8, 16, Math.PI), new THREE.MeshStandardMaterial({ color: 0x8b5a2b, roughness: 0.6 }));
       bow.position.set(-0.35, 1.2, -0.35); bow.rotation.y = Math.PI / 2;
       const quiver = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.1, 1.2), new THREE.MeshStandardMaterial({ color: 0x3d2817 }));
@@ -967,13 +950,17 @@ window.CombatSystem = {
       const dz = me.z - m.z;
       const dist = Math.hypot(dx, dz);
 
-      // โชว์หลอดเลือดเรดบอสเมื่อเข้าใกล้
       if (m.isBoss && dist < 35) {
         bossTargeted = true;
-        bossEl.style.display = 'flex';
-        document.getElementById('bossNameText').textContent = `🐉 ${m.name}`;
-        document.getElementById('bossLvlText').textContent = `Lv.${m.lvl} [World Boss]`;
-        document.getElementById('bossHpFill').style.width = Math.max(0, (m.hp / m.maxHp) * 100) + '%';
+        if (bossEl) {
+          bossEl.style.display = 'flex';
+          const bossName = document.getElementById('bossNameText');
+          const bossLvl = document.getElementById('bossLvlText');
+          const bossHp = document.getElementById('bossHpFill');
+          if (bossName) bossName.textContent = `🐉 ${m.name}`;
+          if (bossLvl) bossLvl.textContent = `Lv.${m.lvl} [World Boss]`;
+          if (bossHp) bossHp.style.width = Math.max(0, (m.hp / m.maxHp) * 100) + '%';
+        }
       }
 
       if (dist < m.aggroRange && dist > 2.2) {
@@ -1022,13 +1009,12 @@ window.CombatSystem = {
     if (window.isHost) this.checkMonsterHit(payload);
   },
 
-  // แอนิเมชันสกิลแยกตามอาชีพ
   triggerSkillVFX(skill, x, y, z, yaw, classIdx = 0) {
     const scene = window.World3D.scene;
-    let skillColor = 0xfae17d; // กระบี่ = ทอง
-    if (classIdx === 1) skillColor = 0xff4500; // ดาบ = เพลิงส้ม
-    if (classIdx === 2) skillColor = 0x9f7aea; // หมัด = ปราณม่วง
-    if (classIdx === 3) skillColor = 0x48bb78; // ธนู = พายุเขียว
+    let skillColor = 0xfae17d;
+    if (classIdx === 1) skillColor = 0xff4500;
+    if (classIdx === 2) skillColor = 0x9f7aea;
+    if (classIdx === 3) skillColor = 0x48bb78;
 
     if (skill === 'atk') {
       const slash = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.5, 4.2, 8), new THREE.MeshBasicMaterial({ color: skillColor }));
@@ -1229,7 +1215,7 @@ async function handleAuth() {
       });
     }
 
-    window.channel = window.sb.channel('justice_v14_' + window.roomCode, {
+    window.channel = window.sb.channel('justice_v15_' + window.roomCode, {
       config: { broadcast: { ack: false, self: false }, presence: { key: myId } }
     });
 
@@ -1280,8 +1266,11 @@ async function handleAuth() {
     window.channel.subscribe(status => {
       if (status === 'SUBSCRIBED') {
         window.channel.track({ name: window.myName, gender: window.myGender, classIdx: window.myClassIdx, costume: window.myColorIdx, joinedAt: Date.now() });
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('game-view').style.display = 'block';
+        
+        const loginScr = document.getElementById('login-screen');
+        const gameVw = document.getElementById('game-view');
+        if (loginScr) loginScr.style.display = 'none';
+        if (gameVw) gameVw.style.display = 'block';
 
         window.World3D.init('canvas3d');
         window.PlayerManager.myHeroMesh = window.PlayerManager.createHeroMesh(window.myColorIdx, window.myGender, window.myClassIdx);
@@ -1290,9 +1279,12 @@ async function handleAuth() {
         window.CombatSystem.initMonsters();
 
         const curClass = window.CONFIG.CLASS_DATA[window.myClassIdx];
-        document.getElementById('nameQ').textContent = curClass.qName;
-        document.getElementById('nameE').textContent = curClass.eName;
-        document.getElementById('nameR').textContent = curClass.rName;
+        const btnQ = document.getElementById('nameQ');
+        const btnE = document.getElementById('nameE');
+        const btnR = document.getElementById('nameR');
+        if (btnQ && curClass) btnQ.textContent = curClass.qName;
+        if (btnE && curClass) btnE.textContent = curClass.eName;
+        if (btnR && curClass) btnR.textContent = curClass.rName;
 
         window.updateMeHUD();
         window.updateQuestUI();
@@ -1492,31 +1484,45 @@ window.claimQuest = async function() {
 };
 
 window.updateMeHUD = function() {
-  document.getElementById('pNameText').textContent = window.myName;
-  document.getElementById('pLvText').textContent = `Lv.${window.myProgress.level}`;
-  document.getElementById('myHpBar').style.width = Math.max(0, (window.PlayerManager.me.hp / window.PlayerManager.me.maxHp) * 100) + '%';
-  document.getElementById('myExpBar').style.width = Math.min(100, (window.myProgress.exp / expNeeded(window.myProgress.level)) * 100) + '%';
-  document.getElementById('moneyText').textContent = window.myProgress.money;
-  document.getElementById('atkText').textContent = window.getBaseAtk();
-  document.getElementById('defText').textContent = window.getBaseDef();
+  const pName = document.getElementById('pNameText');
+  const pLv = document.getElementById('pLvText');
+  const hpBar = document.getElementById('myHpBar');
+  const expBar = document.getElementById('myExpBar');
+  const money = document.getElementById('moneyText');
+  const atk = document.getElementById('atkText');
+  const def = document.getElementById('defText');
+  const vipBadge = document.getElementById('vipBadge');
+
+  if (pName) pName.textContent = window.myName;
+  if (pLv) pLv.textContent = `Lv.${window.myProgress.level}`;
+  if (hpBar) hpBar.style.width = Math.max(0, (window.PlayerManager.me.hp / window.PlayerManager.me.maxHp) * 100) + '%';
+  if (expBar) expBar.style.width = Math.min(100, (window.myProgress.exp / expNeeded(window.myProgress.level)) * 100) + '%';
+  if (money) money.textContent = window.myProgress.money;
+  if (atk) atk.textContent = window.getBaseAtk();
+  if (def) def.textContent = window.getBaseDef();
 
   const vipInfo = window.CONFIG.VIP_DATA[window.myProgress.vipLevel];
-  document.getElementById('vipBadge').textContent = `VIP ${vipInfo.level}`;
+  if (vipBadge && vipInfo) vipBadge.textContent = `VIP ${vipInfo.level}`;
 };
 
 window.openModal = function(id) {
-  document.getElementById(id).style.display = 'flex';
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'flex';
   if (id === 'charModal') window.renderCharUI();
   if (id === 'invModal') window.renderInventoryUI();
   if (id === 'vipModal') window.renderVipUI();
   if (id === 'forgeModal') {
-    document.getElementById('forgeCurLvl').textContent = `+${window.myProgress.swordPlus}`;
-    document.getElementById('forgeAtk').textContent = `${window.getBaseAtk()} ATK`;
-    document.getElementById('forgeNextAtk').textContent = `${window.getBaseAtk() + 8} ATK`;
-    document.getElementById('stoneCountText').textContent = window.myProgress.inventory.spiritStone || 0;
+    const fCur = document.getElementById('forgeCurLvl');
+    const fAtk = document.getElementById('forgeAtk');
+    const fNext = document.getElementById('forgeNextAtk');
+    const sCnt = document.getElementById('stoneCountText');
+    if (fCur) fCur.textContent = `+${window.myProgress.swordPlus}`;
+    if (fAtk) fAtk.textContent = `${window.getBaseAtk()} ATK`;
+    if (fNext) fNext.textContent = `${window.getBaseAtk() + 8} ATK`;
+    if (sCnt) sCnt.textContent = window.myProgress.inventory.spiritStone || 0;
   }
 };
-window.closeModal = function(id) { document.getElementById(id).style.display = 'none'; };
+window.closeModal = function(id) { const el = document.getElementById(id); if (el) el.style.display = 'none'; };
 
 window.renderCharUI = function() {
   const eq = window.myProgress.equipment;
@@ -1524,20 +1530,25 @@ window.renderCharUI = function() {
   ['helm', 'armor', 'bracer', 'boots'].forEach(slot => {
     const key = eq[slot];
     const el = document.getElementById(`eq${slot.charAt(0).toUpperCase() + slot.slice(1)}Text`);
-    if (key && db[key]) {
-      const color = window.CONFIG.RARITY_COLORS[db[key].tier];
-      el.innerHTML = `<span style="color:${color};font-weight:bold;">${db[key].name}</span> <button class="menu-btn-small" onclick="unequipItem('${slot}')">ถอด</button>`;
-    } else {
-      el.innerHTML = '- ไม่มี -';
+    if (el) {
+      if (key && db[key]) {
+        const color = window.CONFIG.RARITY_COLORS[db[key].tier];
+        el.innerHTML = `<span style="color:${color};font-weight:bold;">${db[key].name}</span> <button class="menu-btn-small" onclick="unequipItem('${slot}')">ถอด</button>`;
+      } else {
+        el.innerHTML = '- ไม่มี -';
+      }
     }
   });
   const className = window.CONFIG.CLASS_DATA[window.myClassIdx].name;
-  document.getElementById('eqWeaponText').textContent = `${className} (+${window.myProgress.swordPlus})`;
-  document.getElementById('eqTotalStatsText').innerHTML = `🔥 <b>พลังรบรวม (RP): ${window.calculateRP()}</b> | ATK: ${window.getBaseAtk()} | DEF: ${window.getBaseDef()}`;
+  const eqWpn = document.getElementById('eqWeaponText');
+  const eqStats = document.getElementById('eqTotalStatsText');
+  if (eqWpn) eqWpn.textContent = `${className} (+${window.myProgress.swordPlus})`;
+  if (eqStats) eqStats.innerHTML = `🔥 <b>พลังรบรวม (RP): ${window.calculateRP()}</b> | ATK: ${window.getBaseAtk()} | DEF: ${window.getBaseDef()}`;
 };
 
 window.renderInventoryUI = function() {
   const grid = document.getElementById('invGrid');
+  if (!grid) return;
   let html = `
     <div class="inv-slot"><b>🧪 โอสถ</b><span>x${window.myProgress.inventory.potion || 0}</span><button class="menu-btn-small" onclick="usePotion()">ดื่ม</button></div>
     <div class="inv-slot"><b>💎 หินวิญญาณ</b><span>x${window.myProgress.inventory.spiritStone || 0}</span></div>
@@ -1565,7 +1576,10 @@ window.renderVipUI = function() {
   const vipInfo = window.CONFIG.VIP_DATA[curVip];
   const nextVip = curVip < 10 ? window.CONFIG.VIP_DATA[curVip + 1] : null;
 
-  document.getElementById('vipStatusText').textContent = `VIP ${curVip} - ${vipInfo.title}`;
+  const vipStatus = document.getElementById('vipStatusText');
+  if (vipStatus && vipInfo) {
+    vipStatus.textContent = `VIP ${curVip} - ${vipInfo.title}`;
+  }
   const box = document.getElementById('vipModalContent');
   if (box && nextVip) {
     box.innerHTML = `
