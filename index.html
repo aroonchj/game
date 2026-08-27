@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>WHERE WINDS MEET · FULL ULTIMATE 3D MMORPG</title>
+<title>WHERE WINDS MEET · STABLE ARPG 3D</title>
 
 <script>
   window.SUPABASE_URL = "https://mflemycqwksuktvktlko.supabase.co";
@@ -280,8 +280,8 @@ button { cursor: pointer; border: none; font-family: 'Noto Sans Thai', sans-seri
       <div class="sub-desc" id="authDesc">โลกแห่งจอมยุทธ์ Open-World MMORPG</div>
 
       <div class="auth-tabs">
-        <button class="auth-tab-btn" id="tabLoginBtn" onclick="switchAuthTab('login')">เข้าสู่ระบบ</button>
-        <button class="auth-tab-btn active" id="tabRegisterBtn" onclick="switchAuthTab('register')">สร้างตัวละครใหม่</button>
+        <button class="auth-tab-btn" id="tabLoginBtn" type="button" onclick="window.switchAuthTab('login')">เข้าสู่ระบบ</button>
+        <button class="auth-tab-btn active" id="tabRegisterBtn" type="button" onclick="window.switchAuthTab('register')">สร้างตัวละครใหม่</button>
       </div>
 
       <div class="field">
@@ -298,28 +298,28 @@ button { cursor: pointer; border: none; font-family: 'Noto Sans Thai', sans-seri
         <div class="field">
           <label>เพศของจอมยุทธ์ (Gender)</label>
           <div class="grid-opt" id="genderGrid">
-            <div class="opt-btn active" onclick="selectGender('male', this)">👦 จอมยุทธ์ชาย (บุรุษ)</div>
-            <div class="opt-btn" onclick="selectGender('female', this)">👩 เทพธิดาเซียน (สตรี)</div>
+            <div class="opt-btn active" onclick="window.selectGender('male', this)">👦 จอมยุทธ์ชาย (บุรุษ)</div>
+            <div class="opt-btn" onclick="window.selectGender('female', this)">👩 เทพธิดาเซียน (สตรี)</div>
           </div>
         </div>
 
         <div class="field">
           <label>เลือกสำนักเพลงยุทธ์ (Class)</label>
           <div class="grid-opt" id="classGrid">
-            <div class="opt-btn active" onclick="selectClass(0, this)">⚔️ กระบี่เมฆา (ว่องไว)</div>
-            <div class="opt-btn" onclick="selectClass(1, this)">🗡️ ดาบสุริยัน (ไฟเพลิง)</div>
-            <div class="opt-btn" onclick="selectClass(2, this)">🥊 หมัดมังกร (พลังปราณ)</div>
-            <div class="opt-btn" onclick="selectClass(3, this)">🏹 ธนูพฤกษา (ลมกรด)</div>
+            <div class="opt-btn active" onclick="window.selectClass(0, this)">⚔️ กระบี่เมฆา (ว่องไว)</div>
+            <div class="opt-btn" onclick="window.selectClass(1, this)">🗡️ ดาบสุริยัน (ไฟเพลิง)</div>
+            <div class="opt-btn" onclick="window.selectClass(2, this)">🥊 หมัดมังกร (พลังปราณ)</div>
+            <div class="opt-btn" onclick="window.selectClass(3, this)">🏹 ธนูพฤกษา (ลมกรด)</div>
           </div>
         </div>
 
         <div class="field">
           <label>ชุดคลุมเริ่มต้น</label>
           <div class="grid-opt-4" id="colorGrid">
-            <div class="opt-btn active" onclick="selectColor(0, this)">หิมะขาว</div>
-            <div class="opt-btn" onclick="selectColor(1, this)">ทองคำ</div>
-            <div class="opt-btn" onclick="selectColor(2, this)">อัคคี</div>
-            <div class="opt-btn" onclick="selectColor(3, this)">ราตรี</div>
+            <div class="opt-btn active" onclick="window.selectColor(0, this)">หิมะขาว</div>
+            <div class="opt-btn" onclick="window.selectColor(1, this)">ทองคำ</div>
+            <div class="opt-btn" onclick="window.selectColor(2, this)">อัคคี</div>
+            <div class="opt-btn" onclick="window.selectColor(3, this)">ราตรี</div>
           </div>
         </div>
       </div>
@@ -329,7 +329,7 @@ button { cursor: pointer; border: none; font-family: 'Noto Sans Thai', sans-seri
         <input id="roomInput" maxlength="16" placeholder="เช่น luoyang888" value="luoyang888" autocomplete="off" />
       </div>
 
-      <button id="startBtn">สร้างตัวละคร & ก้าวสู่ยุทธภพ</button>
+      <button id="startBtn" type="button">สร้างตัวละคร & ก้าวสู่ยุทธภพ</button>
     </div>
   </div>
 
@@ -337,7 +337,6 @@ button { cursor: pointer; border: none; font-family: 'Noto Sans Thai', sans-seri
   <div id="game-view">
     <div id="toast"></div>
 
-    <!-- หลอดเลือดบอส / มอนสเตอร์ที่ถูกล็อคเป้า -->
     <div id="boss-bar-box">
       <div class="boss-title-row">
         <span id="bossNameText">เป้าหมาย</span>
@@ -364,15 +363,14 @@ button { cursor: pointer; border: none; font-family: 'Noto Sans Thai', sans-seri
         </div>
       </div>
 
-      <button id="auto-btn" onclick="toggleAutoBattle()">🤖 ออโต้บอท: ปิด</button>
+      <button id="auto-btn" type="button" onclick="window.toggleAutoBattle()">🤖 ออโต้บอท: ปิด</button>
 
       <div id="top-menu">
-        <button class="menu-btn" onclick="openModal('charModal')">👤 ข้อมูล & เกราะ</button>
-        <button class="menu-btn" onclick="openModal('invModal')">🎒 ช่องเก็บของ</button>
-        <button class="menu-btn" onclick="openModal('teleportModal')">🌀 วาร์ปแผนที่</button>
-        <button class="menu-btn" onclick="openModal('forgeModal')">🔨 ตีบวกกระบี่</button>
-        <button class="menu-btn" onclick="openModal('vipModal')">👑 VIP 1-10</button>
-        <button class="menu-btn" onclick="openModal('wardrobeModal')">🥋 ตู้เสื้อผ้า</button>
+        <button class="menu-btn" type="button" onclick="window.openModal('charModal')">👤 ข้อมูล & เกราะ</button>
+        <button class="menu-btn" type="button" onclick="window.openModal('invModal')">🎒 ช่องเก็บของ</button>
+        <button class="menu-btn" type="button" onclick="window.openModal('teleportModal')">🌀 วาร์ปแผนที่</button>
+        <button class="menu-btn" type="button" onclick="window.openModal('forgeModal')">🔨 ตีบวกกระบี่</button>
+        <button class="menu-btn" type="button" onclick="window.openModal('vipModal')">👑 VIP 1-10</button>
       </div>
 
       <div id="top-right">
@@ -380,15 +378,12 @@ button { cursor: pointer; border: none; font-family: 'Noto Sans Thai', sans-seri
         <div id="quest-box">
           <b>📜 ภารกิจ: ล่าอสูรนอกเมือง</b><br>
           <span id="questProgressText">ความคืบหน้า (0/3)</span><br>
-          <button class="menu-btn-small" onclick="claimQuest()">รับรางวัล</button>
+          <button class="menu-btn-small" type="button" onclick="window.claimQuest()">รับรางวัล</button>
         </div>
       </div>
 
       <div id="skill-wheel">
         <div class="btn-main-atk" id="btnAtk" onclick="window.CombatSystem.castSkill('atk')">⚔️</div>
-        <div class="btn-sub-skill" id="btnQ" onclick="window.CombatSystem.castSkill('Q')"><span id="nameQ">ตัดเมฆา</span><div class="cd-overlay" id="cdQ"></div></div>
-        <div class="btn-sub-skill" id="btnE" onclick="window.CombatSystem.castSkill('E')"><span id="nameE">หมื่นกระบี่</span><div class="cd-overlay" id="cdE"></div></div>
-        <div class="btn-sub-skill" id="btnR" onclick="window.CombatSystem.castSkill('R')"><span id="nameR">ไม้ตาย</span><div class="cd-overlay" id="cdR"></div></div>
       </div>
 
       <div id="chatlog"></div>
@@ -415,7 +410,7 @@ button { cursor: pointer; border: none; font-family: 'Noto Sans Thai', sans-seri
       <div class="modal-content-box">
         <p id="eqTotalStatsText">🔥 <b>พลังรบรวม (RP): 150</b></p>
       </div>
-      <button class="menu-btn" onclick="closeModal('charModal')">ปิด</button>
+      <button class="menu-btn" type="button" onclick="window.closeModal('charModal')">ปิด</button>
     </div>
   </div>
 
@@ -423,7 +418,7 @@ button { cursor: pointer; border: none; font-family: 'Noto Sans Thai', sans-seri
     <div class="modal-box">
       <h3 class="brush-title" id="inspectTitle">ข้อมูลจอมยุทธ์</h3>
       <div class="modal-content-box" id="inspectContent">กำลังโหลดข้อมูล...</div>
-      <button class="menu-btn" onclick="closeModal('inspectModal')">ปิด</button>
+      <button class="menu-btn" type="button" onclick="window.closeModal('inspectModal')">ปิด</button>
     </div>
   </div>
 
@@ -431,14 +426,14 @@ button { cursor: pointer; border: none; font-family: 'Noto Sans Thai', sans-seri
     <div class="modal-box">
       <h3 class="brush-title">ค่ายกลเคลื่อนย้ายยุทธภพ</h3>
       <div class="grid-opt" style="gap:8px;">
-        <button class="opt-btn" onclick="teleportTo(0, 0, 'ลานเมืองหลวงลั่วหยาง')">🏛️ ลานเมืองหลวง (Safe Zone)</button>
-        <button class="opt-btn" onclick="teleportTo(0, -60, 'ทุ่งหญ้าหมาป่า (Lv.1 - 3)')">🐺 ทุ่งหญ้าหมาป่า (Lv.1 - 3)</button>
-        <button class="opt-btn" onclick="teleportTo(-70, 20, 'ป่าไผ่ซ่อนพยัคฆ์ (Lv.10 - 15)')">🎋 ป่าไผ่ซ่อนพยัคฆ์ (Lv.10 - 15)</button>
-        <button class="opt-btn" onclick="teleportTo(75, 30, 'หุบเขาโกเลมศิลา (Lv.25 - 30)')">🗿 หุบเขาโกเลมศิลา (Lv.25 - 30)</button>
-        <button class="opt-btn" onclick="teleportTo(90, -70, 'รังมังกรศิลาพันปี (Boss Lv.50)')">🐉 รังมังกรศิลา (Boss Lv.50)</button>
-        <button class="opt-btn" style="border-color:#ff4d4f; color:#ff4d4f;" onclick="teleportTo(0, 50, 'ลานประลองยุทธ (PvP Arena)')">⚔️ ลานประลอง PvP Arena</button>
+        <button class="opt-btn" type="button" onclick="window.teleportTo(0, 0, 'ลานเมืองหลวงลั่วหยาง')">🏛️ ลานเมืองหลวง (Safe Zone)</button>
+        <button class="opt-btn" type="button" onclick="window.teleportTo(0, -60, 'ทุ่งหญ้าหมาป่า (Lv.1 - 3)')">🐺 ทุ่งหญ้าหมาป่า (Lv.1 - 3)</button>
+        <button class="opt-btn" type="button" onclick="window.teleportTo(-70, 20, 'ป่าไผ่ซ่อนพยัคฆ์ (Lv.10 - 15)')">🎋 ป่าไผ่ซ่อนพยัคฆ์ (Lv.10 - 15)</button>
+        <button class="opt-btn" type="button" onclick="window.teleportTo(75, 30, 'หุบเขาโกเลมศิลา (Lv.25 - 30)')">🗿 หุบเขาโกเลมศิลา (Lv.25 - 30)</button>
+        <button class="opt-btn" type="button" onclick="window.teleportTo(90, -70, 'รังมังกรศิลาพันปี (Boss Lv.50)')">🐉 รังมังกรศิลา (Boss Lv.50)</button>
+        <button class="opt-btn" type="button" style="border-color:#ff4d4f; color:#ff4d4f;" onclick="window.teleportTo(0, 50, 'ลานประลองยุทธ (PvP Arena)')">⚔️ ลานประลอง PvP Arena</button>
       </div>
-      <button class="menu-btn" onclick="closeModal('teleportModal')">ปิด</button>
+      <button class="menu-btn" type="button" onclick="window.closeModal('teleportModal')">ปิด</button>
     </div>
   </div>
 
@@ -446,7 +441,7 @@ button { cursor: pointer; border: none; font-family: 'Noto Sans Thai', sans-seri
     <div class="modal-box">
       <h3 class="brush-title">กระเป๋ายุทธภพ</h3>
       <div class="inv-grid" id="invGrid"></div>
-      <button class="menu-btn" onclick="closeModal('invModal')">ปิด</button>
+      <button class="menu-btn" type="button" onclick="window.closeModal('invModal')">ปิด</button>
     </div>
   </div>
 
@@ -456,13 +451,13 @@ button { cursor: pointer; border: none; font-family: 'Noto Sans Thai', sans-seri
       <div class="modal-content-box" id="vipModalContent">
         <p>สถานะปัจจุบัน: <b style="color:var(--gold-bright)" id="vipStatusText">VIP 0</b></p>
       </div>
-      <button class="btn-action-gold" onclick="upgradeVIP()">เลื่อนขั้น VIP</button>
-      <button class="menu-btn" onclick="closeModal('vipModal')">ปิด</button>
+      <button class="btn-action-gold" type="button" onclick="window.upgradeVIP()">เลื่อนขั้น VIP</button>
+      <button class="menu-btn" type="button" onclick="window.closeModal('vipModal')">ปิด</button>
     </div>
   </div>
 
   <div id="debugPanel">
-    <div class="hdr"><span>🔧 Debug Log</span><button id="clearDebugBtn">ล้าง</button></div>
+    <div class="hdr"><span>🔧 Debug Log</span><button id="clearDebugBtn" type="button">ล้าง</button></div>
     <div id="debugLines"></div>
   </div>
 </div>
@@ -483,58 +478,56 @@ window.CONFIG = {
     { name: 'ธนูพฤกษา', qName: 'ศรทะลวง', eName: 'พายุใบไม้', rName: 'ฝนธนู' }
   ],
   VIP_DATA: [
-    { level: 0, title: 'จอมยุทธ์พเนจร', cost: 0, atkBonus: 1.0, defBonus: 1.0, expBonus: 1.0, speedBonus: 1.0 },
-    { level: 1, title: 'ผู้กล้าฝึกหัด', cost: 100, atkBonus: 1.1, defBonus: 1.1, expBonus: 1.15, speedBonus: 1.05 },
-    { level: 2, title: 'ผู้เยี่ยมยุทธ์', cost: 250, atkBonus: 1.15, defBonus: 1.15, expBonus: 1.25, speedBonus: 1.10 },
-    { level: 3, title: 'จอมยุทธ์เลื่องชื่อ', cost: 500, atkBonus: 1.22, defBonus: 1.20, expBonus: 1.35, speedBonus: 1.15 },
-    { level: 4, title: 'ยอดฝีมือไร้พ่าย', cost: 900, atkBonus: 1.30, defBonus: 1.25, expBonus: 1.50, speedBonus: 1.20 },
-    { level: 5, title: 'ปรมาจารย์ยุทธจักร', cost: 1500, atkBonus: 1.40, defBonus: 1.35, expBonus: 1.70, speedBonus: 1.25 },
-    { level: 6, title: 'ราชันย์กระบี่', cost: 2400, atkBonus: 1.50, defBonus: 1.45, expBonus: 2.00, speedBonus: 1.30 },
-    { level: 7, title: 'เซียนพิภพ', cost: 3600, atkBonus: 1.65, defBonus: 1.55, expBonus: 2.30, speedBonus: 1.35 },
-    { level: 8, title: 'มหาเทพจุติ', cost: 5200, atkBonus: 1.80, defBonus: 1.70, expBonus: 2.70, speedBonus: 1.40 },
-    { level: 9, title: 'จักรพรรดิสวรรค์', cost: 7500, atkBonus: 2.00, defBonus: 1.85, expBonus: 3.20, speedBonus: 1.50 },
-    { level: 10, title: 'เทพบรรพกาลไร้ขอบเขต', cost: 11000, atkBonus: 2.50, defBonus: 2.20, expBonus: 4.00, speedBonus: 1.65 }
-  ],
-  RARITY_TIERS: {
-    white: { name: 'ธรรมดา', color: '#e2e8f0', mult: 1.0 },
-    green: { name: 'ยุทธภพ', color: '#48bb78', mult: 1.3 },
-    blue: { name: 'วิญญาณ', color: '#4299e1', mult: 1.7 },
-    purple: { name: 'ล้ำค่า', color: '#9f7aea', mult: 2.2 },
-    orange: { name: 'เทพยุทธ์', color: '#ed8936', mult: 2.9 },
-    red: { name: 'เซียนสวรรค์', color: '#f56565', mult: 3.8 },
-    pink: { name: 'บรรพกาล', color: '#ed64a6', mult: 5.0 }
-  },
-  EQUIP_BASE: {
-    'helm_lv1': { baseName: 'หมวกสาน', slot: 'helm', reqLvl: 1, baseHp: 30, baseDef: 4 },
-    'armor_lv1': { baseName: 'ชุดผ้าป่าน', slot: 'armor', reqLvl: 1, baseHp: 25, baseDef: 6 },
-    'boots_lv1': { baseName: 'รองเท้าฟาง', slot: 'boots', reqLvl: 1, baseDef: 3, baseSpeed: 1.02 }
-  }
+    { level: 0, title: 'จอมยุทธ์พเนจร', cost: 0, atkBonus: 1.0, defBonus: 1.0, speedBonus: 1.0 },
+    { level: 1, title: 'ผู้กล้าฝึกหัด', cost: 100, atkBonus: 1.1, speedBonus: 1.05 },
+    { level: 2, title: 'ผู้เยี่ยมยุทธ์', cost: 250, atkBonus: 1.15, speedBonus: 1.10 },
+    { level: 3, title: 'จอมยุทธ์เลื่องชื่อ', cost: 500, atkBonus: 1.22, speedBonus: 1.15 },
+    { level: 4, title: 'ยอดฝีมือไร้พ่าย', cost: 900, atkBonus: 1.30, speedBonus: 1.20 },
+    { level: 5, title: 'ปรมาจารย์ยุทธจักร', cost: 1500, atkBonus: 1.40, speedBonus: 1.25 },
+    { level: 6, title: 'ราชันย์กระบี่', cost: 2400, atkBonus: 1.50, speedBonus: 1.30 },
+    { level: 7, title: 'เซียนพิภพ', cost: 3600, atkBonus: 1.65, speedBonus: 1.35 },
+    { level: 8, title: 'มหาเทพจุติ', cost: 5200, atkBonus: 1.80, speedBonus: 1.40 },
+    { level: 9, title: 'จักรพรรดิสวรรค์', cost: 7500, atkBonus: 2.00, speedBonus: 1.50 },
+    { level: 10, title: 'เทพบรรพกาลไร้ขอบเขต', cost: 11000, atkBonus: 2.50, speedBonus: 1.65 }
+  ]
 };
-
-window.QUEST_LIST = [
-  { id: 1, title: 'ภารกิจที่ 1: กำจัดหมาป่าทมิฬ (Lv.1 - 3)', targetType: 'wolf', reqCount: 3, curCount: 0, rewardExp: 180, rewardMoney: 80, done: false },
-  { id: 2, title: 'ภารกิจที่ 2: ปราบโจรป่าไผ่ (Lv.10 - 15)', targetType: 'bandit', reqCount: 3, curCount: 0, rewardExp: 450, rewardMoney: 180, done: false }
-];
 
 window.sb = null; window.channel = null;
 window.myName = ""; window.roomCode = "";
 window.myGender = "male"; window.myClassIdx = 0; window.myColorIdx = 0;
-window.gameActive = false; window.isHost = false;
-window.authMode = 'register';
+window.gameActive = false; window.authMode = 'register';
 window.isAutoBattle = false;
-let lastSyncTime = 0;
 
 window.myProgress = {
   level: 1, exp: 0, money: 100, swordPlus: 0, vipLevel: 0,
-  equipment: { helm: { baseKey: 'helm_lv1', color: 'white' }, armor: { baseKey: 'armor_lv1', color: 'white' }, bracer: null, boots: { baseKey: 'boots_lv1', color: 'white' }, weapon: 'กระบี่เริ่มต้น' },
-  inventoryItems: [{ id: 'item_init_1', baseKey: 'helm_lv1', color: 'green' }],
-  inventoryMaterials: { potion: 3, spiritStone: 2, herb: 4 },
-  unlockedCostumes: [0], activeQuestIdx: 0
+  equipment: { helm: null, armor: null, weapon: 'กระบี่เริ่มต้น' },
+  inventoryMaterials: { potion: 3, spiritStone: 2 }
+};
+
+window.debugLog = function(msg, level = 'info') {
+  const time = new Date().toLocaleTimeString('th-TH', { hour12: false });
+  const div = document.createElement('div');
+  div.className = 'line' + (level === 'error' ? ' err' : level === 'warn' ? ' warn' : '');
+  div.textContent = `[${time}] ${msg}`;
+  const debugLinesEl = document.getElementById('debugLines');
+  if (debugLinesEl) {
+    debugLinesEl.appendChild(div);
+    debugLinesEl.parentElement.scrollTop = debugLinesEl.parentElement.scrollHeight;
+  }
+};
+
+window.showToast = function(msg) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg; t.style.display = 'block';
+  clearTimeout(window.showToast._t);
+  window.showToast._t = setTimeout(() => { t.style.display = 'none'; }, 3000);
 };
 
 window.selectGender = function(g, el) { window.myGender = g; document.querySelectorAll('#genderGrid .opt-btn').forEach(b => b.classList.remove('active')); if (el) el.classList.add('active'); };
 window.selectClass = function(idx, el) { window.myClassIdx = idx; document.querySelectorAll('#classGrid .opt-btn').forEach(b => b.classList.remove('active')); if (el) el.classList.add('active'); };
 window.selectColor = function(idx, el) { window.myColorIdx = idx; document.querySelectorAll('#colorGrid .opt-btn').forEach(b => b.classList.remove('active')); if (el) el.classList.add('active'); };
+
 window.switchAuthTab = function(mode) {
   window.authMode = mode;
   const loginBtn = document.getElementById('tabLoginBtn');
@@ -543,19 +536,11 @@ window.switchAuthTab = function(mode) {
   const startBtn = document.getElementById('startBtn');
   const authTitle = document.getElementById('authTitle');
 
-  if (mode === 'login') {
-    if (loginBtn) loginBtn.classList.add('active');
-    if (regBtn) regBtn.classList.remove('active');
-    if (extraFields) extraFields.style.display = 'none';
-    if (startBtn) startBtn.textContent = 'เข้าสู่ยุทธภพ';
-    if (authTitle) authTitle.textContent = 'เข้าสู่ระบบยุทธภพ';
-  } else {
-    if (regBtn) regBtn.classList.add('active');
-    if (loginBtn) loginBtn.classList.remove('active');
-    if (extraFields) extraFields.style.display = 'flex';
-    if (startBtn) startBtn.textContent = 'สร้างตัวละคร & ก้าวสู่ยุทธภพ';
-    if (authTitle) authTitle.textContent = 'สร้างจอมยุทธ์ใหม่';
-  }
+  if (loginBtn) loginBtn.classList.toggle('active', mode === 'login');
+  if (regBtn) regBtn.classList.toggle('active', mode === 'register');
+  if (extraFields) extraFields.style.display = mode === 'login' ? 'none' : 'flex';
+  if (startBtn) startBtn.textContent = mode === 'login' ? 'เข้าสู่ยุทธภพ' : 'สร้างตัวละคร & ก้าวสู่ยุทธภพ';
+  if (authTitle) authTitle.textContent = mode === 'login' ? 'เข้าสู่ระบบยุทธภพ' : 'สร้างจอมยุทธ์ใหม่';
 };
 
 window.toggleAutoBattle = function() {
@@ -563,36 +548,20 @@ window.toggleAutoBattle = function() {
   window.isAutoBattle = !window.isAutoBattle;
   const btn = document.getElementById('auto-btn');
   if (btn) {
-    if (window.isAutoBattle) { btn.classList.add('active'); btn.textContent = '🤖 ออโต้บอท: เปิด'; window.showToast('เปิดระบบออโต้บอทแล้ว!'); }
-    else { btn.classList.remove('active'); btn.textContent = '🤖 ออโต้บอท: ปิด'; window.showToast('ปิดระบบออโต้บอทแล้ว'); }
+    btn.classList.toggle('active', window.isAutoBattle);
+    btn.textContent = window.isAutoBattle ? '🤖 ออโต้บอท: เปิด' : '🤖 ออโต้บอท: ปิด';
+    window.showToast(window.isAutoBattle ? 'เปิดระบบออโต้บอทแล้ว!' : 'ปิดระบบออโต้บอทแล้ว');
   }
 };
 
-window.getItemStats = function(baseKey, color) {
-  const base = window.CONFIG.EQUIP_BASE[baseKey];
-  if (!base) return null;
-  const tier = window.CONFIG.RARITY_TIERS[color] || window.CONFIG.RARITY_TIERS.white;
-  const mult = tier.mult;
-  return {
-    fullName: `[${tier.name}] ${base.baseName}`,
-    color: tier.color,
-    tierKey: color,
-    reqLvl: base.reqLvl,
-    slot: base.slot,
-    hp: base.baseHp ? Math.round(base.baseHp * mult) : 0,
-    def: base.baseDef ? Math.round(base.baseDef * mult) : 0,
-    atk: base.baseAtk ? Math.round(base.baseAtk * mult) : 0,
-    speed: base.baseSpeed || 1.0
-  };
-};
-
-// ---------------- 3. World 3D (Orbit Camera 360 & Click Effect) ----------------
+// 3D World & Camera Controls
 window.World3D = {
   scene: null, camera: null, renderer: null, raycaster: new THREE.Raycaster(), mouse: new THREE.Vector2(),
   cameraAngle: 0, cameraDist: 14, cameraHeight: 12, isDragging: false, previousMousePosition: { x: 0, y: 0 }, clickRingMesh: null,
 
   init(containerId) {
     const container = document.getElementById(containerId);
+    if (!container) return;
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x06080e);
     this.scene.fog = new THREE.FogExp2(0x080b12, 0.007);
@@ -603,8 +572,7 @@ window.World3D = {
     this.renderer.shadowMap.enabled = true;
     container.appendChild(this.renderer.domElement);
 
-    const hemiLight = new THREE.HemisphereLight(0xffecd0, 0x1a2130, 0.7);
-    this.scene.add(hemiLight);
+    this.scene.add(new THREE.HemisphereLight(0xffecd0, 0x1a2130, 0.7));
     const sun = new THREE.DirectionalLight(0xffdfba, 1.8);
     sun.position.set(70, 95, 45);
     sun.castShadow = true;
@@ -713,7 +681,7 @@ window.World3D = {
   }
 };
 
-// ---------------- 4. Player Manager & Nameplates ----------------
+// Player Manager
 window.PlayerManager = {
   me: { id: '', x: 0, z: 0, yaw: 0, hp: 200, maxHp: 200, isDead: false, respawnAt: 0 },
   myHeroMesh: null, targetPos: null, otherPlayers: {},
@@ -791,10 +759,12 @@ window.PlayerManager = {
     }
 
     const cam = window.World3D.camera;
-    cam.position.x = this.me.x + Math.sin(World3D.cameraAngle) * World3D.cameraDist;
-    cam.position.y = World3D.cameraHeight;
-    cam.position.z = this.me.z + Math.cos(World3D.cameraAngle) * World3D.cameraDist;
-    cam.lookAt(this.me.x, 0, this.me.z);
+    if (cam) {
+      cam.position.x = this.me.x + Math.sin(World3D.cameraAngle) * World3D.cameraDist;
+      cam.position.y = World3D.cameraHeight;
+      cam.position.z = this.me.z + Math.cos(World3D.cameraAngle) * World3D.cameraDist;
+      cam.lookAt(this.me.x, 0, this.me.z);
+    }
   }
 };
 
@@ -811,7 +781,7 @@ window.inspectPlayer = function(targetId) {
   if (modal) modal.style.display = 'flex';
 };
 
-// ---------------- 5. Combat & Auto-Battle ----------------
+// Combat & Auto-Battle
 window.CombatSystem = {
   cooldowns: { atk: { cd: 280, until: 0 } },
   currentTargetPath: null,
@@ -879,31 +849,30 @@ window.CombatSystem = {
   }
 };
 
-window.calculateRP = function() { return 250; };
-window.getBaseAtk = function() { return 45; };
-window.getBaseDef = function() { return 20; };
-window.showToast = function(msg) {
-  const t = document.getElementById('toast');
-  if (!t) return;
-  t.textContent = msg; t.style.display = 'block';
-  clearTimeout(window.showToast._t);
-  window.showToast._t = setTimeout(() => { t.style.display = 'none'; }, 3000);
+window.updateMeHUD = function() {
+  document.getElementById('pNameText').textContent = window.myName;
+  document.getElementById('pLvText').textContent = `Lv.${window.myProgress.level}`;
+  document.getElementById('vipBadge').textContent = `VIP ${window.myProgress.vipLevel}`;
 };
 
-window.debugLog = function(msg, level = 'info') {
-  const time = new Date().toLocaleTimeString('th-TH', { hour12: false });
-  const div = document.createElement('div');
-  div.className = 'line' + (level === 'error' ? ' err' : level === 'warn' ? ' warn' : '');
-  div.textContent = `[${time}] ${msg}`;
-  const debugLinesEl = document.getElementById('debugLines');
-  if (debugLinesEl) {
-    debugLinesEl.appendChild(div);
-    debugLinesEl.parentElement.scrollTop = debugLinesEl.parentElement.scrollHeight;
+window.teleportTo = function(x, z, name) {
+  window.PlayerManager.me.x = x;
+  window.PlayerManager.me.z = z;
+  window.PlayerManager.targetPos = null;
+  window.closeModal('teleportModal');
+  window.showToast(`🌀 วาร์ปมายัง: ${name}`);
+};
+
+window.openModal = function(id) { const el = document.getElementById(id); if (el) el.style.display = 'flex'; };
+window.closeModal = function(id) { const el = document.getElementById(id); if (el) el.style.display = 'none'; };
+
+// Main Authentication & Loop
+document.addEventListener('DOMContentLoaded', () => {
+  const startBtn = document.getElementById('startBtn');
+  if (startBtn) {
+    startBtn.addEventListener('click', handleAuth);
   }
-};
-
-// ---------------- 6. Auth & Game Loop ----------------
-document.getElementById('startBtn').addEventListener('click', handleAuth);
+});
 
 async function handleAuth() {
   const nm = document.getElementById('nameInput').value.trim();
@@ -920,7 +889,7 @@ async function handleAuth() {
 
   try {
     window.sb = window.supabase.createClient(window.CONFIG.SUPABASE_URL, window.CONFIG.SUPABASE_ANON_KEY);
-    window.channel = window.sb.channel('justice_v24_' + window.roomCode, {
+    window.channel = window.sb.channel('justice_v25_' + window.roomCode, {
       config: { broadcast: { ack: false, self: false }, presence: { key: myId } }
     });
 
@@ -939,7 +908,7 @@ async function handleAuth() {
 
     window.channel.subscribe(status => {
       if (status === 'SUBSCRIBED') {
-        window.channel.track({ name: window.myName, gender: window.myGender, classIdx: window.myClassIdx, costume: window.myColorIdx, level: window.myProgress.level, vipLevel: window.myProgress.vipLevel, rp: window.calculateRP(), joinedAt: Date.now() });
+        window.channel.track({ name: window.myName, gender: window.myGender, classIdx: window.myClassIdx, costume: window.myColorIdx, level: window.myProgress.level, vipLevel: window.myProgress.vipLevel, rp: 250, joinedAt: Date.now() });
 
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('game-view').style.display = 'block';
@@ -977,29 +946,14 @@ function gameLoop() {
     const me = window.PlayerManager.me;
     window.channel.send({
       type: 'broadcast', event: 'pos',
-      payload: { id: me.id, name: window.myName, gender: window.myGender, classIdx: window.myClassIdx, costume: window.myColorIdx, level: window.myProgress.level, vipLevel: window.myProgress.vipLevel, rp: window.calculateRP(), x: me.x, z: me.z }
+      payload: { id: me.id, name: window.myName, gender: window.myGender, classIdx: window.myClassIdx, costume: window.myColorIdx, level: window.myProgress.level, vipLevel: window.myProgress.vipLevel, rp: 250, x: me.x, z: me.z }
     });
   }
 
   window.World3D.renderer.render(window.World3D.scene, window.World3D.camera);
 }
 
-window.updateMeHUD = function() {
-  document.getElementById('pNameText').textContent = window.myName;
-  document.getElementById('pLvText').textContent = `Lv.${window.myProgress.level}`;
-  document.getElementById('vipBadge').textContent = `VIP ${window.myProgress.vipLevel}`;
-};
-
-window.teleportTo = function(x, z, name) {
-  window.PlayerManager.me.x = x;
-  window.PlayerManager.me.z = z;
-  window.PlayerManager.targetPos = null;
-  window.closeModal('teleportModal');
-  window.showToast(`🌀 วาร์ปมายัง: ${name}`);
-};
-
-window.openModal = function(id) { const el = document.getElementById(id); if (el) el.style.display = 'flex'; };
-window.closeModal = function(id) { const el = document.getElementById(id); if (el) el.style.display = 'none'; };
+})();
 </script>
 </body>
 </html>
