@@ -13,44 +13,59 @@
 </head>
 <body>
   <div id="app">
-    <!-- หน้าจอ Login & สร้างตัวละคร -->
+    <!-- หน้าจอ Login & Register แบบเต็มระบบ -->
     <div id="login-screen">
       <div id="login-box">
         <div class="brush-title header-tag">WHERE WINDS MEET · 3D</div>
-        <h1 class="brush-title main-title">ยุทธภพเปิด</h1>
-        <div class="sub-desc">โลกแห่งจอมยุทธ์ Open-World MMORPG</div>
+        <h1 class="brush-title main-title" id="authTitle">เข้าสู่ระบบยุทธภพ</h1>
+        <div class="sub-desc" id="authDesc">เข้าสู่โลกแห่งจอมยุทธ์ Open-World MMORPG</div>
 
+        <!-- แท็บสลับ เข้าสู่ระบบ / สมัครใหม่ -->
+        <div class="auth-tabs">
+          <button class="auth-tab-btn active" id="tabLoginBtn" onclick="switchAuthTab('login')">เข้าสู่ระบบ</button>
+          <button class="auth-tab-btn" id="tabRegisterBtn" onclick="switchAuthTab('register')">สมัครจอมยุทธ์ใหม่</button>
+        </div>
+
+        <!-- ฟิลด์กรอกข้อมูลพื้นฐาน -->
         <div class="field">
-          <label>ชื่อจอมยุทธ์</label>
+          <label>ชื่อจอมยุทธ์ (Username)</label>
           <input id="nameInput" maxlength="12" placeholder="เช่น หวงเฟยหง" autocomplete="off" />
         </div>
 
         <div class="field">
-          <label>สำนักวิชายุทธ์</label>
-          <div class="grid-opt" id="classGrid">
-            <div class="opt-btn active" data-c="0">⚔️ กระบี่เมฆา (ว่องไว)</div>
-            <div class="opt-btn" data-c="1">🗡️ ดาบสุริยัน (ไฟเพลิง)</div>
-            <div class="opt-btn" data-c="2">🥊 หมัดมังกร (พลังปราณ)</div>
-            <div class="opt-btn" data-c="3">🏹 ธนูพฤกษา (ลมกรด)</div>
+          <label>รหัสผ่านวรยุทธ์ (Password)</label>
+          <input id="passInput" type="password" maxlength="20" placeholder="กรอกรหัสผ่านอย่างน้อย 6 ตัว" autocomplete="off" />
+        </div>
+
+        <!-- ฟิลด์เฉพาะตอนสมัครสมาชิกใหม่ (เลือกอาชีพ & ชุด) -->
+        <div id="registerExtraFields" style="display: none; flex-direction: column; gap: 10px;">
+          <div class="field">
+            <label>เลือกสำนักเพลงยุทธ์</label>
+            <div class="grid-opt" id="classGrid">
+              <div class="opt-btn active" data-c="0">⚔️ กระบี่เมฆา (ว่องไว)</div>
+              <div class="opt-btn" data-c="1">🗡️ ดาบสุริยัน (ไฟเพลิง)</div>
+              <div class="opt-btn" data-c="2">🥊 หมัดมังกร (พลังปราณ)</div>
+              <div class="opt-btn" data-c="3">🏹 ธนูพฤกษา (ลมกรด)</div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>สีชุดคลุมเริ่มต้น</label>
+            <div class="grid-opt-4" id="colorGrid">
+              <div class="opt-btn active" data-col="0">หิมะขาว</div>
+              <div class="opt-btn" data-col="1">ทองคำ</div>
+              <div class="opt-btn" data-col="2">อัคคี</div>
+              <div class="opt-btn" data-col="3">ราตรี</div>
+            </div>
           </div>
         </div>
 
         <div class="field">
-          <label>สีชุดคลุมเริ่มต้น</label>
-          <div class="grid-opt-4" id="colorGrid">
-            <div class="opt-btn active" data-col="0">หิมะขาว</div>
-            <div class="opt-btn" data-col="1">ทองคำ</div>
-            <div class="opt-btn" data-col="2">อัคคี</div>
-            <div class="opt-btn" data-col="3">ราตรี</div>
-          </div>
-        </div>
-
-        <div class="field">
-          <label>รหัสห้อง</label>
+          <label>รหัสห้องเมือง (Server Channel)</label>
           <input id="roomInput" maxlength="16" placeholder="เช่น luoyang888" value="luoyang888" autocomplete="off" />
         </div>
 
-        <button id="startBtn">ก้าวสู่ยุทธภพ</button>
+        <button id="startBtn">เข้าสู่ยุทธภพ</button>
       </div>
     </div>
 
@@ -117,7 +132,6 @@
     </div>
 
     <!-- Modals -->
-    <!-- ช่องเก็บของ -->
     <div class="modal" id="invModal">
       <div class="modal-box">
         <h3 class="brush-title">กระเป๋ายุทธภพ</h3>
@@ -126,7 +140,6 @@
       </div>
     </div>
 
-    <!-- โรงตีเหล็ก -->
     <div class="modal" id="forgeModal">
       <div class="modal-box">
         <h3 class="brush-title">ช่างตีเหล็กหลวง</h3>
@@ -140,7 +153,6 @@
       </div>
     </div>
 
-    <!-- ระบบ VIP 1 -->
     <div class="modal" id="vipModal">
       <div class="modal-box">
         <h3 class="brush-title">สิทธิพิเศษ VIP ประจำยุทธภพ</h3>
@@ -159,7 +171,6 @@
       </div>
     </div>
 
-    <!-- ตู้เสื้อผ้า -->
     <div class="modal" id="wardrobeModal">
       <div class="modal-box">
         <h3 class="brush-title">ตู้เสื้อผ้ายุทธภพ</h3>
@@ -173,7 +184,6 @@
       </div>
     </div>
 
-    <!-- Debug Log Panel -->
     <div id="debugPanel">
       <div class="hdr"><span>🔧 Debug Log</span><button id="clearDebugBtn">ล้าง</button></div>
       <div id="debugLines"></div>
