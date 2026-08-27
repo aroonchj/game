@@ -12,7 +12,20 @@ window.isHost = false;
 window.authMode = 'login';
 let lastSyncTime = 0;
 
-// โครงสร้างเควสต์ประจำเกม
+// โครงสร้างไอเทมอุปกรณ์ (Equipment Stats Database)
+window.EQUIP_DB = {
+  // หมวก
+  'helm_bronze': { name: 'หมวกเหล็กสำริด', slot: 'helm', hp: 50, def: 5 },
+  'helm_dragon': { name: 'หมวกเกล็ดมังกรทอง', slot: 'helm', hp: 120, def: 15 },
+  // เสื้อเกราะ
+  'armor_leather': { name: 'เสื้อเกราะหนังเสือดาว', slot: 'armor', hp: 40, def: 12 },
+  'armor_steel': { name: 'เกราะเหล็กไหลพันปี', slot: 'armor', hp: 100, def: 28 },
+  // ปลอกแขน
+  'bracer_tiger': { name: 'ปลอกแขนพยัคฆ์เหิน', slot: 'bracer', atk: 12, crit: 5 },
+  // สนับแข้ง
+  'boots_wind': { name: 'สนับแข้งวายุสลาตัน', slot: 'boots', speed: 1.15, def: 6 }
+};
+
 window.QUEST_LIST = [
   { id: 1, title: 'ภารกิจที่ 1: กำจัดหมาป่าทมิฬนอกเมือง', targetType: 'wolf', reqCount: 3, curCount: 0, rewardExp: 150, rewardMoney: 100, done: false },
   { id: 2, title: 'ภารกิจที่ 2: ปราบโจรป่าไผ่', targetType: 'bandit', reqCount: 3, curCount: 0, rewardExp: 300, rewardMoney: 200, done: false },
@@ -22,8 +35,23 @@ window.QUEST_LIST = [
 
 window.myProgress = {
   level: 1, exp: 0, money: 150, swordPlus: 0,
-  isVip1: false, inventory: { potion: 2, spiritStone: 2, herb: 4 },
+  isVip1: false,
+  equipment: { helm: null, armor: null, bracer: null, boots: null, weapon: 'กระบี่เริ่มต้น' },
+  inventory: { potion: 2, spiritStone: 2, herb: 4, helm_bronze: 1 },
   unlockedCostumes: [0], activeQuestIdx: 0
+};
+
+// Direct Selectors
+window.selectClass = function(idx, el) {
+  window.myClassIdx = idx;
+  document.querySelectorAll('#classGrid .opt-btn').forEach(b => b.classList.remove('active'));
+  if (el) el.classList.add('active');
+};
+
+window.selectColor = function(idx, el) {
+  window.myColorIdx = idx;
+  document.querySelectorAll('#colorGrid .opt-btn').forEach(b => b.classList.remove('active'));
+  if (el) el.classList.add('active');
 };
 
 // Debug Panel
@@ -31,7 +59,6 @@ const debugLinesEl = document.getElementById('debugLines');
 if (document.getElementById('clearDebugBtn')) {
   document.getElementById('clearDebugBtn').addEventListener('click', () => { debugLinesEl.innerHTML = ''; });
 }
-
 window.debugLog = function(msg, level = 'info') {
   const time = new Date().toLocaleTimeString('th-TH', { hour12: false });
   const div = document.createElement('div');
@@ -41,19 +68,32 @@ window.debugLog = function(msg, level = 'info') {
     debugLinesEl.appendChild(div);
     debugLinesEl.parentElement.scrollTop = debugLinesEl.parentElement.scrollHeight;
   }
-  if (level === 'error') console.error(msg);
 };
 
 window.onerror = function(msg, url, line) { window.debugLog(`JS Error: ${msg} (Line ${line})`, 'error'); };
 window.onunhandledrejection = function(e) { window.debugLog(`Promise Rejection: ${e.reason}`, 'error'); };
 
 function expNeeded(lvl) { return 100 * lvl; }
+
+// คำนวณสเตตัสรวมอุปกรณ์สวมใส่
 window.getBaseAtk = function() {
-  const rawAtk = 24 + (window.myProgress.swordPlus * 8);
+  let extraAtk = 0;
+  if (window.myProgress.equipment.bracer && window.EQUIP_DB[window.myProgress.equipment.bracer]) {
+    extraAtk += window.EQUIP_DB[window.myProgress.equipment.bracer].atk || 0;
+  }
+  const rawAtk = 24 + (window.myProgress.swordPlus * 8) + extraAtk;
   return window.myProgress.isVip1 ? Math.round(rawAtk * 1.2) : rawAtk;
 };
+
 window.getBaseDef = function() {
-  const rawDef = 12 + (window.myProgress.level * 2);
+  let extraDef = 0;
+  ['helm', 'armor', 'boots'].forEach(slot => {
+    const itemKey = window.myProgress.equipment[slot];
+    if (itemKey && window.EQUIP_DB[itemKey]) {
+      extraDef += window.EQUIP_DB[itemKey].def || 0;
+    }
+  });
+  const rawDef = 12 + (window.myProgress.level * 2) + extraDef;
   return window.myProgress.isVip1 ? Math.round(rawDef * 1.15) : rawDef;
 };
 
@@ -65,30 +105,6 @@ window.showToast = function(msg) {
   clearTimeout(window.showToast._t);
   window.showToast._t = setTimeout(() => { t.style.display = 'none'; }, 3000);
 };
-
-// ---------------- ผูก Event ปุ่มเลือกอาชีพ & สีชุด (แก้บั๊กเลือกไม่ได้) ----------------
-function initAuthSelectors() {
-  const classBtns = document.querySelectorAll('#classGrid .opt-btn');
-  classBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      classBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      window.myClassIdx = parseInt(btn.dataset.c, 10);
-      window.debugLog(`เลือกสำนัก: ${window.CONFIG.CLASS_DATA[window.myClassIdx].name}`);
-    });
-  });
-
-  const colorBtns = document.querySelectorAll('#colorGrid .opt-btn');
-  colorBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      colorBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      window.myColorIdx = parseInt(btn.dataset.col, 10);
-      window.debugLog(`เลือกสีชุด: ${btn.textContent}`);
-    });
-  });
-}
-initAuthSelectors();
 
 // ---------------- Auth System ----------------
 window.switchAuthTab = function(mode) {
@@ -153,6 +169,7 @@ async function handleAuth() {
       window.myProgress.money = prow.money != null ? prow.money : 150;
       window.myProgress.swordPlus = prow.sword_plus != null ? prow.sword_plus : 0;
       window.myProgress.inventory = prow.inventory || { potion: 2, spiritStone: 2, herb: 4 };
+      window.myProgress.equipment = prow.equipment || { helm: null, armor: null, bracer: null, boots: null, weapon: 'กระบี่เริ่มต้น' };
       window.myProgress.isVip1 = !!prow.is_vip1;
       window.myClassIdx = prow.class_idx != null ? prow.class_idx : 0;
       window.myColorIdx = prow.costume || 0;
@@ -166,11 +183,12 @@ async function handleAuth() {
         class_idx: window.myClassIdx,
         level: 1, exp: 0, money: 150, sword_plus: 0,
         costume: window.myColorIdx,
-        inventory: window.myProgress.inventory
+        inventory: window.myProgress.inventory,
+        equipment: window.myProgress.equipment
       });
     }
 
-    window.channel = window.sb.channel('justice_v9_' + window.roomCode, {
+    window.channel = window.sb.channel('justice_v10_' + window.roomCode, {
       config: { broadcast: { ack: false, self: false }, presence: { key: myId } }
     });
 
@@ -231,7 +249,6 @@ async function handleAuth() {
         window.PlayerManager.setupControls();
         window.CombatSystem.initMonsters();
 
-        // อัปเดตชื่อสกิลบนปุ่มตามสำนักที่เลือก
         const curClass = window.CONFIG.CLASS_DATA[window.myClassIdx];
         document.getElementById('nameQ').textContent = curClass.qName;
         document.getElementById('nameE').textContent = curClass.eName;
@@ -298,6 +315,57 @@ function gameLoop() {
   window.World3D.renderer.render(window.World3D.scene, window.World3D.camera);
 }
 
+// ---------------- Teleportation & Equipment System ----------------
+window.teleportTo = function(x, z, locationName) {
+  window.PlayerManager.me.x = x;
+  window.PlayerManager.me.z = z;
+  window.PlayerManager.me.y = 1.0;
+  window.PlayerManager.me.vy = 0;
+  window.closeModal('teleportModal');
+  window.showToast(`🌀 วาร์ปมายัง: ${locationName}`);
+};
+
+window.equipItem = async function(itemKey) {
+  const item = window.EQUIP_DB[itemKey];
+  if (!item) return;
+
+  const currentEquipped = window.myProgress.equipment[item.slot];
+  if (currentEquipped) {
+    window.myProgress.inventory[currentEquipped] = (window.myProgress.inventory[currentEquipped] || 0) + 1;
+  }
+
+  window.myProgress.equipment[item.slot] = itemKey;
+  window.myProgress.inventory[itemKey] -= 1;
+  if (window.myProgress.inventory[itemKey] <= 0) delete window.myProgress.inventory[itemKey];
+
+  window.updateMeHUD();
+  window.renderCharUI();
+  window.openModal('invModal');
+  window.showToast(`สวมใส่ [${item.name}] สำเร็จ!`);
+
+  await window.sb.from('mmo_players').update({
+    equipment: window.myProgress.equipment,
+    inventory: window.myProgress.inventory
+  }).eq('name', window.myName);
+};
+
+window.unequipItem = async function(slot) {
+  const itemKey = window.myProgress.equipment[slot];
+  if (!itemKey) return;
+
+  window.myProgress.equipment[slot] = null;
+  window.myProgress.inventory[itemKey] = (window.myProgress.inventory[itemKey] || 0) + 1;
+
+  window.updateMeHUD();
+  window.renderCharUI();
+  window.showToast(`ถอดอุปกรณ์เรียบร้อย`);
+
+  await window.sb.from('mmo_players').update({
+    equipment: window.myProgress.equipment,
+    inventory: window.myProgress.inventory
+  }).eq('name', window.myName);
+};
+
 // ---------------- Rewards & Quests ----------------
 window.gainRewards = async function(expAmt, moneyAmt, drops, src, monsterType) {
   const expBonus = window.myProgress.isVip1 ? 1.3 : 1.0;
@@ -315,13 +383,27 @@ window.gainRewards = async function(expAmt, moneyAmt, drops, src, monsterType) {
     }
   }
 
+  // ระบบสุ่มดรอปเกราะ/อาวุธ
   if (drops && drops.length) {
     drops.forEach(k => {
       window.myProgress.inventory[k] = (window.myProgress.inventory[k] || 0) + 1;
     });
   }
 
-  window.showToast(`+${finalExp} EXP | +${finalMoney} ตำลึง | ดรอปไอเทม! (${src})`);
+  // โอกาสสุ่มดรอปเกราะจากมอนสเตอร์ (Drop Rates)
+  if (monsterType === 'bandit' && Math.random() < 0.35) {
+    window.myProgress.inventory['armor_leather'] = (window.myProgress.inventory['armor_leather'] || 0) + 1;
+    window.showToast('✨ ดรอปไอเทมแรร์: [เสื้อเกราะหนังเสือดาว] !');
+  } else if (monsterType === 'golem' && Math.random() < 0.30) {
+    window.myProgress.inventory['bracer_tiger'] = (window.myProgress.inventory['bracer_tiger'] || 0) + 1;
+    window.showToast('✨ ดรอปไอเทมแรร์: [ปลอกแขนพยัคฆ์เหิน] !');
+  } else if (monsterType === 'boss') {
+    window.myProgress.inventory['armor_steel'] = (window.myProgress.inventory['armor_steel'] || 0) + 1;
+    window.myProgress.inventory['boots_wind'] = (window.myProgress.inventory['boots_wind'] || 0) + 1;
+    window.showToast('🔥 บอสดรอปยุทธภัณฑ์ระดับตำนาน: [เกราะเหล็กไหลพันปี] & [สนับแข้งวายุ] !');
+  }
+
+  window.showToast(`+${finalExp} EXP | +${finalMoney} ตำลึง (${src})`);
 
   while (window.myProgress.exp >= expNeeded(window.myProgress.level)) {
     window.myProgress.exp -= expNeeded(window.myProgress.level);
@@ -377,18 +459,11 @@ window.updateMeHUD = function() {
   document.getElementById('vipBadge').textContent = window.myProgress.isVip1 ? 'VIP 1' : 'VIP 0';
 };
 
-// ---------------- Modals ----------------
+// ---------------- Modals UI ----------------
 window.openModal = function(id) {
   document.getElementById(id).style.display = 'flex';
-  if (id === 'invModal') {
-    const grid = document.getElementById('invGrid');
-    grid.innerHTML = `
-      <div class="inv-slot"><b>🧪 โอสถ</b><span>x${window.myProgress.inventory.potion || 0}</span><button class="menu-btn-small" onclick="usePotion()">ดื่ม</button></div>
-      <div class="inv-slot"><b>💎 หินวิญญาณ</b><span>x${window.myProgress.inventory.spiritStone || 0}</span></div>
-      <div class="inv-slot"><b>🌿 สมุนไพร</b><span>x${window.myProgress.inventory.herb || 0}</span></div>
-      <div class="inv-slot"><b>💰 ตำลึง</b><span>${window.myProgress.money}</span></div>
-    `;
-  }
+  if (id === 'charModal') window.renderCharUI();
+  if (id === 'invModal') window.renderInventoryUI();
   if (id === 'forgeModal') {
     document.getElementById('forgeCurLvl').textContent = `+${window.myProgress.swordPlus}`;
     document.getElementById('forgeAtk').textContent = `${window.getBaseAtk()} ATK`;
@@ -398,12 +473,47 @@ window.openModal = function(id) {
 };
 window.closeModal = function(id) { document.getElementById(id).style.display = 'none'; };
 
+window.renderCharUI = function() {
+  const eq = window.myProgress.equipment;
+  document.getElementById('eqHelmText').innerHTML = eq.helm ? `${window.EQUIP_DB[eq.helm].name} <button class="menu-btn-small" onclick="unequipItem('helm')">ถอด</button>` : '- ไม่มี -';
+  document.getElementById('eqArmorText').innerHTML = eq.armor ? `${window.EQUIP_DB[eq.armor].name} <button class="menu-btn-small" onclick="unequipItem('armor')">ถอด</button>` : '- ไม่มี -';
+  document.getElementById('eqBracerText').innerHTML = eq.bracer ? `${window.EQUIP_DB[eq.bracer].name} <button class="menu-btn-small" onclick="unequipItem('bracer')">ถอด</button>` : '- ไม่มี -';
+  document.getElementById('eqBootsText').innerHTML = eq.boots ? `${window.EQUIP_DB[eq.boots].name} <button class="menu-btn-small" onclick="unequipItem('boots')">ถอด</button>` : '- ไม่มี -';
+  document.getElementById('eqWeaponText').textContent = `กระบี่ +${window.myProgress.swordPlus}`;
+  document.getElementById('eqTotalStatsText').textContent = `ATK: ${window.getBaseAtk()} | DEF: ${window.getBaseDef()}`;
+};
+
+window.renderInventoryUI = function() {
+  const grid = document.getElementById('invGrid');
+  let html = `
+    <div class="inv-slot"><b>🧪 โอสถ</b><span>x${window.myProgress.inventory.potion || 0}</span><button class="menu-btn-small" onclick="usePotion()">ดื่ม</button></div>
+    <div class="inv-slot"><b>💎 หินวิญญาณ</b><span>x${window.myProgress.inventory.spiritStone || 0}</span></div>
+    <div class="inv-slot"><b>🌿 สมุนไพร</b><span>x${window.myProgress.inventory.herb || 0}</span></div>
+    <div class="inv-slot"><b>💰 ตำลึง</b><span>${window.myProgress.money}</span></div>
+  `;
+
+  // แสดงผลชิ้นส่วนอุปกรณ์ในกระเป๋า
+  Object.keys(window.myProgress.inventory).forEach(k => {
+    if (window.EQUIP_DB[k]) {
+      html += `
+        <div class="inv-slot" style="border-color:var(--gold);">
+          <b>🛡️ ${window.EQUIP_DB[k].name}</b>
+          <span>x${window.myProgress.inventory[k]}</span>
+          <button class="menu-btn-small" style="background:var(--gold);color:#000;" onclick="equipItem('${k}')">สวมใส่</button>
+        </div>
+      `;
+    }
+  });
+
+  grid.innerHTML = html;
+};
+
 window.usePotion = async function() {
   if ((window.myProgress.inventory.potion || 0) <= 0) { window.showToast('โอสถหมดแล้ว!'); return; }
   window.myProgress.inventory.potion -= 1;
   window.PlayerManager.me.hp = Math.min(window.PlayerManager.me.maxHp, window.PlayerManager.me.hp + 60);
   window.updateMeHUD();
-  window.openModal('invModal');
+  window.renderInventoryUI();
   window.showToast('ดื่มโอสถ +60 HP!');
   await window.sb.from('mmo_players').update({ inventory: window.myProgress.inventory }).eq('name', window.myName);
 };
