@@ -19,18 +19,15 @@ window.PlayerManager = {
     const goldTrim = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.8 });
     const skinMat = new THREE.MeshStandardMaterial({ color: 0xfce5cd });
 
-    // ลำตัวชุดจอมยุทธ์
     const body = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.65, 1.7, 12), bodyMat);
     body.position.y = 1.0;
     body.castShadow = true;
     hero.add(body);
 
-    // ผ้าคลุมโปร่งแสงพริ้วไหว
     const cape = new THREE.Mesh(new THREE.BoxGeometry(0.85, 1.6, 0.05), new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.75 }));
     cape.position.set(0, 1.0, -0.38);
     hero.add(cape);
 
-    // ศีรษะและเส้นผม
     const head = new THREE.Mesh(new THREE.SphereGeometry(0.34, 16, 16), skinMat);
     head.position.y = 2.05;
     const hair = new THREE.Mesh(new THREE.ConeGeometry(0.36, 1.2, 8), new THREE.MeshStandardMaterial({ color: 0x110d0a }));
@@ -38,7 +35,6 @@ window.PlayerManager = {
     hair.rotation.x = -0.3;
     hero.add(head, hair);
 
-    // กระบี่สะพายหลัง
     const sword = new THREE.Mesh(new THREE.BoxGeometry(0.06, 1.9, 0.2), goldTrim);
     sword.position.set(0.35, 1.2, -0.42);
     sword.rotation.z = Math.PI / 6;
@@ -53,7 +49,6 @@ window.PlayerManager = {
       const k = e.key.toLowerCase();
       this.keys[k] = true;
 
-      // วิชาตัวเบา / Double Jump / Flight
       if (e.key === ' ') {
         e.preventDefault();
         if (this.me.jumpsLeft > 0) {
@@ -85,7 +80,6 @@ window.PlayerManager = {
     });
     window.addEventListener('contextmenu', e => e.preventDefault());
 
-    // หมุนมุมกล้อง 360 องศา
     window.addEventListener('mousemove', e => {
       if (this.isRightMouseDown) {
         this.me.yaw -= e.movementX * 0.0035;
@@ -109,22 +103,26 @@ window.PlayerManager = {
     const baseSpeed = this.me.isFlying ? 0.44 : 0.24;
     const moveSpeed = isVip1 ? baseSpeed * 1.25 : baseSpeed;
 
-    let forward = 0;
-    let strafe = 0;
+    // คำนวณเวกเตอร์มุมหน้ากล้องและระนาบข้าง
+    const forwardX = -Math.sin(this.me.yaw);
+    const forwardZ = -Math.cos(this.me.yaw);
+    const rightX = Math.cos(this.me.yaw);
+    const rightZ = -Math.sin(this.me.yaw);
 
-    if (this.keys['w']) forward += 1;
-    if (this.keys['s']) forward -= 1;
-    if (this.keys['a']) strafe -= 1; // เดินซ้าย
-    if (this.keys['d']) strafe += 1; // เดินขวา
+    let moveX = 0;
+    let moveZ = 0;
 
-    // คำนวณเวกเตอร์มุมการเดินให้สัมพันธ์กับทิศทางของมุมกล้อง (แก้ปัญหากลับทิศสมบูรณ์)
-    if (forward !== 0 || strafe !== 0) {
-      const moveAng = this.me.yaw + Math.atan2(strafe, forward);
-      this.me.x -= Math.sin(moveAng) * moveSpeed;
-      this.me.z -= Math.cos(moveAng) * moveSpeed;
+    if (this.keys['w']) { moveX += forwardX; moveZ += forwardZ; }
+    if (this.keys['s']) { moveX -= forwardX; moveZ -= forwardZ; }
+    if (this.keys['d']) { moveX += rightX; moveZ += rightZ; } // D = ขวาแท้จริง
+    if (this.keys['a']) { moveX -= rightX; moveZ -= rightZ; } // A = ซ้ายแท้จริง
+
+    if (moveX !== 0 || moveZ !== 0) {
+      const len = Math.hypot(moveX, moveZ);
+      this.me.x += (moveX / len) * moveSpeed;
+      this.me.z += (moveZ / len) * moveSpeed;
     }
 
-    // ฟิสิกส์แรงโน้มถ่วงและการร่อนกลางเวหา
     this.me.y += this.me.vy;
     if (this.me.y > 0) {
       this.me.vy -= this.me.isFlying ? 0.008 : 0.022;
@@ -137,17 +135,14 @@ window.PlayerManager = {
       this.me.isFlying = false;
     }
 
-    // กำหนดขอบเขตแผนที่
     this.me.x = Math.max(-75, Math.min(75, this.me.x));
     this.me.z = Math.max(-75, Math.min(75, this.me.z));
 
-    // อัปเดตโมเดลตัวละคร 3D
     if (this.myHeroMesh) {
       this.myHeroMesh.position.set(this.me.x, this.me.y + (this.me.isDead ? -0.8 : 0), this.me.z);
       this.myHeroMesh.rotation.y = this.me.yaw;
     }
 
-    // กล้องบุคคลที่สาม (3rd Person Camera Smooth Follow)
     const camDist = 8.5;
     const cam = window.World3D.camera;
     cam.position.x = this.me.x + Math.sin(this.me.yaw) * Math.cos(this.me.pitch) * camDist;
