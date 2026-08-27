@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>WHERE WINDS MEET · STABLE ARPG 3D</title>
+<title>WHERE WINDS MEET · FULL ULTIMATE 3D MMORPG</title>
 
 <script>
   window.SUPABASE_URL = "https://mflemycqwksuktvktlko.supabase.co";
@@ -463,9 +463,6 @@ button { cursor: pointer; border: none; font-family: 'Noto Sans Thai', sans-seri
 </div>
 
 <script>
-(function(){
-"use strict";
-
 window.CONFIG = {
   SUPABASE_URL: window.SUPABASE_URL,
   SUPABASE_ANON_KEY: window.SUPABASE_ANON_KEY,
@@ -512,7 +509,9 @@ window.debugLog = function(msg, level = 'info') {
   const debugLinesEl = document.getElementById('debugLines');
   if (debugLinesEl) {
     debugLinesEl.appendChild(div);
-    debugLinesEl.parentElement.scrollTop = debugLinesEl.parentElement.scrollHeight;
+    if (debugLinesEl.parentElement) {
+      debugLinesEl.parentElement.scrollTop = debugLinesEl.parentElement.scrollHeight;
+    }
   }
 };
 
@@ -524,9 +523,23 @@ window.showToast = function(msg) {
   window.showToast._t = setTimeout(() => { t.style.display = 'none'; }, 3000);
 };
 
-window.selectGender = function(g, el) { window.myGender = g; document.querySelectorAll('#genderGrid .opt-btn').forEach(b => b.classList.remove('active')); if (el) el.classList.add('active'); };
-window.selectClass = function(idx, el) { window.myClassIdx = idx; document.querySelectorAll('#classGrid .opt-btn').forEach(b => b.classList.remove('active')); if (el) el.classList.add('active'); };
-window.selectColor = function(idx, el) { window.myColorIdx = idx; document.querySelectorAll('#colorGrid .opt-btn').forEach(b => b.classList.remove('active')); if (el) el.classList.add('active'); };
+window.selectGender = function(g, el) {
+  window.myGender = g;
+  document.querySelectorAll('#genderGrid .opt-btn').forEach(b => b.classList.remove('active'));
+  if (el) el.classList.add('active');
+};
+
+window.selectClass = function(idx, el) {
+  window.myClassIdx = idx;
+  document.querySelectorAll('#classGrid .opt-btn').forEach(b => b.classList.remove('active'));
+  if (el) el.classList.add('active');
+};
+
+window.selectColor = function(idx, el) {
+  window.myColorIdx = idx;
+  document.querySelectorAll('#colorGrid .opt-btn').forEach(b => b.classList.remove('active'));
+  if (el) el.classList.add('active');
+};
 
 window.switchAuthTab = function(mode) {
   window.authMode = mode;
@@ -605,6 +618,7 @@ window.World3D = {
     this.initControls();
 
     window.addEventListener('resize', () => {
+      if (!this.camera || !this.renderer) return;
       this.camera.aspect = window.innerWidth / window.innerHeight;
       this.camera.updateProjectionMatrix();
       this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -776,7 +790,7 @@ window.inspectPlayer = function(targetId) {
   const content = document.getElementById('inspectContent');
   if (title) title.textContent = `ข้อมูลจอมยุทธ์: ${p.name}`;
   if (content) {
-    content.innerHTML = `<p>⭐ สำนัก: <b>${window.CONFIG.CLASS_DATA[p.classIdx || 0].name}</b></p><p>⭐ เลเวล: <b>Lv.${p.level || 1}</b></p><p>👑 สถานะ: <b>VIP ${p.vipLevel || 0}</b></p><p>🔥 พลังรบรวม (RP): <b style="color:var(--gold-bright);">${p.rp || 150}</b></p>`;
+    content.innerHTML = `<p>⭐ สำนัก: <b>${window.CONFIG.CLASS_DATA[p.classIdx || 0].name}</b></p><p>⭐ เลเวล: <b>Lv.${p.level || 1}</b></p><p>👑 สถานะ: <b>VIP ${p.vipLevel || 0}</b></p><p>🔥 พลังรบรวม (RP): <b style="color:var(--gold-bright);">250</b></p>`;
   }
   if (modal) modal.style.display = 'flex';
 };
@@ -841,7 +855,8 @@ window.CombatSystem = {
         target.alive = false;
         if (target.mesh) target.mesh.visible = false;
         window.showToast(`กำจัด [${target.name}] สำเร็จ! +180 EXP`);
-        document.getElementById('boss-bar-box').style.display = 'none';
+        const bossBar = document.getElementById('boss-bar-box');
+        if (bossBar) bossBar.style.display = 'none';
       }
     } else {
       window.showToast('ยังไม่ได้ล็อคเป้าหมายมอนสเตอร์!');
@@ -850,9 +865,12 @@ window.CombatSystem = {
 };
 
 window.updateMeHUD = function() {
-  document.getElementById('pNameText').textContent = window.myName;
-  document.getElementById('pLvText').textContent = `Lv.${window.myProgress.level}`;
-  document.getElementById('vipBadge').textContent = `VIP ${window.myProgress.vipLevel}`;
+  const pName = document.getElementById('pNameText');
+  const pLv = document.getElementById('pLvText');
+  const vipBadge = document.getElementById('vipBadge');
+  if (pName) pName.textContent = window.myName;
+  if (pLv) pLv.textContent = `Lv.${window.myProgress.level}`;
+  if (vipBadge) vipBadge.textContent = `VIP ${window.myProgress.vipLevel}`;
 };
 
 window.teleportTo = function(x, z, name) {
@@ -875,9 +893,13 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function handleAuth() {
-  const nm = document.getElementById('nameInput').value.trim();
-  const pwd = document.getElementById('passInput').value.trim();
-  const rc = document.getElementById('roomInput').value.trim().toLowerCase().replace(/\s+/g, '');
+  const nameInput = document.getElementById('nameInput');
+  const passInput = document.getElementById('passInput');
+  const roomInput = document.getElementById('roomInput');
+
+  const nm = nameInput ? nameInput.value.trim() : '';
+  const pwd = passInput ? passInput.value.trim() : '';
+  const rc = roomInput ? roomInput.value.trim().toLowerCase().replace(/\s+/g, '') : '';
 
   if (!nm) { alert('กรุณากรอกชื่อจอมยุทธ์'); return; }
   if (!pwd || pwd.length < 6) { alert('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'); return; }
@@ -889,7 +911,7 @@ async function handleAuth() {
 
   try {
     window.sb = window.supabase.createClient(window.CONFIG.SUPABASE_URL, window.CONFIG.SUPABASE_ANON_KEY);
-    window.channel = window.sb.channel('justice_v25_' + window.roomCode, {
+    window.channel = window.sb.channel('justice_v26_' + window.roomCode, {
       config: { broadcast: { ack: false, self: false }, presence: { key: myId } }
     });
 
@@ -910,8 +932,10 @@ async function handleAuth() {
       if (status === 'SUBSCRIBED') {
         window.channel.track({ name: window.myName, gender: window.myGender, classIdx: window.myClassIdx, costume: window.myColorIdx, level: window.myProgress.level, vipLevel: window.myProgress.vipLevel, rp: 250, joinedAt: Date.now() });
 
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('game-view').style.display = 'block';
+        const loginScreen = document.getElementById('login-screen');
+        const gameView = document.getElementById('game-view');
+        if (loginScreen) loginScreen.style.display = 'none';
+        if (gameView) gameView.style.display = 'block';
 
         window.World3D.init('canvas3d');
         window.PlayerManager.myHeroMesh = window.PlayerManager.createHeroMesh(window.myColorIdx, window.myGender, window.myClassIdx, window.myName, window.myProgress.level, window.myProgress.vipLevel, myId);
@@ -952,8 +976,6 @@ function gameLoop() {
 
   window.World3D.renderer.render(window.World3D.scene, window.World3D.camera);
 }
-
-})();
 </script>
 </body>
 </html>
