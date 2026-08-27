@@ -28,14 +28,19 @@ window.myProgress = {
 
 // Debug Panel
 const debugLinesEl = document.getElementById('debugLines');
-document.getElementById('clearDebugBtn').addEventListener('click', () => { debugLinesEl.innerHTML = ''; });
+if (document.getElementById('clearDebugBtn')) {
+  document.getElementById('clearDebugBtn').addEventListener('click', () => { debugLinesEl.innerHTML = ''; });
+}
+
 window.debugLog = function(msg, level = 'info') {
   const time = new Date().toLocaleTimeString('th-TH', { hour12: false });
   const div = document.createElement('div');
   div.className = 'line' + (level === 'error' ? ' err' : level === 'warn' ? ' warn' : '');
   div.textContent = `[${time}] ${msg}`;
-  debugLinesEl.appendChild(div);
-  debugLinesEl.parentElement.scrollTop = debugLinesEl.parentElement.scrollHeight;
+  if (debugLinesEl) {
+    debugLinesEl.appendChild(div);
+    debugLinesEl.parentElement.scrollTop = debugLinesEl.parentElement.scrollHeight;
+  }
   if (level === 'error') console.error(msg);
 };
 
@@ -54,11 +59,36 @@ window.getBaseDef = function() {
 
 window.showToast = function(msg) {
   const t = document.getElementById('toast');
+  if (!t) return;
   t.textContent = msg;
   t.style.display = 'block';
   clearTimeout(window.showToast._t);
   window.showToast._t = setTimeout(() => { t.style.display = 'none'; }, 3000);
 };
+
+// ---------------- ผูก Event ปุ่มเลือกอาชีพ & สีชุด (แก้บั๊กเลือกไม่ได้) ----------------
+function initAuthSelectors() {
+  const classBtns = document.querySelectorAll('#classGrid .opt-btn');
+  classBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      classBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      window.myClassIdx = parseInt(btn.dataset.c, 10);
+      window.debugLog(`เลือกสำนัก: ${window.CONFIG.CLASS_DATA[window.myClassIdx].name}`);
+    });
+  });
+
+  const colorBtns = document.querySelectorAll('#colorGrid .opt-btn');
+  colorBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      colorBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      window.myColorIdx = parseInt(btn.dataset.col, 10);
+      window.debugLog(`เลือกสีชุด: ${btn.textContent}`);
+    });
+  });
+}
+initAuthSelectors();
 
 // ---------------- Auth System ----------------
 window.switchAuthTab = function(mode) {
@@ -124,6 +154,7 @@ async function handleAuth() {
       window.myProgress.swordPlus = prow.sword_plus != null ? prow.sword_plus : 0;
       window.myProgress.inventory = prow.inventory || { potion: 2, spiritStone: 2, herb: 4 };
       window.myProgress.isVip1 = !!prow.is_vip1;
+      window.myClassIdx = prow.class_idx != null ? prow.class_idx : 0;
       window.myColorIdx = prow.costume || 0;
       window.myProgress.activeQuestIdx = prow.quest_idx || 0;
     } else {
@@ -132,13 +163,14 @@ async function handleAuth() {
       await window.sb.from('mmo_players').insert({
         name: window.myName,
         password: pwd,
+        class_idx: window.myClassIdx,
         level: 1, exp: 0, money: 150, sword_plus: 0,
         costume: window.myColorIdx,
         inventory: window.myProgress.inventory
       });
     }
 
-    window.channel = window.sb.channel('justice_v8_' + window.roomCode, {
+    window.channel = window.sb.channel('justice_v9_' + window.roomCode, {
       config: { broadcast: { ack: false, self: false }, presence: { key: myId } }
     });
 
@@ -198,6 +230,12 @@ async function handleAuth() {
         window.World3D.scene.add(window.PlayerManager.myHeroMesh);
         window.PlayerManager.setupControls();
         window.CombatSystem.initMonsters();
+
+        // อัปเดตชื่อสกิลบนปุ่มตามสำนักที่เลือก
+        const curClass = window.CONFIG.CLASS_DATA[window.myClassIdx];
+        document.getElementById('nameQ').textContent = curClass.qName;
+        document.getElementById('nameE').textContent = curClass.eName;
+        document.getElementById('nameR').textContent = curClass.rName;
 
         window.updateMeHUD();
         window.updateQuestUI();
@@ -269,7 +307,6 @@ window.gainRewards = async function(expAmt, moneyAmt, drops, src, monsterType) {
   window.myProgress.exp += finalExp;
   window.myProgress.money += finalMoney;
 
-  // ตรวจสอบความคืบหน้าเควสต์
   const curQ = window.QUEST_LIST[window.myProgress.activeQuestIdx];
   if (curQ && curQ.targetType === monsterType && !curQ.done) {
     curQ.curCount += 1;
@@ -304,6 +341,7 @@ window.gainRewards = async function(expAmt, moneyAmt, drops, src, monsterType) {
 window.updateQuestUI = function() {
   const curQ = window.QUEST_LIST[window.myProgress.activeQuestIdx];
   const qBox = document.getElementById('quest-box');
+  if (!qBox) return;
   if (curQ) {
     qBox.innerHTML = `
       <b>📜 ${curQ.title}</b><br>
