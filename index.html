@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>WHERE WINDS MEET · XIANXIA 3D MMORPG</title>
+<title>WHERE WINDS MEET · REALISTIC 3D MMORPG</title>
 
 <script>
   window.SUPABASE_URL = "https://mflemycqwksuktvktlko.supabase.co";
@@ -25,7 +25,7 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body {
   width: 100%; height: 100%;
-  background: #050302;
+  background: #030202;
   color: #efe6d5;
   font-family: 'Noto Sans Thai', sans-serif;
   overflow: hidden;
@@ -34,11 +34,11 @@ html, body {
 .brush-title { font-family: 'Noto Serif SC', 'Cinzel', serif; font-weight: 900; }
 #app { width: 100%; height: 100%; position: relative; }
 
-/* หน้าต่างสร้างตัวละคร & เข้าสู่ระบบ */
+/* หน้าจอ Login & Register */
 #login-screen {
   position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center;
-  background: radial-gradient(circle at 60% 40%, #2a160c 0%, #050302 85%);
+  background: radial-gradient(circle at 60% 40%, #1e110a 0%, #030202 90%);
   z-index: 100;
 }
 #login-box {
@@ -46,8 +46,8 @@ html, body {
   border: 1.5px solid var(--border);
   border-radius: 12px;
   padding: 26px;
-  width: 490px; max-width: 92%;
-  display: flex; flex-direction: column; gap: 11px;
+  width: 500px; max-width: 92%;
+  display: flex; flex-direction: column; gap: 10px;
   box-shadow: 0 16px 60px rgba(0,0,0,0.95), inset 0 0 20px rgba(212,175,55,0.05);
   max-height: 94vh;
   overflow-y: auto;
@@ -57,31 +57,9 @@ html, body {
 .main-title { font-size: 2.1em; text-align: center; color: var(--gold-bright); text-shadow: 0 0 25px rgba(250,225,125,.4); }
 .sub-desc { font-size: .82em; color: #bfae91; text-align: center; margin-top: -6px; margin-bottom: 2px; }
 
-.auth-tabs {
-  display: flex;
-  background: #150e0a;
-  border: 1px solid #4a3822;
-  border-radius: 6px;
-  overflow: hidden;
-  margin-bottom: 2px;
-}
-.auth-tab-btn {
-  flex: 1;
-  padding: 9px 0;
-  background: transparent;
-  border: none;
-  color: #a89779;
-  font-size: .88em;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all .2s;
-}
-.auth-tab-btn.active {
-  background: linear-gradient(180deg, #382515, #22140a);
-  color: var(--gold-bright);
-  font-weight: 700;
-  box-shadow: inset 0 -2px 0 var(--gold);
-}
+.auth-tabs { display: flex; background: #150e0a; border: 1px solid #4a3822; border-radius: 6px; overflow: hidden; margin-bottom: 2px; }
+.auth-tab-btn { flex: 1; padding: 9px 0; background: transparent; border: none; color: #a89779; font-size: .88em; font-weight: 600; cursor: pointer; transition: all .2s; }
+.auth-tab-btn.active { background: linear-gradient(180deg, #382515, #22140a); color: var(--gold-bright); font-weight: 700; box-shadow: inset 0 -2px 0 var(--gold); }
 
 .field { display: flex; flex-direction: column; gap: 4px; text-align: left; }
 .field label { font-size: .8em; color: #d2c4a7; font-weight: 600; }
@@ -94,10 +72,7 @@ html, body {
   font-size: .95em;
   outline: none;
 }
-.field input:focus {
-  border-color: var(--gold-bright) !important;
-  box-shadow: 0 0 10px rgba(250,225,125,0.2);
-}
+.field input:focus { border-color: var(--gold-bright) !important; box-shadow: 0 0 10px rgba(250,225,125,0.2); }
 
 .grid-opt { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
 .grid-opt-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
@@ -132,14 +107,13 @@ button { cursor: pointer; border: none; font-family: 'Noto Sans Thai', sans-seri
   margin-top: 4px;
   box-shadow: 0 4px 18px rgba(212,175,55,.35);
 }
-#startBtn:hover { filter: brightness(1.1); }
-#startBtn:disabled { filter: grayscale(0.8); cursor: not-allowed; }
 
 /* In-game HUD */
 #game-view { width: 100%; height: 100%; display: none; position: relative; }
 #canvas3d { width: 100%; height: 100%; display: block; }
 #hud { position: absolute; inset: 0; pointer-events: none; }
 
+/* Player Profile Top-Left */
 #player-hud {
   position: absolute; top: 16px; left: 16px;
   display: flex; gap: 12px; align-items: center;
@@ -161,7 +135,17 @@ button { cursor: pointer; border: none; font-family: 'Noto Sans Thai', sans-seri
 .hud-exp { height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold-bright)); transition: width .3s; }
 .hud-stats-row { font-size: .72em; color: #fae17d; display: flex; justify-content: space-between; margin-top: 2px; }
 
-#top-menu { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; pointer-events: auto; flex-wrap: wrap; justify-content: center; }
+/* Boss Raid Health Bar Top-Center */
+#boss-bar-box {
+  position: absolute; top: 18px; left: 50%; transform: translateX(-50%);
+  width: 480px; max-width: 90%; display: none; flex-direction: column; align-items: center; gap: 3px; pointer-events: none;
+}
+.boss-title-row { font-size: .88em; font-weight: 700; color: #ff4d4f; text-shadow: 0 0 10px rgba(255,77,79,0.8); display: flex; justify-content: space-between; width: 100%; }
+.boss-hp-frame { width: 100%; height: 14px; background: rgba(0,0,0,0.85); border: 1.5px solid #d4af37; border-radius: 7px; overflow: hidden; box-shadow: 0 0 15px rgba(212,175,55,0.4); }
+.boss-hp-fill { height: 100%; background: linear-gradient(90deg, #820014, #ff4d4f); width: 100%; transition: width .15s; }
+
+/* Menu Top */
+#top-menu { position: absolute; top: 56px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; pointer-events: auto; flex-wrap: wrap; justify-content: center; }
 .menu-btn {
   background: rgba(20, 15, 11, 0.85);
   border: 1px solid #5a452d;
@@ -174,6 +158,7 @@ button { cursor: pointer; border: none; font-family: 'Noto Sans Thai', sans-seri
 .menu-btn:hover { background: rgba(40, 30, 20, 0.9); }
 .menu-btn-small { background: rgba(20, 15, 11, 0.85); border: 1px solid #5a452d; color: var(--gold-bright); padding: 2px 8px; font-size: .7em; border-radius: 3px; }
 
+/* Top Right Quest */
 #top-right { position: absolute; top: 16px; right: 16px; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
 #minimap {
   width: 96px; height: 96px;
@@ -256,7 +241,7 @@ button { cursor: pointer; border: none; font-family: 'Noto Sans Thai', sans-seri
 .inv-slot b { color: var(--gold-bright); }
 .btn-action-gold { background: linear-gradient(180deg, #f3d36b, var(--gold)); color: #1a1205; padding: 10px; font-weight: 700; border-radius: 4px; }
 
-#toast { position: absolute; top: 60px; left: 50%; transform: translateX(-50%); font-size: .88em; color: var(--gold-bright); background: rgba(18, 13, 9, .94); padding: 8px 24px; border-radius: 20px; border: 1px solid var(--gold); display: none; z-index: 80; box-shadow: 0 4px 20px rgba(0,0,0,.8); }
+#toast { position: absolute; top: 75px; left: 50%; transform: translateX(-50%); font-size: .88em; color: var(--gold-bright); background: rgba(18, 13, 9, .94); padding: 8px 24px; border-radius: 20px; border: 1px solid var(--gold); display: none; z-index: 80; box-shadow: 0 4px 20px rgba(0,0,0,.8); }
 
 /* Debug Log Panel */
 #debugPanel { position: fixed; right: 10px; bottom: 10px; width: 340px; max-height: 220px; overflow-y: auto; background: rgba(0,0,0,0.92); border: 1px solid #5a452d; border-radius: 6px; padding: 6px 10px; font-family: monospace; font-size: .72em; color: #8fda8f; z-index: 9999; }
@@ -293,7 +278,6 @@ button { cursor: pointer; border: none; font-family: 'Noto Sans Thai', sans-seri
       </div>
 
       <div id="registerExtraFields" style="display: flex; flex-direction: column; gap: 10px;">
-        <!-- เพศ -->
         <div class="field">
           <label>เพศของจอมยุทธ์ (Gender)</label>
           <div class="grid-opt" id="genderGrid">
@@ -302,7 +286,6 @@ button { cursor: pointer; border: none; font-family: 'Noto Sans Thai', sans-seri
           </div>
         </div>
 
-        <!-- สำนัก -->
         <div class="field">
           <label>เลือกสำนักเพลงยุทธ์ (Class)</label>
           <div class="grid-opt" id="classGrid">
@@ -313,7 +296,6 @@ button { cursor: pointer; border: none; font-family: 'Noto Sans Thai', sans-seri
           </div>
         </div>
 
-        <!-- สีชุด -->
         <div class="field">
           <label>ชุดคลุมเริ่มต้น</label>
           <div class="grid-opt-4" id="colorGrid">
@@ -354,6 +336,17 @@ button { cursor: pointer; border: none; font-family: 'Noto Sans Thai', sans-seri
             <span>💰 <span id="moneyText">200</span> ตำลึง</span>
             <span>⚔️ ATK: <span id="atkText">35</span> | 🛡️ DEF: <span id="defText">12</span></span>
           </div>
+        </div>
+      </div>
+
+      <!-- Boss Raid Bar Top-Center -->
+      <div id="boss-bar-box">
+        <div class="boss-title-row">
+          <span id="bossNameText">🐉 มังกรศิลาพันปี</span>
+          <span id="bossLvlText" style="color:var(--gold-bright)">Lv.50 [World Boss]</span>
+        </div>
+        <div class="boss-hp-frame">
+          <div class="boss-hp-fill" id="bossHpFill"></div>
         </div>
       </div>
 
@@ -406,7 +399,7 @@ button { cursor: pointer; border: none; font-family: 'Noto Sans Thai', sans-seri
         <div class="equip-slot"><span>เสื้อเกราะ:</span> <b id="eqArmorText">- ไม่มี -</b></div>
         <div class="equip-slot"><span>ปลอกแขน:</span> <b id="eqBracerText">- ไม่มี -</b></div>
         <div class="equip-slot"><span>สนับแข้ง:</span> <b id="eqBootsText">- ไม่มี -</b></div>
-        <div class="equip-slot"><span>กระบี่:</span> <b id="eqWeaponText">กระบี่เริ่มต้น</b></div>
+        <div class="equip-slot"><span>อาวุธประจำตัว:</span> <b id="eqWeaponText">กระบี่เริ่มต้น</b></div>
       </div>
       <div class="modal-content-box">
         <p id="eqTotalStatsText">🔥 <b>พลังรบรวม (RP): 150</b></p>
@@ -440,11 +433,11 @@ button { cursor: pointer; border: none; font-family: 'Noto Sans Thai', sans-seri
     <div class="modal-box">
       <h3 class="brush-title">ช่างตีเหล็กหลวง</h3>
       <div class="modal-content-box">
-        <p>ระดับกระบี่: <b style="color:var(--gold-bright)" id="forgeCurLvl">+0</b></p>
+        <p>ระดับอาวุธ: <b style="color:var(--gold-bright)" id="forgeCurLvl">+0</b></p>
         <p>พลังโจมตี: <b style="color:#ff6b6b" id="forgeAtk">35 ATK</b> ➜ <b style="color:#22c55e" id="forgeNextAtk">45 ATK</b></p>
         <p>วัตถุดิบที่ใช้: หินวิญญาณ 1 ชิ้น (<span id="stoneCountText">0</span>) + 80 ตำลึง</p>
       </div>
-      <button class="btn-action-gold" onclick="upgradeSwordAction()">ตีบวกกระบี่</button>
+      <button class="btn-action-gold" onclick="upgradeSwordAction()">ตีบวกอาวุธ</button>
       <button class="menu-btn" onclick="closeModal('forgeModal')">ปิด</button>
     </div>
   </div>
@@ -551,7 +544,7 @@ window.myProgress = {
   unlockedCostumes: [0], activeQuestIdx: 0
 };
 
-// ---------------- 2. UI Action Handlers (Gender / Class / Color) ----------------
+// ---------------- 2. UI Action Handlers ----------------
 window.selectGender = function(g, el) {
   window.myGender = g;
   document.querySelectorAll('#genderGrid .opt-btn').forEach(b => b.classList.remove('active'));
@@ -596,7 +589,6 @@ window.switchAuthTab = function(mode) {
   }
 };
 
-// Debug Log Engine
 const debugLinesEl = document.getElementById('debugLines');
 if (document.getElementById('clearDebugBtn')) {
   document.getElementById('clearDebugBtn').addEventListener('click', () => { debugLinesEl.innerHTML = ''; });
@@ -614,36 +606,64 @@ window.debugLog = function(msg, level = 'info') {
 window.onerror = function(msg, url, line) { window.debugLog(`JS Error: ${msg} (Line ${line})`, 'error'); };
 window.onunhandledrejection = function(e) { window.debugLog(`Promise Rejection: ${e.reason}`, 'error'); };
 
-// ---------------- 3. World 3D Graphics ----------------
+// ---------------- 3. Realistic 3D World Graphics ----------------
 window.World3D = {
   scene: null, camera: null, renderer: null, petals: [],
   init(containerId) {
     const container = document.getElementById(containerId);
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x070503);
-    this.scene.fog = new THREE.FogExp2(0x0a0705, 0.008);
+    this.scene.background = new THREE.Color(0x06080e);
+    this.scene.fog = new THREE.FogExp2(0x080b12, 0.007);
 
     this.camera = new THREE.PerspectiveCamera(48, window.innerWidth / window.innerHeight, 0.1, 1000);
-    this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.1;
     container.appendChild(this.renderer.domElement);
 
-    const ambient = new THREE.AmbientLight(0xffecd0, 0.65);
-    this.scene.add(ambient);
-    const sun = new THREE.DirectionalLight(0xffdfba, 1.5);
-    sun.position.set(60, 90, 45);
+    // Realistic Lighting
+    const hemiLight = new THREE.HemisphereLight(0xffecd0, 0x1a2130, 0.7);
+    this.scene.add(hemiLight);
+
+    const sun = new THREE.DirectionalLight(0xffdfba, 1.8);
+    sun.position.set(70, 95, 45);
     sun.castShadow = true;
+    sun.shadow.mapSize.width = 2048;
+    sun.shadow.mapSize.height = 2048;
+    sun.shadow.camera.near = 0.5;
+    sun.shadow.camera.far = 250;
+    sun.shadow.camera.left = -90;
+    sun.shadow.camera.right = 90;
+    sun.shadow.camera.top = 90;
+    sun.shadow.camera.bottom = -90;
     this.scene.add(sun);
 
-    // ลานแผนที่ 300x300m
-    const ground = new THREE.Mesh(new THREE.PlaneGeometry(300, 300), new THREE.MeshStandardMaterial({ color: 0x18110a, roughness: 0.85 }));
+    // Realistic Ground with Stone Walkways
+    const ground = new THREE.Mesh(
+      new THREE.PlaneGeometry(300, 300),
+      new THREE.MeshStandardMaterial({ color: 0x14100c, roughness: 0.85, metalness: 0.15 })
+    );
     ground.rotation.x = -Math.PI / 2;
     ground.receiveShadow = true;
     this.scene.add(ground);
 
-    // ท่าเรือน้ำ
-    const water = new THREE.Mesh(new THREE.PlaneGeometry(300, 100), new THREE.MeshStandardMaterial({ color: 0x05131a, roughness: 0.1, metalness: 0.85 }));
+    const stoneWalk = new THREE.Mesh(
+      new THREE.PlaneGeometry(16, 120),
+      new THREE.MeshStandardMaterial({ color: 0x24201c, roughness: 0.7, metalness: 0.2 })
+    );
+    stoneWalk.rotation.x = -Math.PI / 2;
+    stoneWalk.position.set(0, 0.02, 0);
+    stoneWalk.receiveShadow = true;
+    this.scene.add(stoneWalk);
+
+    // Realistic Reflective Water
+    const water = new THREE.Mesh(
+      new THREE.PlaneGeometry(300, 100),
+      new THREE.MeshStandardMaterial({ color: 0x05131a, roughness: 0.08, metalness: 0.9 })
+    );
     water.rotation.x = -Math.PI / 2;
     water.position.set(0, -0.15, -90);
     this.scene.add(water);
@@ -659,26 +679,36 @@ window.World3D = {
   },
   buildCity() {
     const pagoda = new THREE.Group();
-    const base = new THREE.Mesh(new THREE.BoxGeometry(20, 6, 14), new THREE.MeshStandardMaterial({ color: 0x3a1910 }));
-    base.position.y = 3.0;
-    const roof = new THREE.Mesh(new THREE.ConeGeometry(16, 3.5, 4), new THREE.MeshStandardMaterial({ color: 0x6e1b24 }));
-    roof.position.y = 7.5; roof.rotation.y = Math.PI / 4;
+    const base = new THREE.Mesh(new THREE.BoxGeometry(22, 7, 16), new THREE.MeshStandardMaterial({ color: 0x2b1510, roughness: 0.7 }));
+    base.position.y = 3.5; base.castShadow = true;
+    const roof = new THREE.Mesh(new THREE.ConeGeometry(18, 4.0, 4), new THREE.MeshStandardMaterial({ color: 0x5a141c, roughness: 0.4, metalness: 0.3 }));
+    roof.position.y = 8.5; roof.rotation.y = Math.PI / 4;
     pagoda.add(base, roof);
-    pagoda.position.set(0, 0, -20);
+    pagoda.position.set(0, 0, -22);
     this.scene.add(pagoda);
 
-    // ป่าไผ่
-    const bambooMat = new THREE.MeshStandardMaterial({ color: 0x2e5c38 });
-    for (let i = 0; i < 25; i++) {
-      const b = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 9), bambooMat);
-      b.position.set(-65 + (Math.random() - 0.5) * 30, 4.5, 15 + (Math.random() - 0.5) * 30);
+    // Realistic Bamboo Forest
+    const bambooMat = new THREE.MeshStandardMaterial({ color: 0x234d2c, roughness: 0.6 });
+    for (let i = 0; i < 35; i++) {
+      const b = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.18, 10), bambooMat);
+      b.position.set(-65 + (Math.random() - 0.5) * 35, 5, 15 + (Math.random() - 0.5) * 35);
+      b.castShadow = true;
       this.scene.add(b);
+    }
+
+    // Rocks in Boss Canyon
+    const rockMat = new THREE.MeshStandardMaterial({ color: 0x2d2522, roughness: 0.9 });
+    for (let i = 0; i < 10; i++) {
+      const r = new THREE.Mesh(new THREE.DodecahedronGeometry(3 + Math.random() * 3), rockMat);
+      r.position.set(80 + (Math.random() - 0.5) * 25, 2, -50 + (Math.random() - 0.5) * 25);
+      r.castShadow = true;
+      this.scene.add(r);
     }
   },
   initPetals() {
     const pGeo = new THREE.PlaneGeometry(0.2, 0.2);
     const pMat = new THREE.MeshBasicMaterial({ color: 0xffb7c5, side: THREE.DoubleSide });
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 60; i++) {
       const petal = new THREE.Mesh(pGeo, pMat);
       petal.position.set((Math.random() - 0.5) * 120, Math.random() * 15, (Math.random() - 0.5) * 120);
       petal.userData = { vy: 0.03 + Math.random() * 0.03, vx: 0.02 + Math.random() * 0.02 };
@@ -696,7 +726,7 @@ window.World3D = {
   }
 };
 
-// ---------------- 4. Player Manager & Pet Follower ----------------
+// ---------------- 4. Distinct Class Character Models & Pet ----------------
 window.PlayerManager = {
   me: {
     id: '', x: 0, y: 0, z: 0,
@@ -706,28 +736,59 @@ window.PlayerManager = {
   },
   myHeroMesh: null, petMesh: null, otherPlayers: {}, keys: {}, isRightMouseDown: false,
 
-  createHeroMesh(colorIdx = 0, gender = 'male') {
+  createHeroMesh(colorIdx = 0, gender = 'male', classIdx = 0) {
     const hero = new THREE.Group();
     const cColor = window.CONFIG.ROBE_COLORS[colorIdx] || window.CONFIG.ROBE_COLORS[0];
     const isFemale = gender === 'female';
 
-    const bodyMat = new THREE.MeshStandardMaterial({ color: cColor, roughness: 0.35 });
-    const skinMat = new THREE.MeshStandardMaterial({ color: 0xfce5cd });
-    const goldTrim = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.8 });
+    const bodyMat = new THREE.MeshStandardMaterial({ color: cColor, roughness: 0.35, metalness: 0.2 });
+    const skinMat = new THREE.MeshStandardMaterial({ color: 0xfce5cd, roughness: 0.6 });
+    const goldMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.85, roughness: 0.25 });
+    const ironMat = new THREE.MeshStandardMaterial({ color: 0x4a4a4a, metalness: 0.8, roughness: 0.3 });
 
-    const body = new THREE.Mesh(new THREE.CylinderGeometry(isFemale ? 0.3 : 0.35, isFemale ? 0.55 : 0.65, 1.7, 12), bodyMat);
-    body.position.y = 1.0;
+    // 1. ลำตัวและชุดตามเพศ
+    const bodyW = isFemale ? 0.3 : 0.38;
+    const bodyBottom = isFemale ? 0.55 : 0.68;
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(bodyW, bodyBottom, 1.7, 12), bodyMat);
+    body.position.y = 1.0; body.castShadow = true;
     hero.add(body);
 
     const head = new THREE.Mesh(new THREE.SphereGeometry(isFemale ? 0.3 : 0.34, 16, 16), skinMat);
-    head.position.y = 2.05;
+    head.position.y = 2.05; head.castShadow = true;
     const hair = new THREE.Mesh(new THREE.ConeGeometry(isFemale ? 0.4 : 0.36, isFemale ? 1.5 : 1.2, 8), new THREE.MeshStandardMaterial({ color: 0x110d0a }));
     hair.position.set(0, 1.85, -0.2); hair.rotation.x = -0.3;
     hero.add(head, hair);
 
-    const sword = new THREE.Mesh(new THREE.BoxGeometry(0.06, 1.9, 0.2), goldTrim);
-    sword.position.set(0.35, 1.2, -0.42); sword.rotation.z = Math.PI / 6;
-    hero.add(sword);
+    // 2. รูปร่างและอาวุธเอกลักษณ์เฉพาะ 4 สำนัก
+    if (classIdx === 0) {
+      // กระบี่เมฆา: กระบี่ทองคำยาว & ผ้าคลุม
+      const cape = new THREE.Mesh(new THREE.BoxGeometry(0.85, 1.6, 0.05), new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.7 }));
+      cape.position.set(0, 1.0, -0.38);
+      const sword = new THREE.Mesh(new THREE.BoxGeometry(0.06, 2.0, 0.2), goldMat);
+      sword.position.set(0.35, 1.2, -0.42); sword.rotation.z = Math.PI / 6;
+      hero.add(cape, sword);
+    } else if (classIdx === 1) {
+      // ดาบสุริยัน: ดาบยักษ์สะพายหลัง & สนับไหล่เหล็ก
+      const shoulderL = new THREE.Mesh(new THREE.SphereGeometry(0.24, 8, 8), ironMat);
+      shoulderL.position.set(-0.48, 1.65, 0);
+      const shoulderR = shoulderL.clone(); shoulderR.position.set(0.48, 1.65, 0);
+      const broadSword = new THREE.Mesh(new THREE.BoxGeometry(0.12, 2.3, 0.5), ironMat);
+      broadSword.position.set(0.25, 1.3, -0.45); broadSword.rotation.z = Math.PI / 5;
+      hero.add(shoulderL, shoulderR, broadSword);
+    } else if (classIdx === 2) {
+      // หมัดมังกร: สนับมือเพลิง & ออร่าหมัด
+      const gloveL = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 8), goldMat);
+      gloveL.position.set(-0.45, 0.8, 0.2);
+      const gloveR = gloveL.clone(); gloveR.position.set(0.45, 0.8, 0.2);
+      hero.add(gloveL, gloveR);
+    } else if (classIdx === 3) {
+      // ธนูพฤกษา: คันธนูไม้ยักษ์ & กระบอกศร
+      const bow = new THREE.Mesh(new THREE.TorusGeometry(0.8, 0.05, 8, 16, Math.PI), new THREE.MeshStandardMaterial({ color: 0x8b5a2b, roughness: 0.6 }));
+      bow.position.set(-0.35, 1.2, -0.35); bow.rotation.y = Math.PI / 2;
+      const quiver = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.1, 1.2), new THREE.MeshStandardMaterial({ color: 0x3d2817 }));
+      quiver.position.set(0.25, 1.2, -0.35); quiver.rotation.z = Math.PI / 6;
+      hero.add(bow, quiver);
+    }
 
     return hero;
   },
@@ -832,20 +893,24 @@ window.PlayerManager = {
 
   updatePetFollow() {
     if (!this.petMesh) {
-      const pet = new THREE.Mesh(new THREE.SphereGeometry(0.35, 12, 12), new THREE.MeshBasicMaterial({ color: 0x63b3ed }));
-      this.petMesh = pet;
-      window.World3D.scene.add(pet);
+      const petGroup = new THREE.Group();
+      const petBody = new THREE.Mesh(new THREE.SphereGeometry(0.35, 12, 12), new THREE.MeshStandardMaterial({ color: 0x4299e1, roughness: 0.2 }));
+      const petWing = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.5, 4), new THREE.MeshBasicMaterial({ color: 0x90cdf4 }));
+      petWing.position.set(0.3, 0.2, 0); petWing.rotation.z = -Math.PI / 3;
+      petGroup.add(petBody, petWing);
+      this.petMesh = petGroup;
+      window.World3D.scene.add(petGroup);
     }
     const targetX = this.me.x + Math.sin(this.me.yaw + 2.2) * 1.8;
     const targetZ = this.me.z + Math.cos(this.me.yaw + 2.2) * 1.8;
-    const targetY = this.me.y + 1.2 + Math.sin(Date.now() * 0.005) * 0.2;
+    const targetY = this.me.y + 1.3 + Math.sin(Date.now() * 0.005) * 0.25;
     this.petMesh.position.x += (targetX - this.petMesh.position.x) * 0.1;
     this.petMesh.position.y += (targetY - this.petMesh.position.y) * 0.1;
     this.petMesh.position.z += (targetZ - this.petMesh.position.z) * 0.1;
   }
 };
 
-// ---------------- 5. Combat System & Boss AI ----------------
+// ---------------- 5. Class Distinct Skills & Boss AI ----------------
 window.CombatSystem = {
   cooldowns: {
     atk: { cd: 280, until: 0, mult: 1.0, range: 5.5 },
@@ -859,12 +924,12 @@ window.CombatSystem = {
     { id: 'm2', type: 'wolf', name: 'หมาป่าทมิฬ', lvl: 3, x: -20, z: -40, hp: 180, maxHp: 180, atk: 14, aggroRange: 10, alive: true, mesh: null, hpBarMesh: null, isBoss: false },
     { id: 'm3', type: 'bandit', name: 'จอมโจรป่าไผ่', lvl: 12, x: -65, z: 20, hp: 450, maxHp: 450, atk: 28, aggroRange: 12, alive: true, mesh: null, hpBarMesh: null, isBoss: false },
     { id: 'm4', type: 'golem', name: 'โกเลมศิลาแดง', lvl: 28, x: 70, z: 30, hp: 950, maxHp: 950, atk: 52, aggroRange: 14, alive: true, mesh: null, hpBarMesh: null, isBoss: false },
-    { id: 'boss_dragon', type: 'boss', name: 'มังกรศิลาพันปี [World Boss]', lvl: 50, x: 80, z: -50, hp: 3500, maxHp: 3500, atk: 95, aggroRange: 22, alive: true, mesh: null, hpBarMesh: null, isBoss: true }
+    { id: 'boss_dragon', type: 'boss', name: 'มังกรศิลาพันปี', lvl: 50, x: 80, z: -50, hp: 3500, maxHp: 3500, atk: 95, aggroRange: 26, alive: true, mesh: null, hpBarMesh: null, isBoss: true }
   ],
 
   initMonsters() {
     this.monsters.forEach(m => {
-      const scale = m.isBoss ? 2.4 : (m.type === 'golem' ? 1.5 : 1.0);
+      const scale = m.isBoss ? 2.6 : (m.type === 'golem' ? 1.5 : 1.0);
       const mon = new THREE.Group();
       let color = 0x3d3936;
       if (m.type === 'wolf') color = 0x242a33;
@@ -872,7 +937,7 @@ window.CombatSystem = {
       if (m.isBoss) color = 0x661118;
 
       const body = new THREE.Mesh(new THREE.DodecahedronGeometry(1.2 * scale), new THREE.MeshStandardMaterial({ color, roughness: 0.4 }));
-      body.position.y = 1.2 * scale;
+      body.position.y = 1.2 * scale; body.castShadow = true;
       mon.add(body);
 
       const hpBg = new THREE.Mesh(new THREE.PlaneGeometry(2.8, 0.35), new THREE.MeshBasicMaterial({ color: 0x000000 }));
@@ -893,11 +958,23 @@ window.CombatSystem = {
     const me = window.PlayerManager.me;
     if (me.isDead) return;
 
+    const bossEl = document.getElementById('boss-bar-box');
+    let bossTargeted = false;
+
     this.monsters.forEach(m => {
       if (!m.alive || !m.mesh) return;
       const dx = me.x - m.x;
       const dz = me.z - m.z;
       const dist = Math.hypot(dx, dz);
+
+      // โชว์หลอดเลือดเรดบอสเมื่อเข้าใกล้
+      if (m.isBoss && dist < 35) {
+        bossTargeted = true;
+        bossEl.style.display = 'flex';
+        document.getElementById('bossNameText').textContent = `🐉 ${m.name}`;
+        document.getElementById('bossLvlText').textContent = `Lv.${m.lvl} [World Boss]`;
+        document.getElementById('bossHpFill').style.width = Math.max(0, (m.hp / m.maxHp) * 100) + '%';
+      }
 
       if (dist < m.aggroRange && dist > 2.2) {
         const moveSpd = m.isBoss ? 0.09 : 0.06;
@@ -923,6 +1000,8 @@ window.CombatSystem = {
         }
       }
     });
+
+    if (!bossTargeted && bossEl) bossEl.style.display = 'none';
   },
 
   castSkill(k) {
@@ -933,26 +1012,33 @@ window.CombatSystem = {
     if (now < sk.until) return;
 
     sk.until = now + sk.cd;
-    this.triggerSkillVFX(k, me.x, me.y, me.z, me.yaw);
+    this.triggerSkillVFX(k, me.x, me.y, me.z, me.yaw, window.myClassIdx);
 
     const baseAtk = window.getBaseAtk();
     const totalDmg = Math.round(baseAtk * sk.mult);
-    const payload = { id: me.id, name: window.myName, x: me.x, y: me.y, z: me.z, yaw: me.yaw, skill: k, dmg: totalDmg, range: sk.range };
+    const payload = { id: me.id, name: window.myName, x: me.x, y: me.y, z: me.z, yaw: me.yaw, skill: k, classIdx: window.myClassIdx, dmg: totalDmg, range: sk.range };
 
     if (window.channel) window.channel.send({ type: 'broadcast', event: 'skill', payload });
     if (window.isHost) this.checkMonsterHit(payload);
   },
 
-  triggerSkillVFX(skill, x, y, z, yaw) {
+  // แอนิเมชันสกิลแยกตามอาชีพ
+  triggerSkillVFX(skill, x, y, z, yaw, classIdx = 0) {
     const scene = window.World3D.scene;
+    let skillColor = 0xfae17d; // กระบี่ = ทอง
+    if (classIdx === 1) skillColor = 0xff4500; // ดาบ = เพลิงส้ม
+    if (classIdx === 2) skillColor = 0x9f7aea; // หมัด = ปราณม่วง
+    if (classIdx === 3) skillColor = 0x48bb78; // ธนู = พายุเขียว
+
     if (skill === 'atk') {
-      const slash = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.5, 4.2, 8), new THREE.MeshBasicMaterial({ color: 0xffaa33 }));
+      const slash = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.5, 4.2, 8), new THREE.MeshBasicMaterial({ color: skillColor }));
       slash.position.set(x - Math.sin(yaw) * 2, y + 1.2, z - Math.cos(yaw) * 2);
       slash.rotation.y = yaw + Math.PI / 2;
+      slash.rotation.z = Math.PI / 4;
       scene.add(slash);
       this.vfxObjects.push({ mesh: slash, life: 1.0, decay: 0.08, scaleSpeed: 0.1 });
     } else if (skill === 'Q') {
-      const beam = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.8, 7), new THREE.MeshBasicMaterial({ color: 0xfae17d }));
+      const beam = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.8, 7), new THREE.MeshBasicMaterial({ color: skillColor }));
       beam.position.set(x - Math.sin(yaw) * 4, y + 1.0, z - Math.cos(yaw) * 4);
       beam.rotation.y = yaw;
       scene.add(beam);
@@ -960,14 +1046,14 @@ window.CombatSystem = {
     } else if (skill === 'E') {
       for (let i = 0; i < 12; i++) {
         setTimeout(() => {
-          const sw = new THREE.Mesh(new THREE.BoxGeometry(0.12, 3.0, 0.35), new THREE.MeshBasicMaterial({ color: 0x48bb78 }));
-          sw.position.set(x + (Math.random() - 0.5) * 12, y + 15, z + (Math.random() - 0.5) * 12);
-          scene.add(sw);
-          this.vfxObjects.push({ mesh: sw, vy: -0.9, life: 1.0, decay: 0.03 });
+          const rain = new THREE.Mesh(new THREE.BoxGeometry(0.12, 3.0, 0.35), new THREE.MeshBasicMaterial({ color: skillColor }));
+          rain.position.set(x + (Math.random() - 0.5) * 12, y + 15, z + (Math.random() - 0.5) * 12);
+          scene.add(rain);
+          this.vfxObjects.push({ mesh: rain, vy: -0.9, life: 1.0, decay: 0.03 });
         }, i * 30);
       }
     } else if (skill === 'R') {
-      const ring = new THREE.Mesh(new THREE.TorusGeometry(4.5, 0.5, 16, 32), new THREE.MeshBasicMaterial({ color: 0xff3b30, wireframe: true }));
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(4.8, 0.5, 16, 32), new THREE.MeshBasicMaterial({ color: skillColor, wireframe: true }));
       ring.position.set(x, y + 1.5, z);
       ring.rotation.x = Math.PI / 2;
       scene.add(ring);
@@ -1047,7 +1133,7 @@ window.CombatSystem = {
   }
 };
 
-// ---------------- 6. Stats & Progression Calculation ----------------
+// ---------------- 6. Stats & Logic ----------------
 function expNeeded(lvl) { return 100 * lvl; }
 
 window.calculateRP = function() {
@@ -1143,7 +1229,7 @@ async function handleAuth() {
       });
     }
 
-    window.channel = window.sb.channel('justice_v12_' + window.roomCode, {
+    window.channel = window.sb.channel('justice_v14_' + window.roomCode, {
       config: { broadcast: { ack: false, self: false }, presence: { key: myId } }
     });
 
@@ -1151,7 +1237,7 @@ async function handleAuth() {
       if (payload && payload.id && payload.id !== myId) {
         const others = window.PlayerManager.otherPlayers;
         if (!others[payload.id]) {
-          const mesh = window.PlayerManager.createHeroMesh(payload.costume || 0, payload.gender || 'male');
+          const mesh = window.PlayerManager.createHeroMesh(payload.costume || 0, payload.gender || 'male', payload.classIdx || 0);
           window.World3D.scene.add(mesh);
           others[payload.id] = { ...payload, mesh };
         } else {
@@ -1162,7 +1248,7 @@ async function handleAuth() {
 
     window.channel.on('broadcast', { event: 'skill' }, ({ payload }) => {
       if (payload && payload.id !== myId) {
-        window.CombatSystem.triggerSkillVFX(payload.skill, payload.x, payload.y, payload.z, payload.yaw);
+        window.CombatSystem.triggerSkillVFX(payload.skill, payload.x, payload.y, payload.z, payload.yaw, payload.classIdx || 0);
       }
     });
 
@@ -1193,12 +1279,12 @@ async function handleAuth() {
 
     window.channel.subscribe(status => {
       if (status === 'SUBSCRIBED') {
-        window.channel.track({ name: window.myName, gender: window.myGender, costume: window.myColorIdx, joinedAt: Date.now() });
+        window.channel.track({ name: window.myName, gender: window.myGender, classIdx: window.myClassIdx, costume: window.myColorIdx, joinedAt: Date.now() });
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('game-view').style.display = 'block';
 
         window.World3D.init('canvas3d');
-        window.PlayerManager.myHeroMesh = window.PlayerManager.createHeroMesh(window.myColorIdx, window.myGender);
+        window.PlayerManager.myHeroMesh = window.PlayerManager.createHeroMesh(window.myColorIdx, window.myGender, window.myClassIdx);
         window.World3D.scene.add(window.PlayerManager.myHeroMesh);
         window.PlayerManager.setupControls();
         window.CombatSystem.initMonsters();
@@ -1246,7 +1332,7 @@ function gameLoop() {
     const me = window.PlayerManager.me;
     window.channel.send({
       type: 'broadcast', event: 'pos',
-      payload: { id: me.id, name: window.myName, gender: window.myGender, costume: window.myColorIdx, x: me.x, y: me.y, z: me.z, yaw: me.yaw, hp: me.hp, isDead: me.isDead }
+      payload: { id: me.id, name: window.myName, gender: window.myGender, classIdx: window.myClassIdx, costume: window.myColorIdx, x: me.x, y: me.y, z: me.z, yaw: me.yaw, hp: me.hp, isDead: me.isDead }
     });
   }
 
@@ -1445,7 +1531,8 @@ window.renderCharUI = function() {
       el.innerHTML = '- ไม่มี -';
     }
   });
-  document.getElementById('eqWeaponText').textContent = `กระบี่ +${window.myProgress.swordPlus}`;
+  const className = window.CONFIG.CLASS_DATA[window.myClassIdx].name;
+  document.getElementById('eqWeaponText').textContent = `${className} (+${window.myProgress.swordPlus})`;
   document.getElementById('eqTotalStatsText').innerHTML = `🔥 <b>พลังรบรวม (RP): ${window.calculateRP()}</b> | ATK: ${window.getBaseAtk()} | DEF: ${window.getBaseDef()}`;
 };
 
@@ -1514,14 +1601,14 @@ window.upgradeSwordAction = async function() {
   window.myProgress.swordPlus += 1;
   window.updateMeHUD();
   window.openModal('forgeModal');
-  window.showToast(`⚔️ ตีบวกสำเร็จ! กระบี่กลายเป็น +${window.myProgress.swordPlus}`);
+  window.showToast(`⚔️ ตีบวกสำเร็จ! อาวุธกลายเป็น +${window.myProgress.swordPlus}`);
   await window.sb.from('mmo_players').update({ money: window.myProgress.money, sword_plus: window.myProgress.swordPlus, inventory: window.myProgress.inventory }).eq('name', window.myName);
 };
 
 window.changeCostume = async function(idx) {
   window.myColorIdx = idx;
   if (window.PlayerManager.myHeroMesh) window.World3D.scene.remove(window.PlayerManager.myHeroMesh);
-  window.PlayerManager.myHeroMesh = window.PlayerManager.createHeroMesh(idx, window.myGender);
+  window.PlayerManager.myHeroMesh = window.PlayerManager.createHeroMesh(idx, window.myGender, window.myClassIdx);
   window.World3D.scene.add(window.PlayerManager.myHeroMesh);
   window.showToast('เปลี่ยนชุดยุทธภพเรียบร้อย!');
   await window.sb.from('mmo_players').update({ costume: idx }).eq('name', window.myName);
