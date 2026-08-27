@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>刃義 · ยุทธภพ Sword of Justice</title>
+<title>刃義 · ยุทธภพ Sword of Justice v5</title>
 
 <script>
   window.SUPABASE_URL = "https://mflemycqwksuktvktlko.supabase.co";
@@ -15,13 +15,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;900&family=Noto+Sans+Thai:wght@400;600;700&display=swap');
 
 :root{
-  --ink:#0d0907; --paper:#efe6d5;
+  --ink:#0b0806; --paper:#efe6d5;
   --gold:#d4af37; --gold-bright:#fae17d;
-  --crimson-bright:#e63950;
   --panel-bg: rgba(18, 13, 9, 0.95);
 }
 *{ box-sizing:border-box; }
-html,body{ margin:0; height:100%; background:#0d0907; color:var(--paper); font-family:'Noto Sans Thai',sans-serif; overflow:hidden; user-select:none; }
+html,body{ margin:0; height:100%; background:#0b0806; color:var(--paper); font-family:'Noto Sans Thai',sans-serif; overflow:hidden; user-select:none; }
 .brush-title{ font-family:'Noto Serif SC','Noto Sans Thai',serif; font-weight:900; }
 #app{ width:100%; height:100%; display:flex; align-items:center; justify-content:center; flex-direction:column; position:relative; }
 
@@ -50,7 +49,7 @@ button{ cursor:pointer; border:none; font-family:'Noto Sans Thai',sans-serif; fo
 #roster{ display:flex; gap:6px; flex-wrap:wrap; }
 .rostertag{ font-size:.72em; padding:4px 9px; border-radius:4px; border:1px solid #5a452d; color:var(--gold-bright); background:rgba(212,175,55,.1); }
 
-canvas{ background:#1f1812; border:2px solid #5a452d; border-radius:6px; box-shadow:0 12px 50px rgba(0,0,0,.8); touch-action:none; }
+canvas{ background:#1b1510; border:2px solid #5a452d; border-radius:6px; box-shadow:0 12px 50px rgba(0,0,0,.8); touch-action:none; }
 
 #skillbar{ display:flex; gap:12px; margin-top:10px; z-index:10; }
 .skill-btn{ width:60px; height:60px; border-radius:8px; background:linear-gradient(145deg, #2a1f18, #140d09); border:2px solid #6b5334; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--gold-bright); position:relative; overflow:hidden; cursor:pointer; }
@@ -68,7 +67,6 @@ canvas{ background:#1f1812; border:2px solid #5a452d; border-radius:6px; box-sha
 
 #toast{ position:absolute; top:60px; left:50%; transform:translateX(-50%); font-size:.88em; color:var(--gold-bright); background:rgba(18,13,9,.92); padding:8px 20px; border-radius:20px; border:1px solid var(--gold); display:none; z-index:40; }
 
-/* Debug Panel */
 #debugPanel{ position:fixed; right:8px; bottom:8px; width:340px; max-height:220px; overflow-y:auto; background:rgba(0,0,0,0.92); border:1px solid #5a452d; border-radius:4px; padding:6px 8px; font-family:monospace; font-size:.7em; color:#8fda8f; z-index:999; }
 #debugPanel .hdr{ display:flex; justify-content:space-between; color:#fae17d; margin-bottom:4px; font-weight:bold; }
 #debugPanel .hdr button{ background:#332211; border:1px solid #5a452d; color:#fff; font-size:.8em; padding:1px 6px; border-radius:2px; }
@@ -124,22 +122,22 @@ canvas{ background:#1f1812; border:2px solid #5a452d; border-radius:6px; box-sha
     <canvas id="canvas" width="960" height="460"></canvas>
 
     <div id="skillbar">
-      <div class="skill-btn" id="btnAtk" onclick="tryAttack()">
+      <div class="skill-btn" id="btnAtk">
         <span class="key">Space</span>
         <span class="name">โจมตี</span>
         <div class="cd-overlay" id="cdAtk"></div>
       </div>
-      <div class="skill-btn" id="btnQ" onclick="castSkill('Q')">
+      <div class="skill-btn" id="btnQ">
         <span class="key">Q</span>
         <span class="name">ตัดเมฆา</span>
         <div class="cd-overlay" id="cdQ"></div>
       </div>
-      <div class="skill-btn" id="btnE" onclick="castSkill('E')">
+      <div class="skill-btn" id="btnE">
         <span class="key">E</span>
         <span class="name">หมื่นกระบี่</span>
         <div class="cd-overlay" id="cdE"></div>
       </div>
-      <div class="skill-btn" id="btnR" onclick="castSkill('R')">
+      <div class="skill-btn" id="btnR">
         <span class="key">R</span>
         <span class="name">ปราณระเบิด</span>
         <div class="cd-overlay" id="cdR"></div>
@@ -179,7 +177,6 @@ function debugLog(msg, level='info'){
   if(level === 'error') console.error(msg);
 }
 
-// ดักจับ Error รวมทุกประเภท
 window.onerror = function(msg, url, line){
   debugLog(`JS Error: ${msg} (Line ${line})`, 'error');
 };
@@ -190,7 +187,7 @@ const PLAYER_MAX_HP = 150;
 const MONSTER_MAX_HP = 250;
 const EXP_PER_KILL = 50;
 
-const MONSTER_SPAWNS = [
+const MONSTER_DEFS = [
   { id:'m1', x:780, y:180, hp:MONSTER_MAX_HP, maxHp:MONSTER_MAX_HP, alive:true },
   { id:'m2', x:780, y:330, hp:MONSTER_MAX_HP, maxHp:MONSTER_MAX_HP, alive:true },
 ];
@@ -214,7 +211,7 @@ let cooldowns = {
 };
 
 let me = {
-  id:'', x:250, y:230, facing:1, attacking:false, attackUntil:0,
+  id:'', x:250, y:230, facing:1,
   name:'', classIdx:0, guild:'',
   hp:PLAYER_MAX_HP, maxHp:PLAYER_MAX_HP, isDead:false, respawnAt:0,
   joinedAt:0
@@ -222,7 +219,7 @@ let me = {
 
 let otherPlayers = {};
 let myProgress = { level:1, exp:0 };
-let monsters = JSON.parse(JSON.stringify(MONSTER_SPAWNS));
+let monsters = JSON.parse(JSON.stringify(MONSTER_DEFS));
 
 const landing = document.getElementById('landing');
 const gameEl = document.getElementById('game');
@@ -245,7 +242,7 @@ const myHpBar = document.getElementById('myHpBar');
 const expBar = document.getElementById('expBar');
 const toastEl = document.getElementById('toast');
 
-for(let i=0; i<25; i++){
+for(let i=0; i<30; i++){
   petals.push({ x:Math.random()*ARENA_W, y:Math.random()*ARENA_H, vx:0.8+Math.random(), vy:0.4+Math.random(), size:3+Math.random()*3 });
 }
 
@@ -256,6 +253,11 @@ classPick.querySelectorAll('.classbtn').forEach(btn=>{
     myClass = parseInt(btn.dataset.c,10);
   });
 });
+
+document.getElementById('btnAtk').addEventListener('click', ()=>castSkill('atk'));
+document.getElementById('btnQ').addEventListener('click', ()=>castSkill('Q'));
+document.getElementById('btnE').addEventListener('click', ()=>castSkill('E'));
+document.getElementById('btnR').addEventListener('click', ()=>castSkill('R'));
 
 joinBtn.addEventListener('click', joinRoom);
 [nameInput, roomInput, guildInput].forEach(inp=> inp.addEventListener('keydown', e=>{ if(e.key==='Enter') joinRoom(); }));
@@ -270,7 +272,7 @@ function showToast(msg){
 }
 
 function addDamagePopup(x, y, text, color='#fae17d'){
-  popups.push({ x: (x || 200) + (Math.random()-0.5)*20, y: (y || 200) - 30, text, color, life: 1.0 });
+  popups.push({ x: (Number(x) || 200) + (Math.random()-0.5)*20, y: (Number(y) || 200) - 30, text, color, life: 1.0 });
 }
 
 async function joinRoom(){
@@ -285,20 +287,16 @@ async function joinRoom(){
   joinBtn.disabled=true; joinBtn.textContent='กำลังเข้าเมือง...';
 
   try{
-    debugLog(`เริ่มเข้าสู่ระบบ: name=${myName}, room=${roomCode}`);
+    debugLog(`เชื่อมต่อระบบ: name=${myName}, room=${roomCode}`);
     sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 
-    const { data: prow, error: prowErr } = await sb.from('mmo_players').select('*').eq('name', myName).maybeSingle();
-    if(prowErr) debugLog('โหลด mmo_players: ' + prowErr.message, 'warn');
-    
+    const { data: prow } = await sb.from('mmo_players').select('*').eq('name', myName).maybeSingle();
     if(prow){
       myProgress.level = prow.level || 1;
       myProgress.exp = prow.exp || 0;
-      debugLog(`พบผู้เล่นเดิม: Lv.${myProgress.level}`);
     } else {
       myProgress = { level:1, exp:0 };
       await sb.from('mmo_players').insert({ name: myName, level:1, exp:0, guild:myGuild, costume:myClass });
-      debugLog('สร้างข้อมูลผู้เล่นใหม่สำเร็จ');
     }
 
     me.name = myName; me.guild = myGuild; me.classIdx = myClass; me.joinedAt = Date.now();
@@ -320,6 +318,12 @@ async function joinRoom(){
       }
       if(isHost) checkSkillHitMonster(payload);
       checkSkillHitMe(payload);
+    });
+
+    channel.on('broadcast', { event: 'monsters' }, ({ payload }) => {
+      if(!isHost && payload && payload.monsters){
+        monsters = payload.monsters;
+      }
     });
 
     channel.on('broadcast', { event: 'reward' }, ({ payload }) => {
@@ -370,7 +374,7 @@ async function joinRoom(){
   }
 }
 
-window.castSkill = function(skillKey){
+function castSkill(skillKey){
   if(!gameActive || me.isDead) return;
   const sk = cooldowns[skillKey];
   const now = Date.now();
@@ -384,16 +388,12 @@ window.castSkill = function(skillKey){
     channel.send({ type: 'broadcast', event: 'skill', payload });
   }
   if(isHost) checkSkillHitMonster(payload);
-};
-
-window.tryAttack = function(){
-  castSkill('atk');
-};
+}
 
 function triggerSkillVisuals(skill, x, y, facing){
-  const px = x || 200;
-  const py = y || 200;
-  const pf = facing || 1;
+  const px = Number(x) || 200;
+  const py = Number(y) || 200;
+  const pf = Number(facing) || 1;
 
   if(skill === 'atk' || skill === 'Q'){
     const color = skill === 'Q' ? '#fae17d' : '#ffffff';
@@ -426,7 +426,7 @@ function triggerSkillVisuals(skill, x, y, facing){
 
 function checkSkillHitMe(atk){
   if(me.isDead || !atk) return;
-  const dist = Math.hypot((atk.x||0) - me.x, (atk.y||0) - me.y);
+  const dist = Math.hypot((Number(atk.x)||0) - me.x, (Number(atk.y)||0) - me.y);
   if(dist < (atk.range || 90)){
     me.hp = Math.max(0, me.hp - (atk.dmg || 20));
     addDamagePopup(me.x, me.y, `-${atk.dmg || 20}`, '#ff4444');
@@ -449,12 +449,14 @@ function checkSkillHitMe(atk){
 
 function checkSkillHitMonster(atk){
   if(!atk) return;
+  let changed = false;
   monsters.forEach(m => {
     if(!m.alive) return;
-    const dist = Math.hypot((atk.x||0) - m.x, (atk.y||0) - m.y);
+    const dist = Math.hypot((Number(atk.x)||0) - m.x, (Number(atk.y)||0) - m.y);
     if(dist < (atk.range || 90)){
       m.hp = Math.max(0, m.hp - (atk.dmg || 20));
       addDamagePopup(m.x, m.y, `-${atk.dmg || 20}`, '#ffd13b');
+      changed = true;
       if(m.hp <= 0 && m.alive){
         m.alive = false;
         if(channel){
@@ -467,12 +469,14 @@ function checkSkillHitMonster(atk){
         if(atk.name === myName) gainExp(EXP_PER_KILL, 'อสูรนอกเมือง');
 
         setTimeout(() => {
-          m.hp = m.maxHp || MONSTER_MAX_HP;
+          m.hp = MONSTER_MAX_HP;
           m.alive = true;
+          if(channel) channel.send({ type:'broadcast', event:'monsters', payload:{ monsters } });
         }, 5000);
       }
     }
   });
+  if(changed && channel) channel.send({ type:'broadcast', event:'monsters', payload:{ monsters } });
 }
 
 async function gainExp(amount, fromWho){
@@ -508,13 +512,13 @@ function updateMeHUD(){
 
 window.addEventListener('keydown', e=>{
   keys[e.key.toLowerCase()] = true;
-  if(e.key === ' ') { e.preventDefault(); tryAttack(); }
+  if(e.key === ' ') { e.preventDefault(); castSkill('atk'); }
   if(e.key.toLowerCase() === 'q') castSkill('Q');
   if(e.key.toLowerCase() === 'e') castSkill('E');
   if(e.key.toLowerCase() === 'r') castSkill('R');
 });
 window.addEventListener('keyup', e=>{ keys[e.key.toLowerCase()] = false; });
-canvas.addEventListener('mousedown', tryAttack);
+canvas.addEventListener('mousedown', ()=>castSkill('atk'));
 
 chatform.addEventListener('submit', e=>{
   e.preventDefault();
@@ -632,7 +636,7 @@ function drawHero(p){
   if(!p) return;
   const px = Number(p.x) || 200;
   const py = Number(p.y) || 200;
-  const pFacing = p.facing || 1;
+  const pFacing = Number(p.facing) || 1;
 
   if(p.isDead){
     ctx.save();
@@ -649,17 +653,14 @@ function drawHero(p){
   ctx.translate(px, py);
   ctx.scale(pFacing, 1);
 
-  // 1. เงาพื้น
   ctx.beginPath(); ctx.ellipse(0, 4, 22, 6, 0, Math.PI * 2);
   ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fill();
 
-  // 2. ผ้าคลุม
   ctx.beginPath();
   ctx.moveTo(-8, -48); ctx.quadraticCurveTo(-26, -20, -18, -2);
   ctx.lineTo(-4, -2); ctx.quadraticCurveTo(-8, -25, -2, -48);
   ctx.fillStyle = '#8b1e2f'; ctx.fill();
 
-  // 3. ชุดจอมยุทธ์
   ctx.beginPath();
   ctx.moveTo(-12, -50); ctx.lineTo(12, -50);
   ctx.quadraticCurveTo(18, -20, 12, 0); ctx.lineTo(-12, 0);
@@ -667,10 +668,8 @@ function drawHero(p){
   ctx.fillStyle = '#d4af37'; ctx.fill();
   ctx.strokeStyle = '#2d1e12'; ctx.lineWidth = 1.5; ctx.stroke();
 
-  // ผ้าคาดเอว
   ctx.fillStyle = '#fae17d'; ctx.fillRect(-12, -26, 24, 6);
 
-  // 4. ศีรษะ & หมวกงอบ
   ctx.beginPath(); ctx.arc(0, -60, 11, 0, Math.PI * 2); ctx.fillStyle = '#fce5cd'; ctx.fill();
   ctx.fillStyle = '#1c1510'; ctx.fillRect(3, -62, 3, 2);
 
@@ -679,12 +678,10 @@ function drawHero(p){
   ctx.fillStyle = '#c5a059'; ctx.fill();
   ctx.strokeStyle = '#5a421b'; ctx.lineWidth = 1.2; ctx.stroke();
 
-  // กระบี่
   ctx.fillStyle = '#ffffff'; ctx.fillRect(8, -48, 4, 34);
 
   ctx.restore();
 
-  // หลอดเลือดและชื่อ
   ctx.save();
   ctx.font = 'bold 12px "Noto Sans Thai",sans-serif'; ctx.textAlign = 'center';
   ctx.fillStyle = (p.id === myId) ? '#fae17d' : '#ffffff';
@@ -700,7 +697,7 @@ function drawHero(p){
 
 function drawMonster(m){
   if(!m || !m.alive) return;
-  const mx = Number(m.x) || 700;
+  const mx = Number(m.x) || 780;
   const my = Number(m.y) || 200;
 
   ctx.save();
