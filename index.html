@@ -105,7 +105,7 @@ canvas{ background:radial-gradient(ellipse at 50% 30%,#28321f 0%,#171c12 75%); b
     <div class="divider"></div>
 
     <div class="field">
-      <label>ชื่อยอดฝีมือ (ต้องไม่ซ้ำกับเพื่อน — ใช้อ้างอิงข้อมูลถาวร)</label>
+      <label>ชื่อยอดฝีมือ</label>
       <input id="nameInput" maxlength="12" placeholder="เช่น เหม่ย88" />
     </div>
     <div class="field">
@@ -127,7 +127,7 @@ canvas{ background:radial-gradient(ellipse at 50% 30%,#28321f 0%,#171c12 75%); b
     </div>
 
     <button id="joinBtn">เข้าสู่ยุทธภพ</button>
-    <div class="hint">เลเวล/EXP/ชุดที่ปลดล็อก/ไอเทม จะถูกจำไว้ตามชื่อของคุณ กลับมาเล่นครั้งหน้าข้อมูลยังอยู่</div>
+    <div class="hint">ข้อมูลตัวละครจะถูกบันทึกอัตโนมัติ</div>
   </div>
 
   <div id="game">
@@ -144,7 +144,7 @@ canvas{ background:radial-gradient(ellipse at 50% 30%,#28321f 0%,#171c12 75%); b
 
     <canvas id="canvas" width="900" height="460"></canvas>
     <div id="status">กำลังเชื่อมต่อ...</div>
-    <div id="controls-hint">เดิน: ลูกศร/WASD &nbsp;·&nbsp; โจมตี: Space หรือแตะ 刃 &nbsp;·&nbsp; ล่าอสูรทั้ง 3 ตัวในแมพ</div>
+    <div id="controls-hint">เดิน: ลูกศร/WASD · โจมตี: Space หรือคลิกเมาส์</div>
 
     <form id="chatform">
       <input id="chatInput" maxlength="60" placeholder="พิมพ์คุยกับปาร์ตี้..." autocomplete="off" />
@@ -181,10 +181,6 @@ canvas{ background:radial-gradient(ellipse at 50% 30%,#28321f 0%,#171c12 75%); b
 (function(){
 "use strict";
 
-if(!window.SUPABASE_URL || window.SUPABASE_URL.includes('YOUR-PROJECT')){
-  document.getElementById('configWarning').style.display='block';
-}
-
 const CLASS_DEFS = [
   { label:'ดาบเมฆ',   main:'#8a6a1a', accent:'#f0cf6a' },
   { label:'หมัดมังกร', main:'#5a1c26', accent:'#c23b4a' },
@@ -207,11 +203,11 @@ const MOVE_SPEED=3.6;
 const ATTACK_RANGE=95;
 const ATTACK_DURATION=260;
 const ATTACK_COOLDOWN=480;
-const DAMAGE=9;
+const DAMAGE=15;
 const MONSTER_MAX_HP=150;
 const MAX_PLAYERS=4;
-const TRACK_MS=220; // ปรับเพิ่มเพื่อลดภาระ WebSocket ป้องกัน CLOSED/Timeout
-const EXP_PER_KILL=20;
+const SYNC_INTERVAL=200; 
+const EXP_PER_KILL=25;
 
 const MONSTER_SPAWNS = [
   { id:'m1', x:220, y:150 },
@@ -225,19 +221,17 @@ let gameActive=false, isHost=false;
 let keys={};
 let particles=[];
 let chatMessages=[];
-let lastAttackCooldownUntil=0, lastTrack=0;
-let hostLastProcessed = {};
+let lastAttackCooldownUntil=0, lastSyncTime=0;
 let killsTotalSeen = 0;
 let lastDropSeenTs = 0;
-let hasMoved = false;
 
 let me = {
-  x:200,y:230, facing:1, attacking:false, attackUntil:0,
+  x:200, y:230, facing:1, attacking:false, attackUntil:0,
   name:'', classIdx:0, guild:'', costume:0,
   chatMsg:'', chatAt:0, attackAt:0, joinedAt:0
 };
+let otherPlayers = {};
 let myProgress = { level:1, exp:0, unlockedCostumes:[0], inventory:[] };
-let presenceRoster = {};
 let monsters = MONSTER_SPAWNS.map(s=>({ id:s.id, x:s.x, y:s.y, hp:MONSTER_MAX_HP, maxHp:MONSTER_MAX_HP, alive:true }));
 let roomKillsTotal = 0;
 
@@ -278,18 +272,16 @@ joinBtn.addEventListener('click', joinRoom);
 
 const debugLinesEl = document.getElementById('debugLines');
 document.getElementById('clearDebugBtn').addEventListener('click', ()=>{ debugLinesEl.innerHTML=''; });
-function debugLog(msg, level){
-  level = level || 'info';
+function debugLog(msg, level='info'){
   const time = new Date().toLocaleTimeString('th-TH', {hour12:false});
   const div = document.createElement('div');
   div.className = 'line' + (level==='error' ? ' err' : level==='warn' ? ' warn' : '');
   div.textContent = `[${time}] ${msg}`;
   debugLinesEl.appendChild(div);
   debugLinesEl.parentElement.scrollTop = debugLinesEl.parentElement.scrollHeight;
-  if(level==='error') console.error(msg); else console.log(msg);
 }
 
-function genId(){ return 'p_' + Math.random().toString(36).slice(2,10); }
+function genId(){ return 'p_' + Math.random().toString(36).slice(2,8); }
 function expNeeded(level){ return 100 * level; }
 function showToast(msg){
   toastEl.textContent = msg;
@@ -304,266 +296,175 @@ async function joinRoom(){
   const gd = guildInput.value.trim();
   if(!nm){ nameInput.focus(); return; }
   if(!rc){ roomInput.focus(); return; }
-  if(!window.SUPABASE_URL || window.SUPABASE_URL.includes('YOUR-PROJECT')){
-    alert('ยังไม่ได้ตั้งค่า Supabase URL/Key ในไฟล์นี้');
-    return;
-  }
 
   myName=nm; roomCode=rc; myGuild=gd; myId=genId();
   joinBtn.disabled=true; joinBtn.textContent='กำลังเข้าห้อง...';
 
   try{
-    debugLog(`เริ่ม join: name=${myName} room=${roomCode} myId=${myId}`);
+    debugLog(`เริ่มเข้าสู่ระบบ: ${myName} (${roomCode})`);
     sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-    debugLog('สร้าง supabase client แล้ว');
 
-    // โหลดหรือสร้างข้อมูลผู้เล่น
-    const { data: prow, error: prowErr } = await sb.from('mmo_players').select('*').eq('name', myName).maybeSingle();
-    if(prowErr){ debugLog('อ่าน mmo_players ผิดพลาด: ' + prowErr.message, 'warn'); }
+    // 1. ดึงหรือสร้างข้อมูลผู้เล่น
+    const { data: prow } = await sb.from('mmo_players').select('*').eq('name', myName).maybeSingle();
     if(prow){
-      debugLog('พบผู้เล่นเดิม: Lv.' + prow.level);
       myProgress.level = prow.level || 1;
       myProgress.exp = prow.exp || 0;
       myProgress.unlockedCostumes = prow.unlocked_costumes || [myClass];
       myProgress.inventory = prow.inventory || [];
-      if(gd) myGuild = gd; else myGuild = prow.guild || '';
-      me.costume = (prow.costume!=null) ? prow.costume : myClass;
+      me.costume = prow.costume != null ? prow.costume : myClass;
     } else {
       myProgress = { level:1, exp:0, unlockedCostumes:[myClass], inventory:[] };
       me.costume = myClass;
-      const { error: insErr } = await sb.from('mmo_players').insert({
+      await sb.from('mmo_players').insert({
         name: myName, level:1, exp:0, guild:myGuild, costume:myClass, unlocked_costumes:[myClass], inventory:[]
       });
-      if(insErr) debugLog('สร้างผู้เล่นใหม่ผิดพลาด: ' + insErr.message, 'warn');
-      else debugLog('สร้างผู้เล่นใหม่สำเร็จ');
     }
 
-    // โหลดหรือสร้างข้อมูลห้อง
-    const { data: rrow, error: rrowErr } = await sb.from('mmo_rooms').select('*').eq('room_code', roomCode).maybeSingle();
-    if(rrowErr){ debugLog('อ่าน mmo_rooms ผิดพลาด: ' + rrowErr.message, 'warn'); }
+    // 2. ดึงหรือสร้างห้อง
+    const { data: rrow } = await sb.from('mmo_rooms').select('*').eq('room_code', roomCode).maybeSingle();
     if(rrow){
-      debugLog('พบห้องเดิม: kills=' + rrow.kills);
       roomKillsTotal = rrow.kills || 0;
-      if(rrow.monsters && rrow.monsters.length===3){ monsters = rrow.monsters; }
-      if(rrow.last_drop) lastDropSeenTs = rrow.last_drop.ts || 0;
+      if(rrow.monsters && rrow.monsters.length===3) monsters = rrow.monsters;
     } else {
-      const { error: rInsErr } = await sb.from('mmo_rooms').insert({ room_code: roomCode, boss_hp:0, boss_max_hp:0, kills:0, monsters: monsters });
-      if(rInsErr) debugLog('สร้างห้องใหม่ผิดพลาด: ' + rInsErr.message, 'warn');
-      else debugLog('สร้างห้องใหม่สำเร็จ');
+      await sb.from('mmo_rooms').insert({ room_code: roomCode, kills:0, monsters: monsters });
     }
 
-    me = {
-      x: 150 + Math.random()*100, y: 260 + Math.random()*80,
-      facing:1, attacking:false, attackUntil:0,
-      name:myName, classIdx:myClass, guild:myGuild, costume:me.costume,
-      chatMsg:'', chatAt:0, attackAt:0, joinedAt: Date.now(),
-      level: myProgress.level
-    };
+    me.name = myName;
+    me.guild = myGuild;
+    me.classIdx = myClass;
+    me.joinedAt = Date.now();
 
-    const channelName = 'game-room-' + roomCode;
-    debugLog('สร้าง channel: ' + channelName);
-    channel = sb.channel(channelName, { config:{ presence:{ key: myId } } });
+    // 3. เชื่อมต่อ Realtime Broadcast & Presence
+    const channelName = 'room_' + roomCode;
+    channel = sb.channel(channelName, {
+      config: {
+        broadcast: { ack: false, self: false },
+        presence: { key: myId }
+      }
+    });
 
-    channel.on('presence', { event:'sync' }, ()=>{
+    // ฟังตำแหน่งเพื่อนผ่าน Broadcast
+    channel.on('broadcast', { event: 'pos' }, ({ payload }) => {
+      if(payload.id && payload.id !== myId){
+        otherPlayers[payload.id] = Object.assign(otherPlayers[payload.id] || {}, payload);
+      }
+    });
+
+    // ฟังการโจมตี
+    channel.on('broadcast', { event: 'atk' }, ({ payload }) => {
+      if(payload.id !== myId && otherPlayers[payload.id]){
+        otherPlayers[payload.id].attacking = true;
+        otherPlayers[payload.id].attackUntil = Date.now() + ATTACK_DURATION;
+      }
+      if(isHost) handleDamage(payload);
+    });
+
+    // ฟังแชท
+    channel.on('broadcast', { event: 'chat' }, ({ payload }) => {
+      addChatLine(payload.name, payload.text);
+    });
+
+    // ฟัง Presence รายชื่อคนในห้อง
+    channel.on('presence', { event: 'sync' }, () => {
       const state = channel.presenceState();
-      const roster = {};
-      Object.keys(state).forEach(k=>{
-        const metas = state[k];
-        if(metas && metas.length) roster[k] = metas[metas.length-1];
+      const keys = Object.keys(state);
+      
+      // ล้างคนที่ออกไปแล้ว
+      Object.keys(otherPlayers).forEach(id => {
+        if(!state[id]) delete otherPlayers[id];
       });
-      presenceRoster = roster;
-      debugLog(`presence sync: เห็น ${Object.keys(roster).length} คน`);
-      recomputeHost();
-      renderRoster();
-      if(isHost) processAttacks();
-    });
 
-    channel.on('presence', { event:'join' }, ({ key })=>{
-      debugLog('มีคน join presence: ' + key);
-    });
-    channel.on('presence', { event:'leave' }, ({ key })=>{
-      debugLog('มีคน leave presence: ' + key, 'warn');
-    });
-
-    channel.on('postgres_changes',
-      { event:'UPDATE', schema:'public', table:'mmo_rooms', filter:`room_code=eq.${roomCode}` },
-      (payload)=>{
-        if(payload.new.monsters) monsters = payload.new.monsters;
-        roomKillsTotal = payload.new.kills || 0;
-        if(payload.new.last_drop && payload.new.last_drop.ts > lastDropSeenTs){
-          lastDropSeenTs = payload.new.last_drop.ts;
-          const d = payload.new.last_drop;
-          if(d.playerName === myName){
-            showToast(`ได้รับไอเทม: ${d.item}!`);
-          } else {
-            showToast(`${d.playerName} ได้รับ ${d.item}`);
-          }
+      // ตรวจสอบ Host (คนที่เข้ามาเร็วที่สุด)
+      let earliest = myId;
+      let earliestTime = me.joinedAt;
+      keys.forEach(k => {
+        const u = state[k]?.[0];
+        if(u && u.joinedAt < earliestTime){
+          earliest = k;
+          earliestTime = u.joinedAt;
         }
-      }
-    );
+      });
+      isHost = (earliest === myId);
 
-    channel.subscribe(async (status, err)=>{
-      debugLog('channel status: ' + status + (err ? (' | ' + (err.message||err)) : ''), status==='SUBSCRIBED' ? 'info' : 'warn');
+      renderRoster(state);
+    });
 
-      if(status==='CHANNEL_ERROR' || status==='TIMED_OUT'){
-        joinBtn.disabled=false; joinBtn.textContent='เข้าสู่ยุทธภพ';
-        alert('เชื่อมต่อ Realtime ไม่สำเร็จ (' + status + ') กรุณาลองใหม่');
-        return;
-      }
+    channel.subscribe(async (status) => {
+      debugLog('สถานะการเชื่อมต่อ: ' + status, status==='SUBSCRIBED' ? 'info':'warn');
 
-      if(status==='SUBSCRIBED'){
-        const current = channel.presenceState();
-        if(Object.keys(current).length >= MAX_PLAYERS){
-          alert('ห้องนี้เต็มแล้ว (ปาร์ตี้เต็ม 4 คน)');
-          await channel.unsubscribe();
-          joinBtn.disabled=false; joinBtn.textContent='เข้าสู่ยุทธภพ';
-          return;
-        }
-        await channel.track(me);
-
-        landing.style.display='none';
-        gameEl.style.display='flex';
+      if(status === 'SUBSCRIBED'){
+        await channel.track({ name: myName, guild: myGuild, joinedAt: me.joinedAt });
+        landing.style.display = 'none';
+        gameEl.style.display = 'flex';
         roomTag.textContent = `ห้อง: ${roomCode}`;
-        statusEl.textContent = 'เข้าสู่ยุทธภพแล้ว!';
+        statusEl.textContent = 'เข้าสู่ยุทธภพแล้ว';
         updateMeHUD();
-        gameActive=true;
+        gameActive = true;
         requestAnimationFrame(loop);
+      } else if(status === 'CLOSED' || status === 'CHANNEL_ERROR'){
+        statusEl.textContent = 'การเชื่อมต่อขัดข้อง กำลังลองใหม่...';
       }
     });
 
   }catch(err){
-    debugLog('join ล้มเหลว: ' + (err.message||err), 'error');
+    debugLog('เกิดข้อผิดพลาด: ' + err.message, 'error');
     joinBtn.disabled=false; joinBtn.textContent='เข้าสู่ยุทธภพ';
-    alert('เชื่อมต่อ Supabase ไม่สำเร็จ ตรวจสอบ Key/ฐานข้อมูลอีกครั้ง');
   }
 }
 
-function recomputeHost(){
-  const ks = Object.keys(presenceRoster);
-  if(ks.length===0){ isHost=false; return; }
-  let earliest = ks[0];
-  ks.forEach(k=>{
-    const a=presenceRoster[k], b=presenceRoster[earliest];
-    if(a && b && (a.joinedAt||0) < (b.joinedAt||0)) earliest=k;
+function handleDamage(p){
+  let changed = false;
+  monsters.forEach(m => {
+    if(!m.alive) return;
+    const dist = Math.hypot(p.x - m.x, p.y - m.y);
+    if(dist < ATTACK_RANGE){
+      m.hp = Math.max(0, m.hp - DAMAGE);
+      changed = true;
+      if(m.hp <= 0 && m.alive){
+        m.alive = false;
+        roomKillsTotal += 1;
+        spawnDeathBurstAt(m.x, m.y);
+        awardKill(p.name);
+        setTimeout(() => {
+          m.hp = m.maxHp;
+          m.alive = true;
+          syncMonsters();
+        }, 5000);
+      }
+    }
   });
-  isHost = (earliest===myId);
+  if(changed) syncMonsters();
 }
 
-async function persistRoomMonsters(extra){
-  const payload = Object.assign({ monsters: monsters, kills: roomKillsTotal }, extra||{});
-  const { error } = await sb.from('mmo_rooms').update(payload).eq('room_code', roomCode);
-  if(error) debugLog('persistRoomMonsters ผิดพลาด: ' + error.message, 'warn');
+async function syncMonsters(){
+  await sb.from('mmo_rooms').update({ monsters, kills: roomKillsTotal }).eq('room_code', roomCode);
 }
 
-async function awardKillRewards(killerKey, monsterId){
-  const killer = presenceRoster[killerKey] || (killerKey===myId ? me : null);
-  const killerName = killer ? killer.name : null;
-  const item = ITEM_POOL[Math.floor(Math.random()*ITEM_POOL.length)];
-
-  // แจก EXP ทุกคนในห้อง
-  const allKeys = Object.keys(presenceRoster);
-  for(const k of allKeys){
-    const p = presenceRoster[k];
-    if(!p || !p.name) continue;
-    try{
-      const { data: row } = await sb.from('mmo_players').select('*').eq('name', p.name).maybeSingle();
-      if(!row) continue;
-      let newExp = (row.exp||0) + EXP_PER_KILL;
-      let newLevel = row.level||1;
-      while(newExp >= expNeeded(newLevel)){
-        newExp -= expNeeded(newLevel);
-        newLevel += 1;
-      }
-      await sb.from('mmo_players').update({ exp:newExp, level:newLevel }).eq('name', p.name);
-      if(p.name===myName){ myProgress.exp=newExp; myProgress.level=newLevel; updateMeHUD(); }
-    }catch(e){}
+async function awardKill(killerName){
+  myProgress.exp += EXP_PER_KILL;
+  if(myProgress.exp >= expNeeded(myProgress.level)){
+    myProgress.exp -= expNeeded(myProgress.level);
+    myProgress.level += 1;
+    showToast(`ยินดีด้วย! เลเวลอัปเป็น Lv.${myProgress.level}`);
   }
-
-  // ดรอปไอเทมให้ผู้สังหาร
-  if(killerName){
-    try{
-      const { data: row } = await sb.from('mmo_players').select('*').eq('name', killerName).maybeSingle();
-      if(row){
-        const inv = (row.inventory||[]).concat([item]);
-        let unlocked = row.unlocked_costumes || [];
-        if(COSTUME_ITEM_MAP[item]!=null && !unlocked.includes(COSTUME_ITEM_MAP[item])){
-          unlocked = unlocked.concat([COSTUME_ITEM_MAP[item]]);
-        }
-        await sb.from('mmo_players').update({ inventory:inv, unlocked_costumes:unlocked }).eq('name', killerName);
-        if(killerName===myName){ myProgress.inventory=inv; myProgress.unlockedCostumes=unlocked; }
-      }
-    }catch(e){}
-  }
-
-  await persistRoomMonsters({ last_drop: { playerName: killerName||'?', item, monsterId, ts: Date.now() } });
+  updateMeHUD();
+  await sb.from('mmo_players').update({ exp: myProgress.exp, level: myProgress.level }).eq('name', myName);
 }
 
-function processAttacks(){
-  let changed=false;
-  Object.keys(presenceRoster).forEach(k=>{
-    const p = presenceRoster[k];
-    if(!p || !p.attackAt) return;
-    if(hostLastProcessed[k]===p.attackAt) return;
-    hostLastProcessed[k]=p.attackAt;
-    monsters.forEach(m=>{
-      if(!m.alive) return;
-      const dist = Math.hypot((p.x||0)-m.x, (p.y||0)-m.y);
-      if(dist < ATTACK_RANGE){
-        m.hp = Math.max(0, m.hp - DAMAGE);
-        changed=true;
-        if(m.hp<=0 && m.alive){
-          m.alive=false;
-          roomKillsTotal += 1;
-          spawnDeathBurstAt(m.x, m.y);
-          awardKillRewards(k, m.id);
-          setTimeout(()=>{
-            m.hp = m.maxHp; m.alive=true;
-            persistRoomMonsters();
-          }, 5000);
-        }
-      }
-    });
-  });
-  
-  if(me.attackAt && hostLastProcessed[myId]!==me.attackAt){
-    hostLastProcessed[myId]=me.attackAt;
-    monsters.forEach(m=>{
-      if(!m.alive) return;
-      const dist = Math.hypot(me.x-m.x, me.y-m.y);
-      if(dist < ATTACK_RANGE){
-        m.hp = Math.max(0, m.hp - DAMAGE);
-        changed=true;
-        if(m.hp<=0 && m.alive){
-          m.alive=false;
-          roomKillsTotal += 1;
-          spawnDeathBurstAt(m.x, m.y);
-          awardKillRewards(myId, m.id);
-          setTimeout(()=>{
-            m.hp = m.maxHp; m.alive=true;
-            persistRoomMonsters();
-          }, 5000);
-        }
-      }
-    });
-  }
-  if(changed) persistRoomMonsters();
-}
-
-function renderRoster(){
-  rosterEl.innerHTML='';
-  const ks = Object.keys(presenceRoster);
-  ks.forEach(k=>{
-    const p = presenceRoster[k];
+function renderRoster(state){
+  rosterEl.innerHTML = '';
+  const userKeys = Object.keys(state);
+  userKeys.forEach(k => {
+    const u = state[k]?.[0] || {};
     const span = document.createElement('span');
-    span.className='rostertag active';
-    const nm = (k===myId ? myName+' (ท่าน)' : (p.name||'?'));
-    const g = p.guild ? `[${p.guild}] ` : '';
-    span.textContent = g+nm;
+    span.className = 'rostertag active';
+    span.textContent = (u.guild ? `[${u.guild}] ` : '') + (u.name || 'จอมยุทธ์');
     rosterEl.appendChild(span);
   });
-  for(let i=ks.length;i<MAX_PLAYERS;i++){
-    const span=document.createElement('span');
-    span.className='rostertag'; span.textContent='— ว่าง —';
+  for(let i=userKeys.length; i<MAX_PLAYERS; i++){
+    const span = document.createElement('span');
+    span.className = 'rostertag';
+    span.textContent = '— ว่าง —';
     rosterEl.appendChild(span);
   }
 }
@@ -571,11 +472,11 @@ function renderRoster(){
 function updateMeHUD(){
   lvText.textContent = `Lv.${myProgress.level}`;
   guildText.textContent = myGuild ? `[${myGuild}]` : '';
-  const pct = Math.min(100, (myProgress.exp/expNeeded(myProgress.level))*100);
-  expBar.style.width = pct+'%';
+  const pct = Math.min(100, (myProgress.exp / expNeeded(myProgress.level)) * 100);
+  expBar.style.width = pct + '%';
 }
 
-// เลือกชุด
+// Costumes
 costumeBtn.addEventListener('click', ()=>{
   costumeList.innerHTML='';
   COSTUME_DEFS.forEach((c,idx)=>{
@@ -588,9 +489,8 @@ costumeBtn.addEventListener('click', ()=>{
     if(unlocked){
       sw.addEventListener('click', async ()=>{
         me.costume = idx;
-        await trackNow();
-        try{ await sb.from('mmo_players').update({ costume: idx }).eq('name', myName); }catch(e){}
         costumeModal.style.display='none';
+        sb.from('mmo_players').update({ costume: idx }).eq('name', myName);
       });
     }
     costumeList.appendChild(sw);
@@ -599,16 +499,16 @@ costumeBtn.addEventListener('click', ()=>{
 });
 closeCostume.addEventListener('click', ()=>{ costumeModal.style.display='none'; });
 
-// จัดการ Input
+// Inputs
 window.addEventListener('keydown', e=>{
-  keys[e.key.toLowerCase()]=true;
-  if(e.key===' '){ e.preventDefault(); tryAttack(); }
+  keys[e.key.toLowerCase()] = true;
+  if(e.key === ' '){ e.preventDefault(); tryAttack(); }
 });
-window.addEventListener('keyup', e=>{ keys[e.key.toLowerCase()]=false; });
+window.addEventListener('keyup', e=>{ keys[e.key.toLowerCase()] = false; });
 canvas.addEventListener('mousedown', tryAttack);
 
-function bindHold(id,key){
-  const el=document.getElementById(id);
+function bindHold(id, key){
+  const el = document.getElementById(id);
   el.addEventListener('touchstart', e=>{ e.preventDefault(); keys[key]=true; });
   el.addEventListener('touchend', e=>{ keys[key]=false; });
 }
@@ -617,101 +517,92 @@ document.getElementById('tpAttack').addEventListener('touchstart', e=>{ e.preven
 
 function tryAttack(){
   if(!gameActive) return;
-  const now=Date.now();
+  const now = Date.now();
   if(now < lastAttackCooldownUntil) return;
-  lastAttackCooldownUntil = now+ATTACK_COOLDOWN;
-  me.attacking=true; me.attackUntil=now+ATTACK_DURATION; me.attackAt=now;
+  lastAttackCooldownUntil = now + ATTACK_COOLDOWN;
+  me.attacking = true;
+  me.attackUntil = now + ATTACK_DURATION;
   spawnSlash();
-  trackNow();
+  
+  if(channel){
+    channel.send({
+      type: 'broadcast',
+      event: 'atk',
+      payload: { id: myId, name: myName, x: me.x, y: me.y }
+    });
+  }
+  if(isHost) handleDamage({ id: myId, name: myName, x: me.x, y: me.y });
 }
 
 function spawnSlash(){
-  const dir=me.facing;
-  const ox=me.x+dir*26, oy=me.y-40;
+  const dir = me.facing;
+  const ox = me.x + dir * 26, oy = me.y - 40;
   const c = COSTUME_DEFS[me.costume] || COSTUME_DEFS[0];
   for(let i=0;i<14;i++){
-    particles.push({ x:ox,y:oy+(Math.random()-0.5)*26, vx:dir*(3+Math.random()*4), vy:(Math.random()-0.5)*2,
-      life:1, decay:0.045+Math.random()*0.02, r:2+Math.random()*3, color:c.accent });
-  }
-}
-function spawnDeathBurstAt(x,y){
-  for(let i=0;i<36;i++){
-    particles.push({ x,y, vx:(Math.random()-0.5)*8, vy:(Math.random()-0.5)*8,
-      life:1, decay:0.02+Math.random()*0.02, r:2+Math.random()*4, color:'#f0cf6a' });
+    particles.push({
+      x:ox, y:oy+(Math.random()-0.5)*26,
+      vx:dir*(3+Math.random()*4), vy:(Math.random()-0.5)*2,
+      life:1, decay:0.045+Math.random()*0.02, r:2+Math.random()*3, color:c.accent
+    });
   }
 }
 
-// จัดการแชท
-chatform.addEventListener('submit', async e=>{
+function spawnDeathBurstAt(x,y){
+  for(let i=0;i<36;i++){
+    particles.push({
+      x, y, vx:(Math.random()-0.5)*8, vy:(Math.random()-0.5)*8,
+      life:1, decay:0.02+Math.random()*0.02, r:2+Math.random()*4, color:'#f0cf6a'
+    });
+  }
+}
+
+// Chat
+chatform.addEventListener('submit', e=>{
   e.preventDefault();
   const text = chatInput.value.trim();
   if(!text) return;
-  chatInput.value='';
-  me.chatMsg=text; me.chatAt=Date.now();
+  chatInput.value = '';
   addChatLine(myName, text);
-  trackNow();
+  if(channel){
+    channel.send({ type: 'broadcast', event: 'chat', payload: { name: myName, text } });
+  }
 });
 
-function addChatLine(name,text){
-  chatMessages.unshift({name,text});
-  chatMessages = chatMessages.slice(0,5);
-  chatlogEl.innerHTML = chatMessages.map(m=>`<div><b style="color:#f0cf6a">${escapeHtml(m.name)}:</b> ${escapeHtml(m.text)}</div>`).join('');
-}
-function escapeHtml(s){ return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-let seenChatAt={};
-
-let isTracking=false;
-async function trackNow(){
-  if(!channel || isTracking) return;
-  isTracking=true;
-  try{
-    await channel.track(me);
-  }catch(e){
-    debugLog('track error: ' + e.message, 'warn');
-  } finally {
-    isTracking=false;
-  }
+function addChatLine(name, text){
+  chatMessages.unshift({ name, text });
+  chatMessages = chatMessages.slice(0, 5);
+  chatlogEl.innerHTML = chatMessages.map(m=>`<div><b style="color:#f0cf6a">${m.name}:</b> ${m.text}</div>`).join('');
 }
 
-// Game Loop
+// Loop
 function loop(ts){
   if(!gameActive) return;
 
-  let dx=0,dy=0;
-  if(keys['arrowleft']||keys['a']) dx-=MOVE_SPEED;
-  if(keys['arrowright']||keys['d']) dx+=MOVE_SPEED;
-  if(keys['arrowup']||keys['w']) dy-=MOVE_SPEED;
-  if(keys['arrowdown']||keys['s']) dy+=MOVE_SPEED;
-  
-  if(dx!==0) me.facing = dx>0?1:-1;
-  me.x = Math.max(30, Math.min(ARENA_W-30, me.x+dx));
-  me.y = Math.max(60, Math.min(ARENA_H-30, me.y+dy));
+  let dx = 0, dy = 0;
+  if(keys['arrowleft'] || keys['a']) dx -= MOVE_SPEED;
+  if(keys['arrowright'] || keys['d']) dx += MOVE_SPEED;
+  if(keys['arrowup'] || keys['w']) dy -= MOVE_SPEED;
+  if(keys['arrowdown'] || keys['s']) dy += MOVE_SPEED;
 
-  hasMoved = (dx!==0 || dy!==0);
+  if(dx !== 0) me.facing = dx > 0 ? 1 : -1;
+  me.x = Math.max(30, Math.min(ARENA_W - 30, me.x + dx));
+  me.y = Math.max(60, Math.min(ARENA_H - 30, me.y + dy));
 
-  const now=Date.now();
-  if(me.attacking && now>me.attackUntil) me.attacking=false;
+  const now = Date.now();
+  if(me.attacking && now > me.attackUntil) me.attacking = false;
 
-  // ส่ง track เฉพาะตอนถึงรอบเวลาและมีการขยับตัว
-  if(ts-lastTrack>TRACK_MS){
-    lastTrack=ts;
-    if(hasMoved || me.attacking) trackNow();
+  // Broadcast ตำแหน่งแบบจำกัดความถี่
+  if(ts - lastSyncTime > SYNC_INTERVAL && channel){
+    lastSyncTime = ts;
+    channel.send({
+      type: 'broadcast',
+      event: 'pos',
+      payload: { id: myId, name: myName, guild: myGuild, x: me.x, y: me.y, facing: me.facing, costume: me.costume }
+    });
   }
 
-  Object.keys(presenceRoster).forEach(k=>{
-    if(k===myId) return;
-    const p=presenceRoster[k];
-    if(p && p.chatMsg && p.chatAt && seenChatAt[k]!==p.chatAt){
-      seenChatAt[k]=p.chatAt;
-      addChatLine(p.name||'?', p.chatMsg);
-    }
-  });
-
-  if(roomKillsTotal>killsTotalSeen && killsTotalSeen>=0) statusEl.textContent = `ปาร์ตี้ปราบอสูรไปแล้วรวม ${roomKillsTotal} ตัว`;
-  killsTotalSeen = roomKillsTotal;
-
-  particles.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; p.life-=p.decay; });
-  particles = particles.filter(p=>p.life>0);
+  particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.life -= p.decay; });
+  particles = particles.filter(p => p.life > 0);
 
   render();
   requestAnimationFrame(loop);
@@ -720,87 +611,88 @@ function loop(ts){
 function drawFigure(p, costumeIdx){
   const c = COSTUME_DEFS[costumeIdx] || COSTUME_DEFS[0];
   ctx.save();
-  ctx.translate(p.x,p.y);
-  ctx.scale(p.facing,1);
+  ctx.translate(p.x, p.y);
+  ctx.scale(p.facing || 1, 1);
 
-  ctx.beginPath(); ctx.ellipse(0,6,22,6,0,0,Math.PI*2); ctx.fillStyle='rgba(0,0,0,.4)'; ctx.fill();
+  ctx.beginPath(); ctx.ellipse(0, 6, 22, 6, 0, 0, Math.PI * 2); ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.fill();
   ctx.beginPath();
-  ctx.moveTo(-13,0); ctx.quadraticCurveTo(-22,-30,-8,-58); ctx.lineTo(8,-58);
-  ctx.quadraticCurveTo(24,-30,13,0); ctx.closePath();
-  const grad=ctx.createLinearGradient(0,-58,0,0);
-  grad.addColorStop(0,c.accent); grad.addColorStop(1,c.main);
-  ctx.fillStyle=grad; ctx.fill();
-  ctx.strokeStyle='rgba(0,0,0,.3)'; ctx.stroke();
+  ctx.moveTo(-13, 0); ctx.quadraticCurveTo(-22, -30, -8, -58); ctx.lineTo(8, -58);
+  ctx.quadraticCurveTo(24, -30, 13, 0); ctx.closePath();
+  const grad = ctx.createLinearGradient(0, -58, 0, 0);
+  grad.addColorStop(0, c.accent); grad.addColorStop(1, c.main);
+  ctx.fillStyle = grad; ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,.3)'; ctx.stroke();
 
-  ctx.beginPath(); ctx.arc(0,-68,10,0,Math.PI*2); ctx.fillStyle='#e8cfa0'; ctx.fill();
-  ctx.beginPath(); ctx.arc(0,-80,3.5,0,Math.PI*2); ctx.fillStyle='#1a1410'; ctx.fill();
+  ctx.beginPath(); ctx.arc(0, -68, 10, 0, Math.PI * 2); ctx.fillStyle = '#e8cfa0'; ctx.fill();
+  ctx.beginPath(); ctx.arc(0, -80, 3.5, 0, Math.PI * 2); ctx.fillStyle = '#1a1410'; ctx.fill();
 
-  if(p.attacking && Date.now()<p.attackUntil){
-    const prog=1-Math.max(0,(p.attackUntil-Date.now())/ATTACK_DURATION);
+  if(p.attacking && Date.now() < p.attackUntil){
+    const prog = 1 - Math.max(0, (p.attackUntil - Date.now()) / ATTACK_DURATION);
     ctx.save();
-    ctx.rotate(-0.9+prog*1.8);
-    ctx.beginPath(); ctx.moveTo(5,-45); ctx.lineTo(58,-48);
-    ctx.lineWidth=4; ctx.strokeStyle='#fff6d8';
-    ctx.shadowColor=c.accent; ctx.shadowBlur=16; ctx.stroke();
+    ctx.rotate(-0.9 + prog * 1.8);
+    ctx.beginPath(); ctx.moveTo(5, -45); ctx.lineTo(58, -48);
+    ctx.lineWidth = 4; ctx.strokeStyle = '#fff6d8';
+    ctx.shadowColor = c.accent; ctx.shadowBlur = 16; ctx.stroke();
     ctx.restore();
   }
   ctx.restore();
 
   ctx.save();
-  ctx.font='11px "Noto Sans Thai",sans-serif'; ctx.textAlign='center'; ctx.fillStyle='#cfc7ad';
-  const label = (p.guild ? `[${p.guild}] `:'') + (p.name||'');
-  ctx.fillText(label, p.x, p.y-92);
+  ctx.font = '11px "Noto Sans Thai",sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#cfc7ad';
+  const label = (p.guild ? `[${p.guild}] ` : '') + (p.name || '');
+  ctx.fillText(label, p.x, p.y - 92);
   ctx.restore();
 }
 
 function drawMonster(m){
   ctx.save();
-  ctx.translate(m.x,m.y);
+  ctx.translate(m.x, m.y);
   if(!m.alive){ ctx.restore(); return; }
-  const pulse = 1+Math.sin(Date.now()/300)*0.03;
-  ctx.scale(pulse,pulse);
-  ctx.beginPath(); ctx.ellipse(0,8,48,12,0,0,Math.PI*2); ctx.fillStyle='rgba(0,0,0,.45)'; ctx.fill();
+  const pulse = 1 + Math.sin(Date.now() / 300) * 0.03;
+  ctx.scale(pulse, pulse);
+  ctx.beginPath(); ctx.ellipse(0, 8, 48, 12, 0, 0, Math.PI * 2); ctx.fillStyle = 'rgba(0,0,0,.45)'; ctx.fill();
   ctx.beginPath();
-  ctx.moveTo(-36,10); ctx.quadraticCurveTo(-48,-40,-8,-62);
-  ctx.quadraticCurveTo(0,-70,8,-62); ctx.quadraticCurveTo(48,-40,36,10);
-  ctx.quadraticCurveTo(0,20,-36,10); ctx.closePath();
-  const g=ctx.createRadialGradient(0,-24,8,0,-24,72);
-  g.addColorStop(0,'#3a2a44'); g.addColorStop(1,'#120c16');
-  ctx.fillStyle=g; ctx.fill();
-  ctx.beginPath(); ctx.arc(-11,-42,4,0,Math.PI*2); ctx.arc(11,-42,4,0,Math.PI*2);
-  ctx.fillStyle='#ff5a5a'; ctx.shadowColor='#ff5a5a'; ctx.shadowBlur=12; ctx.fill();
+  ctx.moveTo(-36, 10); ctx.quadraticCurveTo(-48, -40, -8, -62);
+  ctx.quadraticCurveTo(0, -70, 8, -62); ctx.quadraticCurveTo(48, -40, 36, 10);
+  ctx.quadraticCurveTo(0, 20, -36, 10); ctx.closePath();
+  const g = ctx.createRadialGradient(0, -24, 8, 0, -24, 72);
+  g.addColorStop(0, '#3a2a44'); g.addColorStop(1, '#120c16');
+  ctx.fillStyle = g; ctx.fill();
+  ctx.beginPath(); ctx.arc(-11, -42, 4, 0, Math.PI * 2); ctx.arc(11, -42, 4, 0, Math.PI * 2);
+  ctx.fillStyle = '#ff5a5a'; ctx.shadowColor = '#ff5a5a'; ctx.shadowBlur = 12; ctx.fill();
   ctx.restore();
 
+  // หลอดเลือด
   ctx.save();
-  const w=60;
-  ctx.translate(m.x-w/2, m.y-84);
-  ctx.fillStyle='rgba(0,0,0,.5)'; ctx.fillRect(0,0,w,6);
-  ctx.fillStyle='#c23b4a'; ctx.fillRect(0,0,w*(m.hp/m.maxHp),6);
+  const w = 60;
+  ctx.translate(m.x - w / 2, m.y - 84);
+  ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.fillRect(0, 0, w, 6);
+  ctx.fillStyle = '#c23b4a'; ctx.fillRect(0, 0, w * (m.hp / m.maxHp), 6);
   ctx.restore();
 }
 
 function render(){
-  ctx.clearRect(0,0,ARENA_W,ARENA_H);
-  ctx.strokeStyle='rgba(140,160,110,.08)';
+  ctx.clearRect(0, 0, ARENA_W, ARENA_H);
+  
+  // ตารางพื้นหลัง
+  ctx.strokeStyle = 'rgba(140,160,110,.08)';
   for(let gx=0; gx<ARENA_W; gx+=40){ ctx.beginPath(); ctx.moveTo(gx,0); ctx.lineTo(gx,ARENA_H); ctx.stroke(); }
-  ctx.fillStyle='rgba(50,60,40,.35)';
-  ctx.beginPath();
-  ctx.moveTo(760,60); ctx.lineTo(810,20); ctx.lineTo(860,60); ctx.lineTo(835,60);
-  ctx.lineTo(835,90); ctx.lineTo(785,90); ctx.lineTo(785,60); ctx.closePath(); ctx.fill();
-
+  
   monsters.forEach(drawMonster);
 
-  Object.keys(presenceRoster).forEach(k=>{
-    if(k===myId) return;
-    const p=presenceRoster[k];
-    if(p) drawFigure(p, p.costume!=null?p.costume:0);
+  // วาดผู้เล่นคนอื่น
+  Object.values(otherPlayers).forEach(p => {
+    drawFigure(p, p.costume || 0);
   });
+
+  // วาดตัวเอง
   drawFigure(me, me.costume);
 
-  particles.forEach(p=>{
-    ctx.save(); ctx.globalAlpha=Math.max(0,p.life);
-    ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-    ctx.fillStyle=p.color; ctx.shadowColor=p.color; ctx.shadowBlur=8; ctx.fill();
+  // เอฟเฟกต์ฟัน
+  particles.forEach(p => {
+    ctx.save(); ctx.globalAlpha = Math.max(0, p.life);
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = p.color; ctx.shadowColor = p.color; ctx.shadowBlur = 8; ctx.fill();
     ctx.restore();
   });
 }
