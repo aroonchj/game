@@ -67,6 +67,14 @@ canvas{ background:#1f1812; border:2px solid #5a452d; border-radius:6px; box-sha
 #chatSendBtn{ background:linear-gradient(180deg,#f3d36b,var(--gold)); color:#1a1205; padding:0 16px; border-radius:4px; font-size:.85em; font-weight:700; }
 
 #toast{ position:absolute; top:60px; left:50%; transform:translateX(-50%); font-size:.88em; color:var(--gold-bright); background:rgba(18,13,9,.92); padding:8px 20px; border-radius:20px; border:1px solid var(--gold); display:none; z-index:40; }
+
+/* Debug Panel */
+#debugPanel{ position:fixed; right:8px; bottom:8px; width:340px; max-height:220px; overflow-y:auto; background:rgba(0,0,0,0.92); border:1px solid #5a452d; border-radius:4px; padding:6px 8px; font-family:monospace; font-size:.7em; color:#8fda8f; z-index:999; }
+#debugPanel .hdr{ display:flex; justify-content:space-between; color:#fae17d; margin-bottom:4px; font-weight:bold; }
+#debugPanel .hdr button{ background:#332211; border:1px solid #5a452d; color:#fff; font-size:.8em; padding:1px 6px; border-radius:2px; }
+#debugPanel .line{ white-space:pre-wrap; word-break:break-all; border-top:1px solid #222; padding:2px 0; }
+#debugPanel .err{ color:#ff6b6b; }
+#debugPanel .warn{ color:#ffd13b; }
 </style>
 </head>
 <body>
@@ -147,11 +155,34 @@ canvas{ background:#1f1812; border:2px solid #5a452d; border-radius:6px; box-sha
     <div id="chatlog"></div>
   </div>
 
+  <div id="debugPanel">
+    <div class="hdr"><span>🔧 Debug Log</span><button id="clearDebugBtn">ล้าง</button></div>
+    <div id="debugLines"></div>
+  </div>
+
 </div>
 
 <script>
 (function(){
 "use strict";
+
+const debugLinesEl = document.getElementById('debugLines');
+document.getElementById('clearDebugBtn').addEventListener('click', ()=>{ debugLinesEl.innerHTML=''; });
+
+function debugLog(msg, level='info'){
+  const time = new Date().toLocaleTimeString('th-TH', {hour12:false});
+  const div = document.createElement('div');
+  div.className = 'line' + (level==='error' ? ' err' : level==='warn' ? ' warn' : '');
+  div.textContent = `[${time}] ${msg}`;
+  debugLinesEl.appendChild(div);
+  debugLinesEl.parentElement.scrollTop = debugLinesEl.parentElement.scrollHeight;
+  if(level === 'error') console.error(msg);
+}
+
+// ดักจับ Error รวมทุกประเภท
+window.onerror = function(msg, url, line){
+  debugLog(`JS Error: ${msg} (Line ${line})`, 'error');
+};
 
 const ARENA_W = 960, ARENA_H = 460;
 const MOVE_SPEED = 4.2;
@@ -239,7 +270,7 @@ function showToast(msg){
 }
 
 function addDamagePopup(x, y, text, color='#fae17d'){
-  popups.push({ x: x + (Math.random()-0.5)*20, y: y - 30, text, color, life: 1.0 });
+  popups.push({ x: (x || 200) + (Math.random()-0.5)*20, y: (y || 200) - 30, text, color, life: 1.0 });
 }
 
 async function joinRoom(){
@@ -254,15 +285,20 @@ async function joinRoom(){
   joinBtn.disabled=true; joinBtn.textContent='กำลังเข้าเมือง...';
 
   try{
+    debugLog(`เริ่มเข้าสู่ระบบ: name=${myName}, room=${roomCode}`);
     sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 
-    const { data: prow } = await sb.from('mmo_players').select('*').eq('name', myName).maybeSingle();
+    const { data: prow, error: prowErr } = await sb.from('mmo_players').select('*').eq('name', myName).maybeSingle();
+    if(prowErr) debugLog('โหลด mmo_players: ' + prowErr.message, 'warn');
+    
     if(prow){
       myProgress.level = prow.level || 1;
       myProgress.exp = prow.exp || 0;
+      debugLog(`พบผู้เล่นเดิม: Lv.${myProgress.level}`);
     } else {
       myProgress = { level:1, exp:0 };
       await sb.from('mmo_players').insert({ name: myName, level:1, exp:0, guild:myGuild, costume:myClass });
+      debugLog('สร้างข้อมูลผู้เล่นใหม่สำเร็จ');
     }
 
     me.name = myName; me.guild = myGuild; me.classIdx = myClass; me.joinedAt = Date.now();
@@ -316,6 +352,7 @@ async function joinRoom(){
     });
 
     channel.subscribe(async (status) => {
+      debugLog('Channel Status: ' + status);
       if(status === 'SUBSCRIBED'){
         await channel.track({ name: myName, guild: myGuild, joinedAt: me.joinedAt });
         landing.style.display = 'none';
@@ -328,6 +365,7 @@ async function joinRoom(){
     });
 
   }catch(err){
+    debugLog('Join Error: ' + err.message, 'error');
     joinBtn.disabled=false; joinBtn.textContent='เข้าสู่เมืองยุทธภพ';
   }
 }
@@ -353,17 +391,21 @@ window.tryAttack = function(){
 };
 
 function triggerSkillVisuals(skill, x, y, facing){
+  const px = x || 200;
+  const py = y || 200;
+  const pf = facing || 1;
+
   if(skill === 'atk' || skill === 'Q'){
     const color = skill === 'Q' ? '#fae17d' : '#ffffff';
     skillProjectiles.push({
-      x: x + facing*35, y: y-30, vx: facing * (skill==='Q'?10:7),
+      x: px + pf*35, y: py-30, vx: pf * (skill==='Q'?10:7),
       size: skill==='Q'?26:14, life: 1, color
     });
   } else if(skill === 'E'){
     for(let i=0; i<12; i++){
       setTimeout(()=>{
         particles.push({
-          x: x + (Math.random()-0.5)*180, y: y - 160,
+          x: px + (Math.random()-0.5)*180, y: py - 160,
           vx: (Math.random()-0.5)*2, vy: 10 + Math.random()*4,
           life: 1, decay: 0.035, r: 3.5, color: '#48bb78'
         });
@@ -373,7 +415,7 @@ function triggerSkillVisuals(skill, x, y, facing){
     for(let i=0; i<45; i++){
       const angle = (i / 45) * Math.PI * 2;
       particles.push({
-        x: x, y: y-25,
+        x: px, y: py-25,
         vx: Math.cos(angle) * (7 + Math.random()*3),
         vy: Math.sin(angle) * (7 + Math.random()*3),
         life: 1, decay: 0.03, r: 4, color: '#e63950'
@@ -384,10 +426,10 @@ function triggerSkillVisuals(skill, x, y, facing){
 
 function checkSkillHitMe(atk){
   if(me.isDead || !atk) return;
-  const dist = Math.hypot(atk.x - me.x, atk.y - me.y);
-  if(dist < atk.range){
-    me.hp = Math.max(0, me.hp - atk.dmg);
-    addDamagePopup(me.x, me.y, `-${atk.dmg}`, '#ff4444');
+  const dist = Math.hypot((atk.x||0) - me.x, (atk.y||0) - me.y);
+  if(dist < (atk.range || 90)){
+    me.hp = Math.max(0, me.hp - (atk.dmg || 20));
+    addDamagePopup(me.x, me.y, `-${atk.dmg || 20}`, '#ff4444');
     updateMeHUD();
 
     if(me.hp <= 0){
@@ -409,10 +451,10 @@ function checkSkillHitMonster(atk){
   if(!atk) return;
   monsters.forEach(m => {
     if(!m.alive) return;
-    const dist = Math.hypot(atk.x - m.x, atk.y - m.y);
-    if(dist < atk.range){
-      m.hp = Math.max(0, m.hp - atk.dmg);
-      addDamagePopup(m.x, m.y, `-${atk.dmg}`, '#ffd13b');
+    const dist = Math.hypot((atk.x||0) - m.x, (atk.y||0) - m.y);
+    if(dist < (atk.range || 90)){
+      m.hp = Math.max(0, m.hp - (atk.dmg || 20));
+      addDamagePopup(m.x, m.y, `-${atk.dmg || 20}`, '#ffd13b');
       if(m.hp <= 0 && m.alive){
         m.alive = false;
         if(channel){
@@ -555,7 +597,6 @@ function loop(ts){
 }
 
 function drawCityEnvironment(){
-  // ลานเมืองหิน
   ctx.fillStyle = '#261e17';
   ctx.fillRect(0, 0, ARENA_W, ARENA_H);
 
@@ -564,25 +605,21 @@ function drawCityEnvironment(){
   for(let gx=0; gx<ARENA_W; gx+=50){ ctx.beginPath(); ctx.moveTo(gx,0); ctx.lineTo(gx,ARENA_H); ctx.stroke(); }
   for(let gy=0; gy<ARENA_H; gy+=50){ ctx.beginPath(); ctx.moveTo(0,gy); ctx.lineTo(ARENA_W,gy); ctx.stroke(); }
 
-  // ซุ้มประตูเมือง
   ctx.fillStyle = '#6b1d1d';
   ctx.fillRect(40, 20, 180, 26);
   ctx.fillStyle = '#d4af37';
   ctx.fillRect(44, 16, 172, 4);
 
-  // โคมไฟแดง
   [60, 200, 520, 700].forEach(lx => {
     ctx.beginPath(); ctx.arc(lx, 50, 10, 0, Math.PI*2);
     ctx.fillStyle = '#e63950'; ctx.fill();
   });
 
-  // ป้ายชื่อเมือง
   ctx.font = 'bold 22px "Noto Serif SC", serif';
   ctx.fillStyle = 'rgba(212,175,55,0.2)';
   ctx.textAlign = 'center';
   ctx.fillText('洛 陽 城 (ลานเมืองลั่วหยาง)', 480, 240);
 
-  // กลีบดอกท้อ
   petals.forEach(p => {
     ctx.beginPath();
     ctx.ellipse(p.x, p.y, p.size, p.size/2, Math.PI/4, 0, Math.PI*2);
@@ -593,8 +630,9 @@ function drawCityEnvironment(){
 
 function drawHero(p){
   if(!p) return;
-  const px = p.x || 200;
-  const py = p.y || 200;
+  const px = Number(p.x) || 200;
+  const py = Number(p.y) || 200;
+  const pFacing = p.facing || 1;
 
   if(p.isDead){
     ctx.save();
@@ -609,19 +647,19 @@ function drawHero(p){
 
   ctx.save();
   ctx.translate(px, py);
-  ctx.scale(p.facing || 1, 1);
+  ctx.scale(pFacing, 1);
 
-  // เงา
+  // 1. เงาพื้น
   ctx.beginPath(); ctx.ellipse(0, 4, 22, 6, 0, Math.PI * 2);
   ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fill();
 
-  // ผ้าคลุมสีแดงเลือดหมู
+  // 2. ผ้าคลุม
   ctx.beginPath();
   ctx.moveTo(-8, -48); ctx.quadraticCurveTo(-26, -20, -18, -2);
   ctx.lineTo(-4, -2); ctx.quadraticCurveTo(-8, -25, -2, -48);
   ctx.fillStyle = '#8b1e2f'; ctx.fill();
 
-  // ชุดจอมยุทธ์ทองคำพริ้วไหว
+  // 3. ชุดจอมยุทธ์
   ctx.beginPath();
   ctx.moveTo(-12, -50); ctx.lineTo(12, -50);
   ctx.quadraticCurveTo(18, -20, 12, 0); ctx.lineTo(-12, 0);
@@ -629,20 +667,19 @@ function drawHero(p){
   ctx.fillStyle = '#d4af37'; ctx.fill();
   ctx.strokeStyle = '#2d1e12'; ctx.lineWidth = 1.5; ctx.stroke();
 
-  // ผ้าคาดเอวสีทองสว่าง
+  // ผ้าคาดเอว
   ctx.fillStyle = '#fae17d'; ctx.fillRect(-12, -26, 24, 6);
 
-  // หัว & ใบหน้า
+  // 4. ศีรษะ & หมวกงอบ
   ctx.beginPath(); ctx.arc(0, -60, 11, 0, Math.PI * 2); ctx.fillStyle = '#fce5cd'; ctx.fill();
   ctx.fillStyle = '#1c1510'; ctx.fillRect(3, -62, 3, 2);
 
-  // หมวกงอบไม้ไผ่
   ctx.beginPath();
   ctx.moveTo(-20, -66); ctx.lineTo(0, -80); ctx.lineTo(20, -66);
   ctx.fillStyle = '#c5a059'; ctx.fill();
   ctx.strokeStyle = '#5a421b'; ctx.lineWidth = 1.2; ctx.stroke();
 
-  // กระบี่เรืองแสง
+  // กระบี่
   ctx.fillStyle = '#ffffff'; ctx.fillRect(8, -48, 4, 34);
 
   ctx.restore();
@@ -653,8 +690,8 @@ function drawHero(p){
   ctx.fillStyle = (p.id === myId) ? '#fae17d' : '#ffffff';
   ctx.fillText((p.guild ? `[${p.guild}] ` : '') + (p.name || 'จอมยุทธ์'), px, py - 86);
 
-  const curHp = p.hp != null ? p.hp : PLAYER_MAX_HP;
-  const maxHp = p.maxHp || PLAYER_MAX_HP;
+  const curHp = Number(p.hp != null ? p.hp : PLAYER_MAX_HP);
+  const maxHp = Number(p.maxHp || PLAYER_MAX_HP);
   const barW = 46, barH = 5;
   ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillRect(px - barW/2, py - 82, barW, barH);
   ctx.fillStyle = '#e63950'; ctx.fillRect(px - barW/2, py - 82, barW * Math.max(0, Math.min(1, curHp / maxHp)), barH);
@@ -663,16 +700,14 @@ function drawHero(p){
 
 function drawMonster(m){
   if(!m || !m.alive) return;
-  const mx = m.x || 700;
-  const my = m.y || 200;
+  const mx = Number(m.x) || 700;
+  const my = Number(m.y) || 200;
 
   ctx.save();
   ctx.translate(mx, my);
 
-  // เงา
   ctx.beginPath(); ctx.ellipse(0, 8, 42, 12, 0, Math.PI * 2); ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.fill();
 
-  // ตัวอสูรสีม่วงเข้ม
   ctx.beginPath();
   ctx.moveTo(-32, 10); ctx.quadraticCurveTo(-46, -30, -10, -58);
   ctx.quadraticCurveTo(0, -64, 10, -58); ctx.quadraticCurveTo(46, -30, 32, 10);
@@ -680,16 +715,14 @@ function drawMonster(m){
   ctx.fillStyle = '#5c1d56'; ctx.fill();
   ctx.strokeStyle = '#fae17d'; ctx.lineWidth = 2; ctx.stroke();
 
-  // ตาแดงเรืองแสง
   ctx.beginPath(); ctx.arc(-10, -34, 5, 0, Math.PI * 2); ctx.arc(10, -34, 5, 0, Math.PI * 2);
   ctx.fillStyle = '#ff3344'; ctx.fill();
 
   ctx.restore();
 
-  // หลอดเลือดมอนสเตอร์
   ctx.save();
-  const curHp = m.hp != null ? m.hp : MONSTER_MAX_HP;
-  const maxHp = m.maxHp || MONSTER_MAX_HP;
+  const curHp = Number(m.hp != null ? m.hp : MONSTER_MAX_HP);
+  const maxHp = Number(m.maxHp || MONSTER_MAX_HP);
   const w = 54;
   ctx.translate(mx - w/2, my - 76);
   ctx.fillStyle = 'rgba(0,0,0,.7)'; ctx.fillRect(0, 0, w, 6);
