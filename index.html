@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>刃義 · ยุทธภพเปิด v2</title>
+<title>刃義 · ยุทธภพ Sword of Justice v4</title>
 
 <script>
   window.SUPABASE_URL = "https://mflemycqwksuktvktlko.supabase.co";
@@ -12,122 +12,100 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+Thai:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;900&family=Noto+Sans+Thai:wght@400;600;700&display=swap');
 
 :root{
-  --ink:#16110d; --ink-2:#221b15; --paper:#ece3cf;
-  --gold:#c9a227; --gold-bright:#f0cf6a;
-  --crimson:#7a2230; --crimson-bright:#c23b4a;
+  --ink:#0b0806; --ink-2:#16100c; --paper:#efe6d5;
+  --gold:#d4af37; --gold-bright:#fae17d;
+  --crimson:#8b1e2f; --crimson-bright:#e63950;
+  --panel-bg: rgba(18, 13, 9, 0.94);
 }
 *{ box-sizing:border-box; }
-html,body{ margin:0; height:100%; background:radial-gradient(ellipse at 50% 15%,#241c15 0%,var(--ink) 70%);
+html,body{ margin:0; height:100%; background:radial-gradient(ellipse at 50% 20%,#2a1c12 0%,var(--ink) 85%);
   color:var(--paper); font-family:'Noto Sans Thai',sans-serif; overflow:hidden; user-select:none; }
 .brush-title{ font-family:'Noto Serif SC','Noto Sans Thai',serif; font-weight:900; letter-spacing:.08em; }
 #app{ width:100%; height:100%; display:flex; align-items:center; justify-content:center; flex-direction:column; position:relative; }
 
-#configWarning{ display:none; position:absolute; top:0; left:0; right:0; background:#7a2230; color:#fff;
-  text-align:center; font-size:.8em; padding:8px; z-index:50; }
-
-#landing{ display:flex; flex-direction:column; align-items:center; gap:16px; padding:32px; max-width:440px; text-align:center; max-height:94vh; overflow-y:auto; }
-#landing h1{ font-size:2em; margin:0; color:var(--gold-bright); text-shadow:0 0 18px rgba(240,207,106,.35); }
-#landing .sub{ color:#b9ac8f; font-size:.9em; margin-top:-10px; }
-.divider{ width:120px; height:2px; background:linear-gradient(90deg,transparent,var(--gold),transparent); margin:2px 0 4px; }
+#landing{ display:flex; flex-direction:column; align-items:center; gap:14px; padding:32px; max-width:440px; text-align:center; background:var(--panel-bg); border:1px solid #5a452d; border-radius:8px; box-shadow:0 12px 40px rgba(0,0,0,0.8); }
+#landing h1{ font-size:2.2em; margin:0; color:var(--gold-bright); text-shadow:0 0 20px rgba(250,225,125,.4); }
+#landing .sub{ color:#bfae91; font-size:.9em; margin-top:-8px; }
+.divider{ width:160px; height:2px; background:linear-gradient(90deg,transparent,var(--gold),transparent); margin:4px 0; }
 .field{ display:flex; flex-direction:column; gap:6px; width:100%; text-align:left; }
-.field label{ font-size:.78em; color:#c9bda0; }
-.field input{ background:var(--ink-2); border:1px solid #4a3d2a; color:var(--paper); padding:11px 14px; border-radius:2px; font-size:1em; font-family:inherit; outline:none; }
-.field input:focus{ border-color:var(--gold); }
+.field label{ font-size:.8em; color:#d2c4a7; font-weight:600; }
+.field input{ background:var(--ink-2); border:1px solid #5a452d; color:var(--paper); padding:11px 14px; border-radius:4px; font-size:1em; font-family:inherit; outline:none; }
+.field input:focus{ border-color:var(--gold-bright); }
 button{ cursor:pointer; border:none; font-family:'Noto Sans Thai',sans-serif; font-weight:600; }
-#joinBtn{ margin-top:2px; width:100%; background:linear-gradient(180deg,var(--gold-bright),var(--gold)); color:#241c0e; padding:14px; font-size:1.05em; border-radius:2px; box-shadow:0 4px 18px rgba(201,162,39,.25); }
-#joinBtn:disabled{ opacity:.5; cursor:not-allowed; }
-.hint{ font-size:.74em; color:#8a7c60; line-height:1.6; }
+#joinBtn{ margin-top:6px; width:100%; background:linear-gradient(180deg,#f3d36b,var(--gold)); color:#1a1205; padding:13px; font-size:1.08em; border-radius:4px; box-shadow:0 4px 20px rgba(212,175,55,.3); font-weight:700; }
+#joinBtn:hover{ filter:brightness(1.1); }
+
 .classpick{ display:flex; gap:8px; width:100%; }
-.classbtn{ flex:1; padding:8px 4px; border:1px solid #4a3d2a; background:var(--ink-2); color:#c9bda0; border-radius:2px; font-size:.76em; }
-.classbtn.active{ border-color:var(--gold-bright); color:var(--gold-bright); background:#2a2213; }
+.classbtn{ flex:1; padding:10px 4px; border:1px solid #5a452d; background:var(--ink-2); color:#bfae91; border-radius:4px; font-size:.78em; }
+.classbtn.active{ border-color:var(--gold-bright); color:var(--gold-bright); background:#312415; }
 
-#game{ display:none; flex-direction:column; align-items:center; width:100%; height:100%; }
-#topbar{ width:min(920px,96vw); display:flex; align-items:flex-start; gap:12px; padding:10px 6px 4px; flex-wrap:wrap; }
-#meblock{ flex:1; min-width:220px; font-size:.78em; color:#c9bda0; }
-#meblock .lvline{ display:flex; justify-content:space-between; margin-bottom:3px; }
-.expbar-outer{ width:100%; height:8px; background:#2a2116; border:1px solid #4a3d2a; border-radius:2px; overflow:hidden; }
-.expbar-inner{ height:100%; background:linear-gradient(90deg,var(--gold),var(--gold-bright)); transition:width .3s; }
-#costumeBtn{ margin-top:5px; background:transparent; border:1px solid var(--gold); color:var(--gold-bright); font-size:.7em; padding:3px 10px; border-radius:2px; }
+#game{ display:none; flex-direction:column; align-items:center; width:100%; height:100%; position:relative; }
+#topbar{ width:min(960px,96vw); display:flex; align-items:center; justify-content:space-between; gap:16px; padding:10px 8px; }
+#meblock{ flex:1; max-width:320px; font-size:.82em; color:#dcd2be; }
+#meblock .lvline{ display:flex; justify-content:space-between; margin-bottom:4px; font-weight:700; }
+.bar-outer{ width:100%; height:10px; background:#221810; border:1px solid #5a452d; border-radius:4px; overflow:hidden; margin-bottom:4px; }
+.bar-hp{ height:100%; background:linear-gradient(90deg,#9e1b2f,#f24962); transition:width .2s; }
+.bar-exp{ height:100%; background:linear-gradient(90deg,var(--gold),var(--gold-bright)); transition:width .3s; }
 
-#roster{ display:flex; gap:6px; flex-wrap:wrap; max-width:300px; }
-.rostertag{ font-size:.68em; padding:3px 7px; border-radius:2px; border:1px solid #4a3d2a; color:#8a7c60; }
-.rostertag.active{ color:var(--paper); }
+#roster{ display:flex; gap:6px; flex-wrap:wrap; }
+.rostertag{ font-size:.72em; padding:4px 9px; border-radius:4px; border:1px solid #5a452d; color:#8e8067; background:rgba(0,0,0,.3); }
+.rostertag.active{ color:var(--gold-bright); border-color:#826639; background:rgba(212,175,55,.1); }
 
-canvas{ background:radial-gradient(ellipse at 50% 30%,#28321f 0%,#171c12 75%); border:1px solid #4a3d2a; border-radius:2px; box-shadow:0 10px 40px rgba(0,0,0,.5), inset 0 0 70px rgba(0,0,0,.4); touch-action:none; }
+canvas{ background:#1c1712; border:2px solid #5a452d; border-radius:6px; box-shadow:0 12px 50px rgba(0,0,0,.8), inset 0 0 100px rgba(0,0,0,.6); touch-action:none; }
 
-#status{ margin-top:8px; font-size:.82em; color:#c9bda0; min-height:1.3em; }
-#controls-hint{ margin-top:3px; font-size:.68em; color:#6b5f47; }
-#room-tag{ position:absolute; top:10px; left:50%; transform:translateX(-50%); font-size:.68em; color:#8a7c60; letter-spacing:.05em; }
+/* Action Skills Bar */
+#skillbar{ display:flex; gap:12px; margin-top:10px; z-index:10; }
+.skill-btn{ width:60px; height:60px; border-radius:8px; background:linear-gradient(145deg, #2a1f18, #140d09); border:2px solid #6b5334; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--gold-bright); position:relative; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,.5); }
+.skill-btn:active{ transform:scale(0.95); }
+.skill-btn .key{ font-size:.7em; color:#a89679; position:absolute; top:2px; left:4px; }
+.skill-btn .name{ font-size:.72em; font-weight:700; margin-top:14px; }
+.skill-btn .cd-overlay{ position:absolute; inset:0; background:rgba(0,0,0,0.7); height:0%; top:0; transition:height .1s linear; }
 
-#chatlog{ position:absolute; left:12px; bottom:12px; width:230px; max-height:100px; overflow:hidden; font-size:.7em; color:#c9bda0; display:flex; flex-direction:column-reverse; gap:2px; pointer-events:none; }
-#chatform{ display:flex; gap:6px; margin-top:6px; width:min(860px,90vw); }
-#chatInput{ flex:1; background:var(--ink-2); border:1px solid #4a3d2a; color:var(--paper); padding:7px 10px; border-radius:2px; font-family:inherit; font-size:.82em; outline:none; }
-#chatSendBtn{ background:transparent; border:1px solid var(--gold); color:var(--gold-bright); padding:0 14px; border-radius:2px; font-size:.82em; }
+#status{ margin-top:6px; font-size:.82em; color:#dcd2be; min-height:1.2em; }
+#room-tag{ position:absolute; top:12px; left:50%; transform:translateX(-50%); font-size:.75em; color:#a39274; background:rgba(0,0,0,.5); padding:3px 12px; border-radius:12px; border:1px solid #4a3822; }
 
-#touchpad{ display:none; position:absolute; bottom:64px; width:min(900px,95vw); justify-content:space-between; padding:0 10px; z-index:5; }
-.dpad{ display:grid; grid-template-columns:repeat(3,40px); grid-template-rows:repeat(3,40px); gap:3px; }
-.dbtn{ background:rgba(201,162,39,.15); border:1px solid var(--gold); color:var(--gold-bright); border-radius:6px; display:flex;align-items:center;justify-content:center; }
-.touchbtn{ width:58px; height:58px; border-radius:50%; background:rgba(201,162,39,.18); border:1px solid var(--gold); color:var(--gold-bright); font-size:1.25em; display:flex; align-items:center; justify-content:center; }
-@media (pointer:coarse){ #touchpad{ display:flex; } }
+#chatlog{ position:absolute; left:16px; bottom:16px; width:260px; max-height:120px; overflow:hidden; font-size:.75em; color:#dcd2be; display:flex; flex-direction:column-reverse; gap:3px; pointer-events:none; }
+#chatform{ display:flex; gap:6px; margin-top:6px; width:min(960px,94vw); }
+#chatInput{ flex:1; background:var(--ink-2); border:1px solid #5a452d; color:var(--paper); padding:8px 12px; border-radius:4px; font-family:inherit; font-size:.85em; outline:none; }
+#chatSendBtn{ background:linear-gradient(180deg,#f3d36b,var(--gold)); color:#1a1205; padding:0 16px; border-radius:4px; font-size:.85em; font-weight:700; }
 
-#costumeModal{ display:none; position:absolute; inset:0; background:rgba(10,8,5,.85); align-items:center; justify-content:center; z-index:40; }
-#costumeModal .panel{ background:var(--ink-2); border:1px solid #4a3d2a; padding:22px; border-radius:4px; max-width:360px; width:90%; text-align:center; }
-#costumeModal h3{ margin:0 0 12px; color:var(--gold-bright); font-family:'Noto Serif SC',serif; }
-#costumeList{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-bottom:14px; }
-.swatch{ width:56px; height:56px; border-radius:4px; border:2px solid #4a3d2a; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:.65em; color:#fff; }
-.swatch.selected{ border-color:var(--gold-bright); box-shadow:0 0 12px rgba(240,207,106,.4); }
-#closeCostume{ background:transparent; border:1px solid var(--gold); color:var(--gold-bright); padding:8px 20px; border-radius:2px; }
-
-#toast{ position:absolute; top:56px; left:50%; transform:translateX(-50%); font-size:.85em; color:var(--gold-bright); background:rgba(20,15,10,.8); padding:6px 16px; border-radius:3px; border:1px solid var(--gold); display:none; z-index:30; }
-
-#debugPanel{ position:fixed; right:8px; bottom:8px; width:340px; max-height:260px; overflow-y:auto;
-  background:rgba(0,0,0,.85); border:1px solid #4a3d2a; border-radius:4px; padding:8px 10px;
-  font-family:monospace; font-size:.68em; color:#8fda8f; z-index:100; }
-#debugPanel .err{ color:#ff7a7a; }
-#debugPanel .warn{ color:#f0cf6a; }
-#debugPanel .hdr{ display:flex; justify-content:space-between; color:#c9bda0; margin-bottom:4px; font-family:'Noto Sans Thai',sans-serif; }
-#debugPanel .hdr button{ background:none; border:1px solid #4a3d2a; color:#c9bda0; font-size:.9em; padding:0 6px; border-radius:2px; }
-#debugPanel .line{ white-space:pre-wrap; word-break:break-all; border-top:1px solid #222; padding:2px 0; }
+#toast{ position:absolute; top:60px; left:50%; transform:translateX(-50%); font-size:.88em; color:var(--gold-bright); background:rgba(18,13,9,.92); padding:8px 20px; border-radius:20px; border:1px solid var(--gold); display:none; z-index:40; }
 </style>
 </head>
 <body>
 <div id="app">
 
-  <div id="configWarning">⚠️ ยังไม่ได้ใส่ SUPABASE_URL / SUPABASE_ANON_KEY</div>
-
   <div id="landing">
-    <div class="brush-title" style="font-size:.78em;letter-spacing:.3em;color:#8a7c60;">刃 義</div>
-    <h1 class="brush-title">ยุทธภพเปิด</h1>
-    <div class="sub">ปาร์ตี้สูงสุด 4 คน · เลเวล/ชุด/ไอเทม เก็บถาวร</div>
+    <div class="brush-title" style="font-size:.85em;letter-spacing:.3em;color:#a89779;">刃 義</div>
+    <h1 class="brush-title">เมืองลั่วหยาง</h1>
+    <div class="sub">Sword of Justice · สกิลวิชายุทธ์เต็มรูปแบบ</div>
     <div class="divider"></div>
 
     <div class="field">
-      <label>ชื่อยอดฝีมือ</label>
-      <input id="nameInput" maxlength="12" placeholder="เช่น เหม่ย88" />
+      <label>ชื่อจอมยุทธ์</label>
+      <input id="nameInput" maxlength="12" placeholder="เช่น หวงเฟยหง" />
     </div>
     <div class="field">
-      <label>สำนัก</label>
+      <label>สำนักเพลงดาบ</label>
       <div class="classpick" id="classPick">
-        <button type="button" class="classbtn active" data-c="0">ดาบเมฆ</button>
-        <button type="button" class="classbtn" data-c="1">หมัดมังกร</button>
-        <button type="button" class="classbtn" data-c="2">พิณมนตรา</button>
-        <button type="button" class="classbtn" data-c="3">เงาราตรี</button>
+        <button type="button" class="classbtn active" data-c="0">กระบี่เมฆา</button>
+        <button type="button" class="classbtn" data-c="1">ดาบสุริยัน</button>
+        <button type="button" class="classbtn" data-c="2">หมัดมังกร</button>
       </div>
     </div>
     <div class="field">
-      <label>ชื่อกิลด์ (ไม่บังคับ)</label>
-      <input id="guildInput" maxlength="14" placeholder="เช่น ธาราทอง" />
+      <label>ชื่อสำนัก / กิลด์</label>
+      <input id="guildInput" maxlength="14" placeholder="เช่น บัวหิมะ" />
     </div>
     <div class="field">
-      <label>รหัสห้อง</label>
-      <input id="roomInput" maxlength="16" placeholder="เช่น sect888" />
+      <label>รหัสห้องเมือง</label>
+      <input id="roomInput" maxlength="16" placeholder="เช่น luoyang888" />
     </div>
 
-    <button id="joinBtn">เข้าสู่ยุทธภพ</button>
-    <div class="hint">ข้อมูลตัวละครจะถูกบันทึกอัตโนมัติ</div>
+    <button id="joinBtn">เข้าสู่เมืองยุทธภพ</button>
   </div>
 
   <div id="game">
@@ -136,43 +114,45 @@ canvas{ background:radial-gradient(ellipse at 50% 30%,#28321f 0%,#171c12 75%); b
     <div id="topbar">
       <div id="meblock">
         <div class="lvline"><span id="lvText">Lv.1</span><span id="guildText"></span></div>
-        <div class="expbar-outer"><div class="expbar-inner" id="expBar" style="width:0%"></div></div>
-        <button id="costumeBtn">เปลี่ยนชุด</button>
+        <div class="bar-outer"><div class="bar-hp" id="myHpBar" style="width:100%"></div></div>
+        <div class="bar-outer"><div class="bar-exp" id="expBar" style="width:0%"></div></div>
       </div>
       <div id="roster"></div>
     </div>
 
-    <canvas id="canvas" width="900" height="460"></canvas>
+    <canvas id="canvas" width="960" height="460"></canvas>
+
+    <!-- Skill Bar -->
+    <div id="skillbar">
+      <div class="skill-btn" id="btnAtk" onclick="tryAttack()">
+        <span class="key">Space</span>
+        <span class="name">โจมตี</span>
+        <div class="cd-overlay" id="cdAtk"></div>
+      </div>
+      <div class="skill-btn" id="btnQ" onclick="castSkill('Q')">
+        <span class="key">Q</span>
+        <span class="name">ตัดเมฆา</span>
+        <div class="cd-overlay" id="cdQ"></div>
+      </div>
+      <div class="skill-btn" id="btnE" onclick="castSkill('E')">
+        <span class="key">E</span>
+        <span class="name">หมื่นกระบี่</span>
+        <div class="cd-overlay" id="cdE"></div>
+      </div>
+      <div class="skill-btn" id="btnR" onclick="castSkill('R')">
+        <span class="key">R</span>
+        <span class="name">ปราณระเบิด</span>
+        <div class="cd-overlay" id="cdR"></div>
+      </div>
+    </div>
+
     <div id="status">กำลังเชื่อมต่อ...</div>
-    <div id="controls-hint">เดิน: ลูกศร/WASD · โจมตี: Space หรือคลิกเมาส์</div>
 
     <form id="chatform">
-      <input id="chatInput" maxlength="60" placeholder="พิมพ์คุยกับปาร์ตี้..." autocomplete="off" />
+      <input id="chatInput" maxlength="60" placeholder="พิมพ์คุยในเมือง..." autocomplete="off" />
       <button id="chatSendBtn" type="submit">ส่ง</button>
     </form>
     <div id="chatlog"></div>
-
-    <div id="touchpad">
-      <div class="dpad">
-        <div></div><div class="dbtn" id="dU">▲</div><div></div>
-        <div class="dbtn" id="dL">◀</div><div></div><div class="dbtn" id="dR">▶</div>
-        <div></div><div class="dbtn" id="dD">▼</div><div></div>
-      </div>
-      <div class="touchbtn" id="tpAttack">刃</div>
-    </div>
-  </div>
-
-  <div id="costumeModal">
-    <div class="panel">
-      <h3>เลือกชุด</h3>
-      <div id="costumeList"></div>
-      <button id="closeCostume">ปิด</button>
-    </div>
-  </div>
-
-  <div id="debugPanel">
-    <div class="hdr"><span>🔧 Debug Log</span><button id="clearDebugBtn">ล้าง</button></div>
-    <div id="debugLines"></div>
   </div>
 
 </div>
@@ -181,38 +161,16 @@ canvas{ background:radial-gradient(ellipse at 50% 30%,#28321f 0%,#171c12 75%); b
 (function(){
 "use strict";
 
-const CLASS_DEFS = [
-  { label:'ดาบเมฆ',   main:'#8a6a1a', accent:'#f0cf6a' },
-  { label:'หมัดมังกร', main:'#5a1c26', accent:'#c23b4a' },
-  { label:'พิณมนตรา', main:'#2c4a3a', accent:'#6fae8f' },
-  { label:'เงาราตรี', main:'#2e2447', accent:'#8a76c2' },
-];
-const COSTUME_DEFS = [
-  { label:'ทอง',   main:'#8a6a1a', accent:'#f0cf6a' },
-  { label:'อัคคี', main:'#5a1c26', accent:'#c23b4a' },
-  { label:'หยก',   main:'#2c4a3a', accent:'#6fae8f' },
-  { label:'ราตรี', main:'#2e2447', accent:'#8a76c2' },
-  { label:'หิมะ',  main:'#4a4a55', accent:'#dfe8ee' },
-  { label:'พิศวาส',main:'#5a2044', accent:'#e888c2' },
-];
-const ITEM_POOL = ['ผ้าพันคอไหมทอง','ตราสำนักหยก','กระดิ่งวิญญาณ','ชุดหิมะขาว','ชุดพิศวาสชมพู','ลูกประคำมงคล'];
-const COSTUME_ITEM_MAP = { 'ชุดหิมะขาว':4, 'ชุดพิศวาสชมพู':5 };
+const ARENA_W=960, ARENA_H=460;
+const MOVE_SPEED=4.0;
+const PLAYER_MAX_HP=150;
+const MONSTER_MAX_HP=250;
+const EXP_PER_KILL=50;
 
-const ARENA_W=900, ARENA_H=460;
-const MOVE_SPEED=3.6;
-const ATTACK_RANGE=95;
-const ATTACK_DURATION=260;
-const ATTACK_COOLDOWN=480;
-const DAMAGE=15;
-const MONSTER_MAX_HP=150;
-const MAX_PLAYERS=4;
-const SYNC_INTERVAL=200; 
-const EXP_PER_KILL=25;
-
+// ตำแหน่งมอนสเตอร์นอกประตูลานเมือง
 const MONSTER_SPAWNS = [
-  { id:'m1', x:220, y:150 },
-  { id:'m2', x:680, y:150 },
-  { id:'m3', x:450, y:310 },
+  { id:'m1', x:750, y:180 },
+  { id:'m2', x:750, y:320 },
 ];
 
 let sb=null, channel=null;
@@ -220,20 +178,30 @@ let roomCode="", myName="", myClass=0, myGuild="", myId="";
 let gameActive=false, isHost=false;
 let keys={};
 let particles=[];
+let popups=[];
+let skillProjectiles=[];
+let petals=[];
 let chatMessages=[];
-let lastAttackCooldownUntil=0, lastSyncTime=0;
-let killsTotalSeen = 0;
-let lastDropSeenTs = 0;
+let lastSyncTime=0;
+
+// Cooldowns
+let cooldowns = {
+  atk: { cd: 400, until: 0 },
+  Q: { cd: 2500, until: 0, dmg: 35, range: 120 },
+  E: { cd: 5000, until: 0, dmg: 55, range: 160 },
+  R: { cd: 8000, until: 0, dmg: 85, range: 200 }
+};
 
 let me = {
-  x:200, y:230, facing:1, attacking:false, attackUntil:0,
+  id:'', x:250, y:230, facing:1, attacking:false, attackUntil:0,
   name:'', classIdx:0, guild:'', costume:0,
-  chatMsg:'', chatAt:0, attackAt:0, joinedAt:0
+  hp:PLAYER_MAX_HP, maxHp:PLAYER_MAX_HP, isDead:false, respawnAt:0,
+  joinedAt:0
 };
+
 let otherPlayers = {};
-let myProgress = { level:1, exp:0, unlockedCostumes:[0], inventory:[] };
+let myProgress = { level:1, exp:0 };
 let monsters = MONSTER_SPAWNS.map(s=>({ id:s.id, x:s.x, y:s.y, hp:MONSTER_MAX_HP, maxHp:MONSTER_MAX_HP, alive:true }));
-let roomKillsTotal = 0;
 
 const landing=document.getElementById('landing');
 const gameEl=document.getElementById('game');
@@ -252,12 +220,14 @@ const canvas=document.getElementById('canvas');
 const ctx=canvas.getContext('2d');
 const lvText=document.getElementById('lvText');
 const guildText=document.getElementById('guildText');
+const myHpBar=document.getElementById('myHpBar');
 const expBar=document.getElementById('expBar');
-const costumeBtn=document.getElementById('costumeBtn');
-const costumeModal=document.getElementById('costumeModal');
-const costumeList=document.getElementById('costumeList');
-const closeCostume=document.getElementById('closeCostume');
 const toastEl=document.getElementById('toast');
+
+// สร้างกลีบดอกท้อปลิวในเมือง
+for(let i=0; i<30; i++){
+  petals.push({ x:Math.random()*ARENA_W, y:Math.random()*ARENA_H, vx:0.8+Math.random()*1.2, vy:0.4+Math.random()*0.8, size:3+Math.random()*3 });
+}
 
 classPick.querySelectorAll('.classbtn').forEach(btn=>{
   btn.addEventListener('click', ()=>{
@@ -270,24 +240,17 @@ classPick.querySelectorAll('.classbtn').forEach(btn=>{
 joinBtn.addEventListener('click', joinRoom);
 [nameInput, roomInput, guildInput].forEach(inp=> inp.addEventListener('keydown', e=>{ if(e.key==='Enter') joinRoom(); }));
 
-const debugLinesEl = document.getElementById('debugLines');
-document.getElementById('clearDebugBtn').addEventListener('click', ()=>{ debugLinesEl.innerHTML=''; });
-function debugLog(msg, level='info'){
-  const time = new Date().toLocaleTimeString('th-TH', {hour12:false});
-  const div = document.createElement('div');
-  div.className = 'line' + (level==='error' ? ' err' : level==='warn' ? ' warn' : '');
-  div.textContent = `[${time}] ${msg}`;
-  debugLinesEl.appendChild(div);
-  debugLinesEl.parentElement.scrollTop = debugLinesEl.parentElement.scrollHeight;
-}
-
 function genId(){ return 'p_' + Math.random().toString(36).slice(2,8); }
-function expNeeded(level){ return 100 * level; }
+function expNeeded(level){ return 120 * level; }
 function showToast(msg){
   toastEl.textContent = msg;
   toastEl.style.display='block';
   clearTimeout(showToast._t);
   showToast._t = setTimeout(()=>{ toastEl.style.display='none'; }, 3200);
+}
+
+function addDamagePopup(x, y, text, color='#ffd13b'){
+  popups.push({ x: x + (Math.random()-0.5)*20, y: y - 25, text, color, life: 1.0 });
 }
 
 async function joinRoom(){
@@ -298,83 +261,62 @@ async function joinRoom(){
   if(!rc){ roomInput.focus(); return; }
 
   myName=nm; roomCode=rc; myGuild=gd; myId=genId();
-  joinBtn.disabled=true; joinBtn.textContent='กำลังเข้าห้อง...';
+  me.id = myId;
+  joinBtn.disabled=true; joinBtn.textContent='กำลังเข้าเมือง...';
 
   try{
-    debugLog(`เริ่มเข้าสู่ระบบ: ${myName} (${roomCode})`);
     sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 
-    // 1. ดึงหรือสร้างข้อมูลผู้เล่น
     const { data: prow } = await sb.from('mmo_players').select('*').eq('name', myName).maybeSingle();
     if(prow){
       myProgress.level = prow.level || 1;
       myProgress.exp = prow.exp || 0;
-      myProgress.unlockedCostumes = prow.unlocked_costumes || [myClass];
-      myProgress.inventory = prow.inventory || [];
-      me.costume = prow.costume != null ? prow.costume : myClass;
     } else {
-      myProgress = { level:1, exp:0, unlockedCostumes:[myClass], inventory:[] };
-      me.costume = myClass;
-      await sb.from('mmo_players').insert({
-        name: myName, level:1, exp:0, guild:myGuild, costume:myClass, unlocked_costumes:[myClass], inventory:[]
-      });
+      myProgress = { level:1, exp:0 };
+      await sb.from('mmo_players').insert({ name: myName, level:1, exp:0, guild:myGuild, costume:myClass });
     }
 
-    // 2. ดึงหรือสร้างห้อง
-    const { data: rrow } = await sb.from('mmo_rooms').select('*').eq('room_code', roomCode).maybeSingle();
-    if(rrow){
-      roomKillsTotal = rrow.kills || 0;
-      if(rrow.monsters && rrow.monsters.length===3) monsters = rrow.monsters;
-    } else {
-      await sb.from('mmo_rooms').insert({ room_code: roomCode, kills:0, monsters: monsters });
-    }
+    me.name = myName; me.guild = myGuild; me.classIdx = myClass; me.joinedAt = Date.now();
 
-    me.name = myName;
-    me.guild = myGuild;
-    me.classIdx = myClass;
-    me.joinedAt = Date.now();
-
-    // 3. เชื่อมต่อ Realtime Broadcast & Presence
     const channelName = 'room_' + roomCode;
     channel = sb.channel(channelName, {
-      config: {
-        broadcast: { ack: false, self: false },
-        presence: { key: myId }
-      }
+      config: { broadcast: { ack: false, self: false }, presence: { key: myId } }
     });
 
-    // ฟังตำแหน่งเพื่อนผ่าน Broadcast
     channel.on('broadcast', { event: 'pos' }, ({ payload }) => {
       if(payload.id && payload.id !== myId){
         otherPlayers[payload.id] = Object.assign(otherPlayers[payload.id] || {}, payload);
       }
     });
 
-    // ฟังการโจมตี
-    channel.on('broadcast', { event: 'atk' }, ({ payload }) => {
-      if(payload.id !== myId && otherPlayers[payload.id]){
-        otherPlayers[payload.id].attacking = true;
-        otherPlayers[payload.id].attackUntil = Date.now() + ATTACK_DURATION;
+    channel.on('broadcast', { event: 'skill' }, ({ payload }) => {
+      if(payload.id !== myId){
+        triggerSkillVisuals(payload.skill, payload.x, payload.y, payload.facing);
       }
-      if(isHost) handleDamage(payload);
+      if(isHost) checkSkillHitMonster(payload);
+      checkSkillHitMe(payload);
     });
 
-    // ฟังแชท
+    channel.on('broadcast', { event: 'monsters' }, ({ payload }) => {
+      if(!isHost && payload.monsters) monsters = payload.monsters;
+    });
+
+    channel.on('broadcast', { event: 'reward' }, ({ payload }) => {
+      if(payload.targetName === myName) gainExp(payload.exp, payload.sourceName);
+    });
+
     channel.on('broadcast', { event: 'chat' }, ({ payload }) => {
       addChatLine(payload.name, payload.text);
     });
 
-    // ฟัง Presence รายชื่อคนในห้อง
     channel.on('presence', { event: 'sync' }, () => {
       const state = channel.presenceState();
       const keys = Object.keys(state);
       
-      // ล้างคนที่ออกไปแล้ว
       Object.keys(otherPlayers).forEach(id => {
         if(!state[id]) delete otherPlayers[id];
       });
 
-      // ตรวจสอบ Host (คนที่เข้ามาเร็วที่สุด)
       let earliest = myId;
       let earliestTime = me.joinedAt;
       keys.forEach(k => {
@@ -385,67 +327,141 @@ async function joinRoom(){
         }
       });
       isHost = (earliest === myId);
-
       renderRoster(state);
     });
 
     channel.subscribe(async (status) => {
-      debugLog('สถานะการเชื่อมต่อ: ' + status, status==='SUBSCRIBED' ? 'info':'warn');
-
       if(status === 'SUBSCRIBED'){
         await channel.track({ name: myName, guild: myGuild, joinedAt: me.joinedAt });
         landing.style.display = 'none';
         gameEl.style.display = 'flex';
-        roomTag.textContent = `ห้อง: ${roomCode}`;
-        statusEl.textContent = 'เข้าสู่ยุทธภพแล้ว';
+        roomTag.textContent = `ลานเมือง: ${roomCode}`;
+        statusEl.textContent = 'ยินดีต้อนรับสู่ลานเมืองยุทธภพ';
         updateMeHUD();
         gameActive = true;
         requestAnimationFrame(loop);
-      } else if(status === 'CLOSED' || status === 'CHANNEL_ERROR'){
-        statusEl.textContent = 'การเชื่อมต่อขัดข้อง กำลังลองใหม่...';
       }
     });
 
   }catch(err){
-    debugLog('เกิดข้อผิดพลาด: ' + err.message, 'error');
-    joinBtn.disabled=false; joinBtn.textContent='เข้าสู่ยุทธภพ';
+    joinBtn.disabled=false; joinBtn.textContent='เข้าสู่เมืองยุทธภพ';
   }
 }
 
-function handleDamage(p){
+// ---------------- สกิล & การต่อสู้ ----------------
+window.castSkill = function(skillKey){
+  if(!gameActive || me.isDead) return;
+  const sk = cooldowns[skillKey];
+  const now = Date.now();
+  if(now < sk.until) return;
+
+  sk.until = now + sk.cd;
+  triggerSkillVisuals(skillKey, me.x, me.y, me.facing);
+
+  const payload = { id: myId, name: myName, x: me.x, y: me.y, facing: me.facing, skill: skillKey, dmg: sk.dmg, range: sk.range };
+  if(channel){
+    channel.send({ type: 'broadcast', event: 'skill', payload });
+  }
+  if(isHost) checkSkillHitMonster(payload);
+};
+
+window.tryAttack = function(){
+  castSkill('atk');
+};
+
+function triggerSkillVisuals(skill, x, y, facing){
+  if(skill === 'atk' || skill === 'Q'){
+    // คลื่นดาบตัดเมฆาพุ่ง
+    const color = skill === 'Q' ? '#fae17d' : '#ffffff';
+    skillProjectiles.push({
+      x: x + facing*30, y: y-35, vx: facing * (skill==='Q'?9:6), vy: 0,
+      size: skill==='Q'?30:15, life: 1, color, skill
+    });
+  } else if(skill === 'E'){
+    // ฝนหมื่นกระบี่หล่นจากฟ้า
+    for(let i=0; i<12; i++){
+      setTimeout(()=>{
+        particles.push({
+          x: x + (Math.random()-0.5)*180, y: y - 160,
+          vx: (Math.random()-0.5)*2, vy: 10 + Math.random()*4,
+          life: 1, decay: 0.04, r: 3, color: '#68d391', type: 'sword'
+        });
+      }, i * 30);
+    }
+  } else if(skill === 'R'){
+    // ปราณมังกรระเบิดรอบทิศทาง
+    for(let i=0; i<45; i++){
+      const angle = (i / 45) * Math.PI * 2;
+      particles.push({
+        x: x, y: y-30,
+        vx: Math.cos(angle) * (6 + Math.random()*3),
+        vy: Math.sin(angle) * (6 + Math.random()*3),
+        life: 1, decay: 0.03, r: 4, color: '#f56565', type: 'fire'
+      });
+    }
+  }
+}
+
+function checkSkillHitMe(atk){
+  if(me.isDead) return;
+  const dist = Math.hypot(atk.x - me.x, atk.y - me.y);
+  if(dist < atk.range){
+    me.hp = Math.max(0, me.hp - atk.dmg);
+    addDamagePopup(me.x, me.y, `-${atk.dmg}`, '#ff4444');
+    updateMeHUD();
+
+    if(me.hp <= 0){
+      me.isDead = true;
+      me.respawnAt = Date.now() + 3500;
+      showToast(`ท่านพ่ายแพ้ให้กับวิชาของ [${atk.name}] !`);
+      if(channel){
+        channel.send({
+          type: 'broadcast',
+          event: 'reward',
+          payload: { targetName: atk.name, exp: EXP_PER_KILL * 2, sourceName: myName }
+        });
+      }
+    }
+  }
+}
+
+function checkSkillHitMonster(atk){
   let changed = false;
   monsters.forEach(m => {
     if(!m.alive) return;
-    const dist = Math.hypot(p.x - m.x, p.y - m.y);
-    if(dist < ATTACK_RANGE){
-      m.hp = Math.max(0, m.hp - DAMAGE);
+    const dist = Math.hypot(atk.x - m.x, atk.y - m.y);
+    if(dist < atk.range){
+      m.hp = Math.max(0, m.hp - atk.dmg);
+      addDamagePopup(m.x, m.y, `CRIT -${atk.dmg}!`, '#fae17d');
       changed = true;
       if(m.hp <= 0 && m.alive){
         m.alive = false;
-        roomKillsTotal += 1;
-        spawnDeathBurstAt(m.x, m.y);
-        awardKill(p.name);
+        if(channel){
+          channel.send({
+            type: 'broadcast',
+            event: 'reward',
+            payload: { targetName: atk.name, exp: EXP_PER_KILL, sourceName: 'อสูรนอกเมือง' }
+          });
+        }
+        if(atk.name === myName) gainExp(EXP_PER_KILL, 'อสูรนอกเมือง');
+
         setTimeout(() => {
-          m.hp = m.maxHp;
-          m.alive = true;
-          syncMonsters();
+          m.hp = m.maxHp; m.alive = true;
+          if(channel) channel.send({ type:'broadcast', event:'monsters', payload:{ monsters } });
         }, 5000);
       }
     }
   });
-  if(changed) syncMonsters();
+  if(changed && channel) channel.send({ type:'broadcast', event:'monsters', payload:{ monsters } });
 }
 
-async function syncMonsters(){
-  await sb.from('mmo_rooms').update({ monsters, kills: roomKillsTotal }).eq('room_code', roomCode);
-}
-
-async function awardKill(killerName){
-  myProgress.exp += EXP_PER_KILL;
-  if(myProgress.exp >= expNeeded(myProgress.level)){
+async function gainExp(amount, fromWho){
+  myProgress.exp += amount;
+  showToast(`+${amount} EXP (ปราบ ${fromWho})`);
+  while(myProgress.exp >= expNeeded(myProgress.level)){
     myProgress.exp -= expNeeded(myProgress.level);
     myProgress.level += 1;
-    showToast(`ยินดีด้วย! เลเวลอัปเป็น Lv.${myProgress.level}`);
+    showToast(`🌟 บรรลุวิชา! สำเร็จขั้น Lv.${myProgress.level} 🌟`);
   }
   updateMeHUD();
   await sb.from('mmo_players').update({ exp: myProgress.exp, level: myProgress.level }).eq('name', myName);
@@ -461,100 +477,25 @@ function renderRoster(state){
     span.textContent = (u.guild ? `[${u.guild}] ` : '') + (u.name || 'จอมยุทธ์');
     rosterEl.appendChild(span);
   });
-  for(let i=userKeys.length; i<MAX_PLAYERS; i++){
-    const span = document.createElement('span');
-    span.className = 'rostertag';
-    span.textContent = '— ว่าง —';
-    rosterEl.appendChild(span);
-  }
 }
 
 function updateMeHUD(){
   lvText.textContent = `Lv.${myProgress.level}`;
   guildText.textContent = myGuild ? `[${myGuild}]` : '';
-  const pct = Math.min(100, (myProgress.exp / expNeeded(myProgress.level)) * 100);
-  expBar.style.width = pct + '%';
+  myHpBar.style.width = Math.max(0, (me.hp / me.maxHp) * 100) + '%';
+  expBar.style.width = Math.min(100, (myProgress.exp / expNeeded(myProgress.level)) * 100) + '%';
 }
 
-// Costumes
-costumeBtn.addEventListener('click', ()=>{
-  costumeList.innerHTML='';
-  COSTUME_DEFS.forEach((c,idx)=>{
-    const unlocked = myProgress.unlockedCostumes.includes(idx);
-    const sw = document.createElement('div');
-    sw.className = 'swatch' + (me.costume===idx?' selected':'');
-    sw.style.background = `linear-gradient(160deg, ${c.accent}, ${c.main})`;
-    sw.style.opacity = unlocked ? '1' : '.35';
-    sw.textContent = unlocked ? c.label : '🔒';
-    if(unlocked){
-      sw.addEventListener('click', async ()=>{
-        me.costume = idx;
-        costumeModal.style.display='none';
-        sb.from('mmo_players').update({ costume: idx }).eq('name', myName);
-      });
-    }
-    costumeList.appendChild(sw);
-  });
-  costumeModal.style.display='flex';
-});
-closeCostume.addEventListener('click', ()=>{ costumeModal.style.display='none'; });
-
-// Inputs
+// Key Inputs
 window.addEventListener('keydown', e=>{
   keys[e.key.toLowerCase()] = true;
-  if(e.key === ' '){ e.preventDefault(); tryAttack(); }
+  if(e.key === ' ') { e.preventDefault(); tryAttack(); }
+  if(e.key.toLowerCase() === 'q') castSkill('Q');
+  if(e.key.toLowerCase() === 'e') castSkill('E');
+  if(e.key.toLowerCase() === 'r') castSkill('R');
 });
 window.addEventListener('keyup', e=>{ keys[e.key.toLowerCase()] = false; });
 canvas.addEventListener('mousedown', tryAttack);
-
-function bindHold(id, key){
-  const el = document.getElementById(id);
-  el.addEventListener('touchstart', e=>{ e.preventDefault(); keys[key]=true; });
-  el.addEventListener('touchend', e=>{ keys[key]=false; });
-}
-bindHold('dU','arrowup'); bindHold('dD','arrowdown'); bindHold('dL','arrowleft'); bindHold('dR','arrowright');
-document.getElementById('tpAttack').addEventListener('touchstart', e=>{ e.preventDefault(); tryAttack(); });
-
-function tryAttack(){
-  if(!gameActive) return;
-  const now = Date.now();
-  if(now < lastAttackCooldownUntil) return;
-  lastAttackCooldownUntil = now + ATTACK_COOLDOWN;
-  me.attacking = true;
-  me.attackUntil = now + ATTACK_DURATION;
-  spawnSlash();
-  
-  if(channel){
-    channel.send({
-      type: 'broadcast',
-      event: 'atk',
-      payload: { id: myId, name: myName, x: me.x, y: me.y }
-    });
-  }
-  if(isHost) handleDamage({ id: myId, name: myName, x: me.x, y: me.y });
-}
-
-function spawnSlash(){
-  const dir = me.facing;
-  const ox = me.x + dir * 26, oy = me.y - 40;
-  const c = COSTUME_DEFS[me.costume] || COSTUME_DEFS[0];
-  for(let i=0;i<14;i++){
-    particles.push({
-      x:ox, y:oy+(Math.random()-0.5)*26,
-      vx:dir*(3+Math.random()*4), vy:(Math.random()-0.5)*2,
-      life:1, decay:0.045+Math.random()*0.02, r:2+Math.random()*3, color:c.accent
-    });
-  }
-}
-
-function spawnDeathBurstAt(x,y){
-  for(let i=0;i<36;i++){
-    particles.push({
-      x, y, vx:(Math.random()-0.5)*8, vy:(Math.random()-0.5)*8,
-      life:1, decay:0.02+Math.random()*0.02, r:2+Math.random()*4, color:'#f0cf6a'
-    });
-  }
-}
 
 // Chat
 chatform.addEventListener('submit', e=>{
@@ -563,84 +504,191 @@ chatform.addEventListener('submit', e=>{
   if(!text) return;
   chatInput.value = '';
   addChatLine(myName, text);
-  if(channel){
-    channel.send({ type: 'broadcast', event: 'chat', payload: { name: myName, text } });
-  }
+  if(channel) channel.send({ type: 'broadcast', event: 'chat', payload: { name: myName, text } });
 });
 
 function addChatLine(name, text){
   chatMessages.unshift({ name, text });
   chatMessages = chatMessages.slice(0, 5);
-  chatlogEl.innerHTML = chatMessages.map(m=>`<div><b style="color:#f0cf6a">${m.name}:</b> ${m.text}</div>`).join('');
+  chatlogEl.innerHTML = chatMessages.map(m=>`<div><b style="color:var(--gold-bright)">${m.name}:</b> ${m.text}</div>`).join('');
 }
 
-// Loop
+// ---------------- Game Loop ----------------
 function loop(ts){
   if(!gameActive) return;
 
-  let dx = 0, dy = 0;
-  if(keys['arrowleft'] || keys['a']) dx -= MOVE_SPEED;
-  if(keys['arrowright'] || keys['d']) dx += MOVE_SPEED;
-  if(keys['arrowup'] || keys['w']) dy -= MOVE_SPEED;
-  if(keys['arrowdown'] || keys['s']) dy += MOVE_SPEED;
+  if(me.isDead){
+    if(Date.now() > me.respawnAt){
+      me.isDead = false;
+      me.hp = PLAYER_MAX_HP;
+      me.x = 250; me.y = 230;
+      updateMeHUD();
+      showToast('ฟื้นกำลังคืนชีพ ณ ลานเมือง!');
+    }
+  } else {
+    let dx = 0, dy = 0;
+    if(keys['arrowleft'] || keys['a']) dx -= MOVE_SPEED;
+    if(keys['arrowright'] || keys['d']) dx += MOVE_SPEED;
+    if(keys['arrowup'] || keys['w']) dy -= MOVE_SPEED;
+    if(keys['arrowdown'] || keys['s']) dy += MOVE_SPEED;
 
-  if(dx !== 0) me.facing = dx > 0 ? 1 : -1;
-  me.x = Math.max(30, Math.min(ARENA_W - 30, me.x + dx));
-  me.y = Math.max(60, Math.min(ARENA_H - 30, me.y + dy));
+    if(dx !== 0) me.facing = dx > 0 ? 1 : -1;
+    me.x = Math.max(40, Math.min(ARENA_W - 40, me.x + dx));
+    me.y = Math.max(80, Math.min(ARENA_H - 40, me.y + dy));
+  }
 
+  // Update Cooldown Overlays
   const now = Date.now();
-  if(me.attacking && now > me.attackUntil) me.attacking = false;
+  ['atk','Q','E','R'].forEach(k => {
+    const el = document.getElementById('cd' + (k==='atk'?'Atk':k));
+    if(el){
+      const remaining = Math.max(0, cooldowns[k].until - now);
+      const pct = (remaining / cooldowns[k].cd) * 100;
+      el.style.height = pct + '%';
+    }
+  });
 
-  // Broadcast ตำแหน่งแบบจำกัดความถี่
-  if(ts - lastSyncTime > SYNC_INTERVAL && channel){
+  // Sync Position
+  if(ts - lastSyncTime > 160 && channel){
     lastSyncTime = ts;
     channel.send({
       type: 'broadcast',
       event: 'pos',
-      payload: { id: myId, name: myName, guild: myGuild, x: me.x, y: me.y, facing: me.facing, costume: me.costume }
+      payload: {
+        id: myId, name: myName, guild: myGuild,
+        x: me.x, y: me.y, facing: me.facing,
+        classIdx: me.classIdx, hp: me.hp, maxHp: me.maxHp, isDead: me.isDead
+      }
     });
   }
 
+  // Petals
+  petals.forEach(p => {
+    p.x += p.vx; p.y += p.vy;
+    if(p.x > ARENA_W) p.x = 0;
+    if(p.y > ARENA_H) p.y = 0;
+  });
+
+  // Projectiles
+  skillProjectiles.forEach(p => {
+    p.x += p.vx;
+    p.life -= 0.03;
+  });
+  skillProjectiles = skillProjectiles.filter(p => p.life > 0);
+
+  // Particles
   particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.life -= p.decay; });
   particles = particles.filter(p => p.life > 0);
+
+  popups.forEach(p => { p.y -= 0.8; p.life -= 0.02; });
+  popups = popups.filter(p => p.life > 0);
 
   render();
   requestAnimationFrame(loop);
 }
 
-function drawFigure(p, costumeIdx){
-  const c = COSTUME_DEFS[costumeIdx] || COSTUME_DEFS[0];
+// ---------------- วาดฉากเมือง & ตัวละคร ----------------
+function drawCityEnvironment(){
+  // 1. พื้นลานหินปูเมือง
+  ctx.fillStyle = '#221a14';
+  ctx.fillRect(0, 0, ARENA_W, ARENA_H);
+
+  ctx.strokeStyle = '#32261c';
+  ctx.lineWidth = 1;
+  for(let gx=0; gx<ARENA_W; gx+=60){ ctx.beginPath(); ctx.moveTo(gx,0); ctx.lineTo(gx,ARENA_H); ctx.stroke(); }
+  for(let gy=0; gy<ARENA_H; gy+=60){ ctx.beginPath(); ctx.moveTo(0,gy); ctx.lineTo(ARENA_W,gy); ctx.stroke(); }
+
+  // 2. ซุ้มประตูเมืองจีน & ศาลา (ด้านซ้ายและบน)
+  ctx.fillStyle = '#421616';
+  ctx.fillRect(40, 20, 160, 24); // คานซุ้มประตู
+  ctx.fillStyle = '#d4af37';
+  ctx.fillRect(44, 16, 152, 4);
+
+  // โคมไฟแดงห้อย
+  [60, 180, 520, 680].forEach(lx => {
+    ctx.beginPath(); ctx.arc(lx, 50, 9, 0, Math.PI*2);
+    ctx.fillStyle = '#e63950'; ctx.shadowColor = '#ff4d4d'; ctx.shadowBlur = 12; ctx.fill();
+    ctx.shadowBlur = 0;
+  });
+
+  // 3. ป้ายชื่อเมืองกลางลาน
+  ctx.font = 'bold 22px "Noto Serif SC"';
+  ctx.fillStyle = 'rgba(212,175,55,0.15)';
+  ctx.textAlign = 'center';
+  ctx.fillText('洛 陽 城 (ลานเมืองลั่วหยาง)', 480, 240);
+
+  // 4. วาดกลีบดอกท้อปลิว
+  petals.forEach(p => {
+    ctx.beginPath();
+    ctx.ellipse(p.x, p.y, p.size, p.size/2, Math.PI/4, 0, Math.PI*2);
+    ctx.fillStyle = '#ffb7c5';
+    ctx.fill();
+  });
+}
+
+function drawHero(p){
+  if(p.isDead){
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.beginPath(); ctx.ellipse(0, 0, 24, 7, 0, Math.PI*2); ctx.fill();
+    ctx.font = '11px "Noto Sans Thai"'; ctx.fillStyle = '#ff5a5a'; ctx.textAlign = 'center';
+    ctx.fillText('สลบ...', 0, -12);
+    ctx.restore();
+    return;
+  }
+
   ctx.save();
   ctx.translate(p.x, p.y);
   ctx.scale(p.facing || 1, 1);
 
-  ctx.beginPath(); ctx.ellipse(0, 6, 22, 6, 0, 0, Math.PI * 2); ctx.fillStyle = 'rgba(0,0,0,.4)'; ctx.fill();
+  // เงา
+  ctx.beginPath(); ctx.ellipse(0, 4, 22, 6, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fill();
+
+  // ผ้าคลุมจอมยุทธ์ยาวพริ้ว
   ctx.beginPath();
-  ctx.moveTo(-13, 0); ctx.quadraticCurveTo(-22, -30, -8, -58); ctx.lineTo(8, -58);
-  ctx.quadraticCurveTo(24, -30, 13, 0); ctx.closePath();
-  const grad = ctx.createLinearGradient(0, -58, 0, 0);
-  grad.addColorStop(0, c.accent); grad.addColorStop(1, c.main);
-  ctx.fillStyle = grad; ctx.fill();
-  ctx.strokeStyle = 'rgba(0,0,0,.3)'; ctx.stroke();
+  ctx.moveTo(-8, -48); ctx.quadraticCurveTo(-26, -20, -18, -2);
+  ctx.lineTo(-4, -2); ctx.quadraticCurveTo(-8, -25, -2, -48);
+  ctx.fillStyle = '#6b1420'; ctx.fill();
 
-  ctx.beginPath(); ctx.arc(0, -68, 10, 0, Math.PI * 2); ctx.fillStyle = '#e8cfa0'; ctx.fill();
-  ctx.beginPath(); ctx.arc(0, -80, 3.5, 0, Math.PI * 2); ctx.fillStyle = '#1a1410'; ctx.fill();
+  // ชุดจอมยุทธ์ Hanfu พริ้วไหว
+  ctx.beginPath();
+  ctx.moveTo(-10, -50); ctx.lineTo(10, -50);
+  ctx.quadraticCurveTo(16, -20, 11, 0); ctx.lineTo(-11, 0);
+  ctx.quadraticCurveTo(-16, -20, -10, -50);
+  ctx.fillStyle = '#d4af37'; ctx.fill();
+  ctx.strokeStyle = '#2d1e12'; ctx.lineWidth = 1.2; ctx.stroke();
 
-  if(p.attacking && Date.now() < p.attackUntil){
-    const prog = 1 - Math.max(0, (p.attackUntil - Date.now()) / ATTACK_DURATION);
-    ctx.save();
-    ctx.rotate(-0.9 + prog * 1.8);
-    ctx.beginPath(); ctx.moveTo(5, -45); ctx.lineTo(58, -48);
-    ctx.lineWidth = 4; ctx.strokeStyle = '#fff6d8';
-    ctx.shadowColor = c.accent; ctx.shadowBlur = 16; ctx.stroke();
-    ctx.restore();
-  }
+  // ผ้าคาดเอว
+  ctx.fillStyle = '#fae17d'; ctx.fillRect(-11, -26, 22, 6);
+
+  // หัว & ทรงผมจอมยุทธ์
+  ctx.beginPath(); ctx.arc(0, -60, 10, 0, Math.PI * 2); ctx.fillStyle = '#fce5cd'; ctx.fill();
+  ctx.fillStyle = '#1c1510';
+  ctx.fillRect(3, -62, 3, 2); // ตา
+
+  // หมวกงอบไม้ไผ่ยอดฝีมือ
+  ctx.beginPath();
+  ctx.moveTo(-18, -66); ctx.lineTo(0, -78); ctx.lineTo(18, -66);
+  ctx.fillStyle = '#bfa15f'; ctx.fill();
+  ctx.strokeStyle = '#5a421b'; ctx.stroke();
+
+  // ดาบสะพายหลัง
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(8, -48, 3, 34);
+
   ctx.restore();
 
+  // หลอดเลือดและชื่อ
   ctx.save();
-  ctx.font = '11px "Noto Sans Thai",sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#cfc7ad';
-  const label = (p.guild ? `[${p.guild}] ` : '') + (p.name || '');
-  ctx.fillText(label, p.x, p.y - 92);
+  ctx.font = '11px "Noto Sans Thai",sans-serif'; ctx.textAlign = 'center';
+  ctx.fillStyle = (p.id === myId) ? '#fae17d' : '#ffffff';
+  ctx.fillText((p.guild ? `[${p.guild}] ` : '') + (p.name || ''), p.x, p.y - 84);
+
+  const barW = 44, barH = 4;
+  ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(p.x - barW/2, p.y - 80, barW, barH);
+  ctx.fillStyle = '#e63950'; ctx.fillRect(p.x - barW/2, p.y - 80, barW * Math.max(0, (p.hp || PLAYER_MAX_HP) / (p.maxHp || PLAYER_MAX_HP)), barH);
   ctx.restore();
 }
 
@@ -648,51 +696,79 @@ function drawMonster(m){
   ctx.save();
   ctx.translate(m.x, m.y);
   if(!m.alive){ ctx.restore(); return; }
-  const pulse = 1 + Math.sin(Date.now() / 300) * 0.03;
-  ctx.scale(pulse, pulse);
-  ctx.beginPath(); ctx.ellipse(0, 8, 48, 12, 0, 0, Math.PI * 2); ctx.fillStyle = 'rgba(0,0,0,.45)'; ctx.fill();
+
+  // เงา
+  ctx.beginPath(); ctx.ellipse(0, 8, 40, 10, 0, Math.PI * 2); ctx.fillStyle = 'rgba(0,0,0,.45)'; ctx.fill();
+
+  // ตัวอสูรเงา
   ctx.beginPath();
-  ctx.moveTo(-36, 10); ctx.quadraticCurveTo(-48, -40, -8, -62);
-  ctx.quadraticCurveTo(0, -70, 8, -62); ctx.quadraticCurveTo(48, -40, 36, 10);
-  ctx.quadraticCurveTo(0, 20, -36, 10); ctx.closePath();
-  const g = ctx.createRadialGradient(0, -24, 8, 0, -24, 72);
-  g.addColorStop(0, '#3a2a44'); g.addColorStop(1, '#120c16');
-  ctx.fillStyle = g; ctx.fill();
-  ctx.beginPath(); ctx.arc(-11, -42, 4, 0, Math.PI * 2); ctx.arc(11, -42, 4, 0, Math.PI * 2);
-  ctx.fillStyle = '#ff5a5a'; ctx.shadowColor = '#ff5a5a'; ctx.shadowBlur = 12; ctx.fill();
+  ctx.moveTo(-30, 10); ctx.quadraticCurveTo(-44, -30, -10, -56);
+  ctx.quadraticCurveTo(0, -62, 10, -56); ctx.quadraticCurveTo(44, -30, 30, 10);
+  ctx.closePath();
+  ctx.fillStyle = '#2d182e'; ctx.fill();
+  ctx.strokeStyle = '#802671'; ctx.lineWidth = 1.5; ctx.stroke();
+
+  // ตาแดง
+  ctx.beginPath(); ctx.arc(-8, -34, 4, 0, Math.PI * 2); ctx.arc(8, -34, 4, 0, Math.PI * 2);
+  ctx.fillStyle = '#ff3344'; ctx.shadowColor = '#ff3344'; ctx.shadowBlur = 10; ctx.fill();
   ctx.restore();
 
   // หลอดเลือด
   ctx.save();
-  const w = 60;
-  ctx.translate(m.x - w / 2, m.y - 84);
-  ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.fillRect(0, 0, w, 6);
-  ctx.fillStyle = '#c23b4a'; ctx.fillRect(0, 0, w * (m.hp / m.maxHp), 6);
+  const w = 50;
+  ctx.translate(m.x - w/2, m.y - 74);
+  ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(0, 0, w, 5);
+  ctx.fillStyle = '#e63950'; ctx.fillRect(0, 0, w * (m.hp / m.maxHp), 5);
   ctx.restore();
 }
 
 function render(){
   ctx.clearRect(0, 0, ARENA_W, ARENA_H);
-  
-  // ตารางพื้นหลัง
-  ctx.strokeStyle = 'rgba(140,160,110,.08)';
-  for(let gx=0; gx<ARENA_W; gx+=40){ ctx.beginPath(); ctx.moveTo(gx,0); ctx.lineTo(gx,ARENA_H); ctx.stroke(); }
-  
+
+  // วาดฉากเมือง
+  drawCityEnvironment();
+
+  // วาดมอนสเตอร์
   monsters.forEach(drawMonster);
 
-  // วาดผู้เล่นคนอื่น
-  Object.values(otherPlayers).forEach(p => {
-    drawFigure(p, p.costume || 0);
-  });
+  // วาดผู้เล่นอื่น
+  Object.values(otherPlayers).forEach(drawHero);
 
   // วาดตัวเอง
-  drawFigure(me, me.costume);
+  drawHero(me);
 
-  // เอฟเฟกต์ฟัน
+  // วาดคมดาบพุ่ง (Projectiles)
+  skillProjectiles.forEach(p => {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+    ctx.fillStyle = p.color;
+    ctx.shadowColor = p.color; ctx.shadowBlur = 18;
+    ctx.fill();
+    ctx.restore();
+  });
+
+  // วาด Particles สกิล
   particles.forEach(p => {
-    ctx.save(); ctx.globalAlpha = Math.max(0, p.life);
-    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-    ctx.fillStyle = p.color; ctx.shadowColor = p.color; ctx.shadowBlur = 8; ctx.fill();
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, p.life);
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = p.color;
+    ctx.shadowColor = p.color; ctx.shadowBlur = 8;
+    ctx.fill();
+    ctx.restore();
+  });
+
+  // ตัวเลขดาเมจ
+  popups.forEach(p => {
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, p.life);
+    ctx.font = 'bold 15px "Noto Sans Thai",sans-serif';
+    ctx.fillStyle = p.color;
+    ctx.shadowColor = '#000'; ctx.shadowBlur = 4;
+    ctx.textAlign = 'center';
+    ctx.fillText(p.text, p.x, p.y);
     ctx.restore();
   });
 }
