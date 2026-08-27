@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>刃義 · Justice Online MMORPG 3D</title>
+  <title>刃義 · Justice Online: เทพเซียนสะท้านภพ 3D</title>
   
   <link rel="stylesheet" href="style.css">
   
@@ -13,31 +13,40 @@
 </head>
 <body>
   <div id="app">
-    <!-- หน้าจอ Login & Register -->
+    <!-- หน้าจอ Login & สร้างตัวละคร ช/ญ -->
     <div id="login-screen">
       <div id="login-box">
-        <div class="brush-title header-tag">WHERE WINDS MEET · 3D</div>
-        <h1 class="brush-title main-title" id="authTitle">เข้าสู่ระบบยุทธภพ</h1>
-        <div class="sub-desc" id="authDesc">เข้าสู่โลกแห่งจอมยุทธ์ Open-World MMORPG</div>
+        <div class="brush-title header-tag">WHERE WINDS MEET · XIANXIA 3D</div>
+        <h1 class="brush-title main-title" id="authTitle">เข้าสู่แดนเซียน</h1>
+        <div class="sub-desc" id="authDesc">โลกแห่งจอมยุทธ์ Open-World MMORPG</div>
 
         <div class="auth-tabs">
           <button class="auth-tab-btn active" id="tabLoginBtn" onclick="switchAuthTab('login')">เข้าสู่ระบบ</button>
-          <button class="auth-tab-btn" id="tabRegisterBtn" onclick="switchAuthTab('register')">สมัครจอมยุทธ์ใหม่</button>
+          <button class="auth-tab-btn" id="tabRegisterBtn" onclick="switchAuthTab('register')">สร้างตัวละครใหม่</button>
         </div>
 
         <div class="field">
           <label>ชื่อจอมยุทธ์ (Username)</label>
-          <input id="nameInput" maxlength="12" placeholder="เช่น หวงเฟยหง" autocomplete="off" />
+          <input id="nameInput" maxlength="12" placeholder="เช่น เอี้ยก้วย" autocomplete="off" />
         </div>
 
         <div class="field">
           <label>รหัสผ่านวรยุทธ์ (Password)</label>
-          <input id="passInput" type="password" maxlength="20" placeholder="กรอกรหัสผ่านอย่างน้อย 6 ตัว" autocomplete="off" />
+          <input id="passInput" type="password" maxlength="20" placeholder="รหัสผ่านอย่างน้อย 6 ตัวอักษร" autocomplete="off" />
         </div>
 
+        <!-- ฟิลด์สร้างตัวละครใหม่ -->
         <div id="registerExtraFields" style="display: none; flex-direction: column; gap: 10px;">
           <div class="field">
-            <label>เลือกสำนักเพลงยุทธ์</label>
+            <label>เพศของจอมยุทธ์ (Gender)</label>
+            <div class="grid-opt" id="genderGrid">
+              <div class="opt-btn active" onclick="selectGender('male', this)">👨 จอมยุทธ์ชาย (บุรุษ)</div>
+              <div class="opt-btn" onclick="selectGender('female', this)">👩 เทพธิดาเซียน (สตรี)</div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>เลือกสำนักเพลงยุทธ์ (Class)</label>
             <div class="grid-opt" id="classGrid">
               <div class="opt-btn active" onclick="selectClass(0, this)">⚔️ กระบี่เมฆา (ว่องไว)</div>
               <div class="opt-btn" onclick="selectClass(1, this)">🗡️ ดาบสุริยัน (ไฟเพลิง)</div>
@@ -47,7 +56,7 @@
           </div>
 
           <div class="field">
-            <label>สีชุดคลุมเริ่มต้น</label>
+            <label>ชุดคลุมเริ่มต้น</label>
             <div class="grid-opt-4" id="colorGrid">
               <div class="opt-btn active" onclick="selectColor(0, this)">หิมะขาว</div>
               <div class="opt-btn" onclick="selectColor(1, this)">ทองคำ</div>
@@ -58,7 +67,7 @@
         </div>
 
         <div class="field">
-          <label>รหัสห้องเมือง (Server Channel)</label>
+          <label>รหัสห้องเซิร์ฟเวอร์</label>
           <input id="roomInput" maxlength="16" placeholder="เช่น luoyang888" value="luoyang888" autocomplete="off" />
         </div>
 
@@ -66,12 +75,12 @@
       </div>
     </div>
 
-    <!-- หน้าจอเกม 3D และ UI HUD -->
+    <!-- หน้าจอเกม 3D & HUD -->
     <div id="game-view">
       <div id="toast"></div>
 
       <div id="hud">
-        <!-- ข้อมูลโปรไฟล์ & หลอดเลือด (มุมซ้ายบน) -->
+        <!-- ข้อมูลโปรไฟล์มุมซ้ายบน -->
         <div id="player-hud">
           <div id="avatar"></div>
           <div id="bars-box">
@@ -83,33 +92,33 @@
             <div class="hud-bar"><div class="hud-hp" id="myHpBar" style="width:100%"></div></div>
             <div class="hud-bar"><div class="hud-exp" id="myExpBar" style="width:0%"></div></div>
             <div class="hud-stats-row">
-              <span>💰 <span id="moneyText">100</span> ตำลึง</span>
-              <span>⚔️ ATK: <span id="atkText">35</span> | 🛡️ DEF: <span id="defText">12</span></span>
+              <span>💰 <span id="moneyText">150</span> ตำลึง</span>
+              <span>⚡ พลังรบ (RP): <b style="color:#fae17d;" id="rpText">120</b></span>
             </div>
           </div>
         </div>
 
         <!-- เมนูลัดด้านบน -->
         <div id="top-menu">
-          <button class="menu-btn" onclick="openModal('charModal')">👤 ข้อมูล & เกราะ</button>
-          <button class="menu-btn" onclick="openModal('invModal')">🎒 ช่องเก็บของ</button>
-          <button class="menu-btn" onclick="openModal('teleportModal')">🌀 วาร์ปแผนที่</button>
-          <button class="menu-btn" onclick="openModal('forgeModal')">🔨 ตีบวกกระบี่</button>
-          <button class="menu-btn" onclick="openModal('vipModal')">👑 VIP</button>
-          <button class="menu-btn" onclick="openModal('wardrobeModal')">🥋 ตู้เสื้อผ้า</button>
+          <button class="menu-btn" onclick="openModal('charModal')">👤 สวมใส่ & เกราะ</button>
+          <button class="menu-btn" onclick="openModal('invModal')">🎒 กระเป๋าเซียน</button>
+          <button class="menu-btn" onclick="openModal('teleportModal')">🌀 ค่ายกลวาร์ป</button>
+          <button class="menu-btn" onclick="openModal('forgeModal')">🔨 ตีบวกศาสตรา</button>
+          <button class="menu-btn" onclick="openModal('vipModal')">👑 บรรดาศักดิ์ VIP</button>
+          <button class="menu-btn" onclick="openModal('wardrobeModal')">🥋 ชุดเซียนโบราณ</button>
         </div>
 
-        <!-- เควสต์ & มินิแมพ (มุมขวาบน) -->
+        <!-- เควสต์ & มินิแมพมุมขวาบน -->
         <div id="top-right">
           <div id="minimap"><div class="p-dot"></div></div>
           <div id="quest-box">
-            <b>📜 ภารกิจ: พิทักษ์ลานเมืองหลวง</b><br>
-            <span id="questProgressText">ปราบอสูร (0/3)</span><br>
+            <b>📜 ภารกิจหลัก</b><br>
+            <span id="questProgressText">กำลังโหลดเควสต์...</span><br>
             <button class="menu-btn-small" onclick="claimQuest()">รับรางวัล</button>
           </div>
         </div>
 
-        <!-- วงล้อสกิลแอ็กชัน (มุมขวาล่าง) -->
+        <!-- วงล้อสกิลมุมขวาล่าง -->
         <div id="skill-wheel">
           <div class="btn-main-atk" id="btnAtk">⚔️</div>
           <div class="btn-sub-skill" id="btnQ"><span id="nameQ">ตัดเมฆา</span><div class="cd-overlay" id="cdQ"></div></div>
@@ -121,7 +130,7 @@
         <!-- ระบบแชท -->
         <div id="chatlog"></div>
         <form id="chatform">
-          <input id="chatInput" maxlength="60" placeholder="พิมพ์คุยกับชาวยุทธภพ..." autocomplete="off" />
+          <input id="chatInput" maxlength="60" placeholder="คุยกับชาวยุทธภพ..." autocomplete="off" />
           <button id="chatSendBtn" type="submit">ส่ง</button>
         </form>
       </div>
@@ -130,34 +139,34 @@
     </div>
 
     <!-- Modals -->
-    <!-- 1. หน้าต่างอุปกรณ์สวมใส่ตัวละคร (Character Equipment) -->
+    <!-- 1. ข้อมูลตัวละคร & ระบบอุปกรณ์ 5 ชิ้นแยก Tier สี -->
     <div class="modal" id="charModal">
       <div class="modal-box">
-        <h3 class="brush-title">อุปกรณ์สวมใส่จอมยุทธ์</h3>
+        <h3 class="brush-title">ยุทธภัณฑ์ & ปราณยุทธ์</h3>
         <div class="equip-container">
-          <div class="equip-slot" id="slot-helm"><span>หมวก:</span> <b id="eqHelmText">- ไม่มี -</b></div>
-          <div class="equip-slot" id="slot-armor"><span>เสื้อเกราะ:</span> <b id="eqArmorText">- ไม่มี -</b></div>
-          <div class="equip-slot" id="slot-bracer"><span>ปลอกแขน:</span> <b id="eqBracerText">- ไม่มี -</b></div>
-          <div class="equip-slot" id="slot-boots"><span>สนับแข้ง:</span> <b id="eqBootsText">- ไม่มี -</b></div>
-          <div class="equip-slot" id="slot-weapon"><span>กระบี่:</span> <b id="eqWeaponText">กระบี่เริ่มต้น</b></div>
+          <div class="equip-slot"><span>หมวก/มงกุฎ:</span> <b id="eqHelmText">- ไม่มี -</b></div>
+          <div class="equip-slot"><span>เสื้อเกราะเซียน:</span> <b id="eqArmorText">- ไม่มี -</b></div>
+          <div class="equip-slot"><span>ปลอกแขนปราณ:</span> <b id="eqBracerText">- ไม่มี -</b></div>
+          <div class="equip-slot"><span>สนับแข้งเหินเวหา:</span> <b id="eqBootsText">- ไม่มี -</b></div>
+          <div class="equip-slot"><span>ศาสตราวุธ:</span> <b id="eqWeaponText">อาวุธเริ่มต้น</b></div>
         </div>
         <div class="modal-content-box">
-          <p>รวมสเตตัสจากอุปกรณ์:</p>
-          <span style="color:#68d391;" id="eqTotalStatsText">ATK +0 | DEF +0 | MAX HP +0</span>
+          <p>รวมสเตตัสตัวละคร:</p>
+          <span style="color:#68d391;" id="eqTotalStatsText">ATK: 35 | DEF: 12 | MAX HP: 200</span>
         </div>
         <button class="menu-btn" onclick="closeModal('charModal')">ปิด</button>
       </div>
     </div>
 
-    <!-- 2. วาร์ปไปจุดต่างๆ ของแมพ -->
+    <!-- 2. วาร์ปแผนที่ -->
     <div class="modal" id="teleportModal">
       <div class="modal-box">
         <h3 class="brush-title">ค่ายกลเคลื่อนย้ายยุทธภพ</h3>
         <div class="grid-opt" style="gap:10px;">
-          <button class="opt-btn" onclick="teleportTo(0, 0, 'ลานเมืองหลวงลั่วหยาง')">🏛️ ลานเมืองหลวง (จุดปลอดภัย)</button>
-          <button class="opt-btn" onclick="teleportTo(0, -50, 'ท่าเรือแม่น้ำมังกร')">⛵ ท่าเรือมังกร (Lv.1 - 3)</button>
-          <button class="opt-btn" onclick="teleportTo(-60, 15, 'ป่าไผ่ซ่อนพยัคฆ์')">🎋 ป่าไผ่ซ่อนพยัคฆ์ (Lv.4 - 7)</button>
-          <button class="opt-btn" onclick="teleportTo(65, 0, 'รังมังกรศิลาพันปี (Boss)')">🐉 หุบเขามังกรศิลา (Boss Lv.15)</button>
+          <button class="opt-btn" onclick="teleportTo(0, 0, 'ลานเมืองหลวงลั่วหยาง')">🏛️ เมืองหลวง (เซฟโซน)</button>
+          <button class="opt-btn" onclick="teleportTo(0, -50, 'ท่าเรือมังกรสมุทร')">⛵ ท่าเรือมังกร (Lv.1 - 5)</button>
+          <button class="opt-btn" onclick="teleportTo(-65, 20, 'ป่าไผ่ซ่อนพยัคฆ์')">🎋 ป่าไผ่ซ่อนพยัคฆ์ (Lv.6 - 12)</button>
+          <button class="opt-btn" onclick="teleportTo(75, 0, 'หุบเขามังกรบรรพกาล')">🐉 รังมังกรศิลา (Boss Lv.20+)</button>
         </div>
         <button class="menu-btn" onclick="closeModal('teleportModal')">ปิด</button>
       </div>
@@ -166,54 +175,54 @@
     <!-- 3. ช่องเก็บของ -->
     <div class="modal" id="invModal">
       <div class="modal-box">
-        <h3 class="brush-title">กระเป๋ายุทธภพ</h3>
+        <h3 class="brush-title">กระเป๋าสมบัติเซียน</h3>
         <div class="inv-grid" id="invGrid"></div>
         <button class="menu-btn" onclick="closeModal('invModal')">ปิด</button>
       </div>
     </div>
 
-    <!-- 4. โรงตีเหล็ก -->
+    <!-- 4. ตีบวก -->
     <div class="modal" id="forgeModal">
       <div class="modal-box">
-        <h3 class="brush-title">ช่างตีเหล็กหลวง</h3>
+        <h3 class="brush-title">เตาหลอมศาสตราวุธ</h3>
         <div class="modal-content-box">
-          <p>ระดับกระบี่: <b style="color:var(--gold-bright)" id="forgeCurLvl">+0</b></p>
-          <p>พลังโจมตี: <b style="color:#ff6b6b" id="forgeAtk">35 ATK</b> ➜ <b style="color:#22c55e" id="forgeNextAtk">45 ATK</b></p>
+          <p>ระดับการขัดเกลา: <b style="color:var(--gold-bright)" id="forgeCurLvl">+0</b></p>
+          <p>พลังโจมตี: <b style="color:#ff6b6b" id="forgeAtk">35 ATK</b> ➜ <b style="color:#22c55e" id="forgeNextAtk">47 ATK</b></p>
           <p>วัตถุดิบที่ใช้: หินวิญญาณ 1 ชิ้น (<span id="stoneCountText">0</span>) + 80 ตำลึง</p>
         </div>
-        <button class="btn-action-gold" onclick="upgradeSwordAction()">ตีบวกกระบี่</button>
+        <button class="btn-action-gold" onclick="upgradeSwordAction()">ขัดเกลาศาสตรา</button>
         <button class="menu-btn" onclick="closeModal('forgeModal')">ปิด</button>
       </div>
     </div>
 
-    <!-- 5. VIP -->
+    <!-- 5. VIP 1 - 10 -->
     <div class="modal" id="vipModal">
       <div class="modal-box">
-        <h3 class="brush-title">สิทธิพิเศษ VIP ประจำยุทธภพ</h3>
+        <h3 class="brush-title">บรรดาศักดิ์ VIP เทพเซียน (1 - 10)</h3>
         <div class="modal-content-box">
-          <p>สถานะปัจจุบัน: <b style="color:var(--gold-bright)" id="vipStatusText">VIP 0</b></p>
+          <p>ระดับ VIP ปัจจุบัน: <b style="color:var(--gold-bright)" id="vipStatusText">VIP 0</b></p>
+          <p>สิทธิพิเศษขั้นถัดไป (<span id="nextVipTitle">VIP 1</span>):</p>
           <ul style="text-align:left; font-size:.85em; padding-left:20px; line-height:1.6;">
-            <li>⭐ เพิ่มพลังโจมตี (ATK) +20%</li>
-            <li>⭐ เพิ่มพลังป้องกัน (DEF) +15%</li>
-            <li>⭐ ค่าประสบการณ์ (EXP) & เงินดรอป +30%</li>
-            <li>⭐ เพิ่มความเร็ววิชาตัวเบาเหาะเหิน</li>
+            <li>⭐ เพิ่มพลังโจมตี & ป้องกัน +15%</li>
+            <li>⭐ โบนัส EXP และเงินดรอป +25%</li>
+            <li>⭐ ปลดล็อกออร่าเทพเซียนเปล่งประกายรอบตัว</li>
           </ul>
-          <p style="margin-top:6px;">ค่าเลื่อนขั้น: <b style="color:#ffd13b">300 ตำลึง</b></p>
+          <p style="margin-top:6px;">ค่าเลื่อนขั้น: <b style="color:#ffd13b" id="vipCostText">300 ตำลึง</b></p>
         </div>
-        <button class="btn-action-gold" onclick="unlockVip1()">เปิดใช้งาน VIP 1</button>
+        <button class="btn-action-gold" onclick="upgradeVip()">เลื่อนขั้น VIP</button>
         <button class="menu-btn" onclick="closeModal('vipModal')">ปิด</button>
       </div>
     </div>
 
-    <!-- 6. ตู้เสื้อผ้า -->
+    <!-- 6. ตู้เสื้อผ้าชุดเซียน -->
     <div class="modal" id="wardrobeModal">
       <div class="modal-box">
-        <h3 class="brush-title">ตู้เสื้อผ้ายุทธภพ</h3>
+        <h3 class="brush-title">อาภรณ์เซียนโบราณ</h3>
         <div class="grid-opt" style="gap:8px;">
-          <button class="opt-btn" onclick="changeCostume(0)">🥋 หิมะขาว (เริ่มต้น)</button>
-          <button class="opt-btn" onclick="changeCostume(1)">🥋 ทองคำอำพัน (200 ตำลึง)</button>
-          <button class="opt-btn" onclick="changeCostume(2)">🥋 อัคคีเพลิง (300 ตำลึง)</button>
-          <button class="opt-btn" onclick="changeCostume(3)">🥋 ราตรีทมิฬ (450 ตำลึง)</button>
+          <button class="opt-btn" onclick="changeCostume(0)">🥋 อาภรณ์เมฆาขาว (เริ่มต้น)</button>
+          <button class="opt-btn" onclick="changeCostume(1)">🥋 อาภรณ์สุริยันทอง (200 ตำลึง)</button>
+          <button class="opt-btn" onclick="changeCostume(2)">🥋 อาภรณ์อัคคีเพลิง (350 ตำลึง)</button>
+          <button class="opt-btn" onclick="changeCostume(3)">🥋 อาภรณ์ราตรีบรรพกาล (500 ตำลึง)</button>
         </div>
         <button class="menu-btn" onclick="closeModal('wardrobeModal')">ปิด</button>
       </div>
@@ -226,6 +235,7 @@
     </div>
   </div>
 
+  <!-- Javascript Modules -->
   <script src="js/config.js"></script>
   <script src="js/world.js"></script>
   <script src="js/player.js"></script>
