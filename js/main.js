@@ -9,40 +9,24 @@ window.myClassIdx = 0;
 window.myColorIdx = 0;
 window.gameActive = false;
 window.isHost = false;
-window.authMode = 'login'; // 'login' หรือ 'register'
+window.authMode = 'login';
 let lastSyncTime = 0;
+
+// โครงสร้างเควสต์ประจำเกม
+window.QUEST_LIST = [
+  { id: 1, title: 'ภารกิจที่ 1: กำจัดหมาป่าทมิฬนอกเมือง', targetType: 'wolf', reqCount: 3, curCount: 0, rewardExp: 150, rewardMoney: 100, done: false },
+  { id: 2, title: 'ภารกิจที่ 2: ปราบโจรป่าไผ่', targetType: 'bandit', reqCount: 3, curCount: 0, rewardExp: 300, rewardMoney: 200, done: false },
+  { id: 3, title: 'ภารกิจที่ 3: ท้าประลองโกเลมหินผา', targetType: 'golem', reqCount: 2, curCount: 0, rewardExp: 500, rewardMoney: 350, done: false },
+  { id: 4, title: 'ภารกิจมหากาพย์: ล่ามังกรศิลาพันปี', targetType: 'boss', reqCount: 1, curCount: 0, rewardExp: 1000, rewardMoney: 800, done: false }
+];
 
 window.myProgress = {
   level: 1, exp: 0, money: 150, swordPlus: 0,
   isVip1: false, inventory: { potion: 2, spiritStone: 2, herb: 4 },
-  unlockedCostumes: [0], questKills: 0
+  unlockedCostumes: [0], activeQuestIdx: 0
 };
 
-// สลับแท็บ Login / Register
-window.switchAuthTab = function(mode) {
-  window.authMode = mode;
-  const loginBtn = document.getElementById('tabLoginBtn');
-  const regBtn = document.getElementById('tabRegisterBtn');
-  const extraFields = document.getElementById('registerExtraFields');
-  const startBtn = document.getElementById('startBtn');
-  const authTitle = document.getElementById('authTitle');
-
-  if (mode === 'login') {
-    loginBtn.classList.add('active');
-    regBtn.classList.remove('active');
-    extraFields.style.display = 'none';
-    startBtn.textContent = 'เข้าสู่ยุทธภพ';
-    authTitle.textContent = 'เข้าสู่ระบบยุทธภพ';
-  } else {
-    regBtn.classList.add('active');
-    loginBtn.classList.remove('active');
-    extraFields.style.display = 'flex';
-    startBtn.textContent = 'สร้างตัวละคร & ก้าวสู่ยุทธภพ';
-    authTitle.textContent = 'สร้างจอมยุทธ์ใหม่';
-  }
-};
-
-// Debug Log Engine
+// Debug Panel
 const debugLinesEl = document.getElementById('debugLines');
 document.getElementById('clearDebugBtn').addEventListener('click', () => { debugLinesEl.innerHTML = ''; });
 window.debugLog = function(msg, level = 'info') {
@@ -76,7 +60,30 @@ window.showToast = function(msg) {
   window.showToast._t = setTimeout(() => { t.style.display = 'none'; }, 3000);
 };
 
-// ---------------- Join & Auth Flow ----------------
+// ---------------- Auth System ----------------
+window.switchAuthTab = function(mode) {
+  window.authMode = mode;
+  const loginBtn = document.getElementById('tabLoginBtn');
+  const regBtn = document.getElementById('tabRegisterBtn');
+  const extraFields = document.getElementById('registerExtraFields');
+  const startBtn = document.getElementById('startBtn');
+  const authTitle = document.getElementById('authTitle');
+
+  if (mode === 'login') {
+    loginBtn.classList.add('active');
+    regBtn.classList.remove('active');
+    extraFields.style.display = 'none';
+    startBtn.textContent = 'เข้าสู่ยุทธภพ';
+    authTitle.textContent = 'เข้าสู่ระบบยุทธภพ';
+  } else {
+    regBtn.classList.add('active');
+    loginBtn.classList.remove('active');
+    extraFields.style.display = 'flex';
+    startBtn.textContent = 'สร้างตัวละคร & ก้าวสู่ยุทธภพ';
+    authTitle.textContent = 'สร้างจอมยุทธ์ใหม่';
+  }
+};
+
 document.getElementById('startBtn').addEventListener('click', handleAuth);
 
 async function handleAuth() {
@@ -102,20 +109,14 @@ async function handleAuth() {
   startBtn.textContent = 'กำลังตรวจสอบข้อมูล...';
 
   try {
-    window.debugLog(`ตรวจสอบข้อมูล: Name=${window.myName}, Mode=${window.authMode}`);
     window.sb = window.supabase.createClient(window.CONFIG.SUPABASE_URL, window.CONFIG.SUPABASE_ANON_KEY);
 
     const { data: prow, error: prowErr } = await window.sb.from('mmo_players').select('*').eq('name', window.myName).maybeSingle();
     if (prowErr) window.debugLog('DB Load: ' + prowErr.message, 'warn');
 
     if (window.authMode === 'login') {
-      // โหมดเข้าสู่ระบบ
-      if (!prow) {
-        throw new Error('ไม่พบบัญชีจอมยุทธ์นี้ กรุณาสมัครสมาชิกใหม่');
-      }
-      if (prow.password && prow.password !== pwd) {
-        throw new Error('รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง');
-      }
+      if (!prow) throw new Error('ไม่พบบัญชีจอมยุทธ์นี้ กรุณาสมัครสมาชิกใหม่');
+      if (prow.password && prow.password !== pwd) throw new Error('รหัสผ่านไม่ถูกต้อง');
 
       window.myProgress.level = prow.level || 1;
       window.myProgress.exp = prow.exp || 0;
@@ -124,13 +125,9 @@ async function handleAuth() {
       window.myProgress.inventory = prow.inventory || { potion: 2, spiritStone: 2, herb: 4 };
       window.myProgress.isVip1 = !!prow.is_vip1;
       window.myColorIdx = prow.costume || 0;
-      window.debugLog('เข้าสู่ระบบสำเร็จ');
-
+      window.myProgress.activeQuestIdx = prow.quest_idx || 0;
     } else {
-      // โหมดสร้างตัวละครใหม่
-      if (prow) {
-        throw new Error('ชื่อจอมยุทธ์นี้มีผู้อื่นใช้งานแล้ว');
-      }
+      if (prow) throw new Error('ชื่อจอมยุทธ์นี้มีผู้อื่นใช้งานแล้ว');
 
       await window.sb.from('mmo_players').insert({
         name: window.myName,
@@ -139,11 +136,9 @@ async function handleAuth() {
         costume: window.myColorIdx,
         inventory: window.myProgress.inventory
       });
-      window.debugLog('สร้างบัญชีจอมยุทธ์ใหม่สำเร็จ');
     }
 
-    // เริ่มต้น Channel เชื่อมต่อ Realtime
-    window.channel = window.sb.channel('justice_v7_' + window.roomCode, {
+    window.channel = window.sb.channel('justice_v8_' + window.roomCode, {
       config: { broadcast: { ack: false, self: false }, presence: { key: myId } }
     });
 
@@ -168,7 +163,7 @@ async function handleAuth() {
 
     window.channel.on('broadcast', { event: 'reward' }, ({ payload }) => {
       if (payload && payload.targetName === window.myName) {
-        window.gainRewards(payload.exp, payload.money, payload.drops, payload.sourceName);
+        window.gainRewards(payload.exp, payload.money, payload.drops, payload.sourceName, payload.monsterType);
       }
     });
 
@@ -205,6 +200,7 @@ async function handleAuth() {
         window.CombatSystem.initMonsters();
 
         window.updateMeHUD();
+        window.updateQuestUI();
         window.gameActive = true;
         requestAnimationFrame(gameLoop);
       }
@@ -264,26 +260,23 @@ function gameLoop() {
   window.World3D.renderer.render(window.World3D.scene, window.World3D.camera);
 }
 
-// ---------------- UI & Helpers ----------------
-window.updateMeHUD = function() {
-  document.getElementById('pNameText').textContent = window.myName;
-  document.getElementById('pLvText').textContent = `Lv.${window.myProgress.level}`;
-  document.getElementById('myHpBar').style.width = Math.max(0, (window.PlayerManager.me.hp / window.PlayerManager.me.maxHp) * 100) + '%';
-  document.getElementById('myExpBar').style.width = Math.min(100, (window.myProgress.exp / expNeeded(window.myProgress.level)) * 100) + '%';
-  document.getElementById('moneyText').textContent = window.myProgress.money;
-  document.getElementById('atkText').textContent = window.getBaseAtk();
-  document.getElementById('defText').textContent = window.getBaseDef();
-  document.getElementById('vipBadge').textContent = window.myProgress.isVip1 ? 'VIP 1' : 'VIP 0';
-};
-
-window.gainRewards = async function(expAmt, moneyAmt, drops, src) {
+// ---------------- Rewards & Quests ----------------
+window.gainRewards = async function(expAmt, moneyAmt, drops, src, monsterType) {
   const expBonus = window.myProgress.isVip1 ? 1.3 : 1.0;
   const finalExp = Math.round(expAmt * expBonus);
   const finalMoney = Math.round(moneyAmt * expBonus);
 
   window.myProgress.exp += finalExp;
   window.myProgress.money += finalMoney;
-  window.myProgress.questKills += 1;
+
+  // ตรวจสอบความคืบหน้าเควสต์
+  const curQ = window.QUEST_LIST[window.myProgress.activeQuestIdx];
+  if (curQ && curQ.targetType === monsterType && !curQ.done) {
+    curQ.curCount += 1;
+    if (curQ.curCount >= curQ.reqCount) {
+      window.showToast(`🎉 ภารกิจสำเร็จ: ${curQ.title}`);
+    }
+  }
 
   if (drops && drops.length) {
     drops.forEach(k => {
@@ -300,7 +293,7 @@ window.gainRewards = async function(expAmt, moneyAmt, drops, src) {
   }
 
   window.updateMeHUD();
-  document.getElementById('questProgressText').textContent = `ปราบอสูร (${Math.min(3, window.myProgress.questKills)}/3)`;
+  window.updateQuestUI();
 
   await window.sb.from('mmo_players').update({
     exp: window.myProgress.exp, level: window.myProgress.level,
@@ -308,12 +301,51 @@ window.gainRewards = async function(expAmt, moneyAmt, drops, src) {
   }).eq('name', window.myName);
 };
 
+window.updateQuestUI = function() {
+  const curQ = window.QUEST_LIST[window.myProgress.activeQuestIdx];
+  const qBox = document.getElementById('quest-box');
+  if (curQ) {
+    qBox.innerHTML = `
+      <b>📜 ${curQ.title}</b><br>
+      <span style="color:${curQ.curCount >= curQ.reqCount ? '#22c55e' : '#a89679'}">ความคืบหน้า (${curQ.curCount}/${curQ.reqCount})</span><br>
+      <button class="menu-btn-small" onclick="claimQuest()">รับรางวัลเควสต์</button>
+    `;
+  } else {
+    qBox.innerHTML = `<b>🎉 ท่านสำเร็จภารกิจทั้งหมดในยุทธภพแล้ว!</b>`;
+  }
+};
+
+window.claimQuest = async function() {
+  const curQ = window.QUEST_LIST[window.myProgress.activeQuestIdx];
+  if (!curQ || curQ.curCount < curQ.reqCount) {
+    window.showToast('ยังทำเงื่อนไขภารกิจไม่ครบ!'); return;
+  }
+
+  curQ.done = true;
+  window.myProgress.activeQuestIdx += 1;
+  window.gainRewards(curQ.rewardExp, curQ.rewardMoney, ['spiritStone', 'potion'], 'รางวัลภารกิจ');
+  window.updateQuestUI();
+  await window.sb.from('mmo_players').update({ quest_idx: window.myProgress.activeQuestIdx }).eq('name', window.myName);
+};
+
+window.updateMeHUD = function() {
+  document.getElementById('pNameText').textContent = window.myName;
+  document.getElementById('pLvText').textContent = `Lv.${window.myProgress.level}`;
+  document.getElementById('myHpBar').style.width = Math.max(0, (window.PlayerManager.me.hp / window.PlayerManager.me.maxHp) * 100) + '%';
+  document.getElementById('myExpBar').style.width = Math.min(100, (window.myProgress.exp / expNeeded(window.myProgress.level)) * 100) + '%';
+  document.getElementById('moneyText').textContent = window.myProgress.money;
+  document.getElementById('atkText').textContent = window.getBaseAtk();
+  document.getElementById('defText').textContent = window.getBaseDef();
+  document.getElementById('vipBadge').textContent = window.myProgress.isVip1 ? 'VIP 1' : 'VIP 0';
+};
+
+// ---------------- Modals ----------------
 window.openModal = function(id) {
   document.getElementById(id).style.display = 'flex';
   if (id === 'invModal') {
     const grid = document.getElementById('invGrid');
     grid.innerHTML = `
-      <div class="inv-slot"><b>🧪 โอสถ</b><span>x${window.myProgress.inventory.potion || 0}</span></div>
+      <div class="inv-slot"><b>🧪 โอสถ</b><span>x${window.myProgress.inventory.potion || 0}</span><button class="menu-btn-small" onclick="usePotion()">ดื่ม</button></div>
       <div class="inv-slot"><b>💎 หินวิญญาณ</b><span>x${window.myProgress.inventory.spiritStone || 0}</span></div>
       <div class="inv-slot"><b>🌿 สมุนไพร</b><span>x${window.myProgress.inventory.herb || 0}</span></div>
       <div class="inv-slot"><b>💰 ตำลึง</b><span>${window.myProgress.money}</span></div>
@@ -327,6 +359,16 @@ window.openModal = function(id) {
   }
 };
 window.closeModal = function(id) { document.getElementById(id).style.display = 'none'; };
+
+window.usePotion = async function() {
+  if ((window.myProgress.inventory.potion || 0) <= 0) { window.showToast('โอสถหมดแล้ว!'); return; }
+  window.myProgress.inventory.potion -= 1;
+  window.PlayerManager.me.hp = Math.min(window.PlayerManager.me.maxHp, window.PlayerManager.me.hp + 60);
+  window.updateMeHUD();
+  window.openModal('invModal');
+  window.showToast('ดื่มโอสถ +60 HP!');
+  await window.sb.from('mmo_players').update({ inventory: window.myProgress.inventory }).eq('name', window.myName);
+};
 
 window.upgradeSwordAction = async function() {
   if ((window.myProgress.inventory.spiritStone || 0) < 1 || window.myProgress.money < 80) {
@@ -359,12 +401,6 @@ window.changeCostume = async function(idx) {
   window.World3D.scene.add(window.PlayerManager.myHeroMesh);
   window.showToast('เปลี่ยนชุดยุทธภพเรียบร้อย!');
   await window.sb.from('mmo_players').update({ costume: idx }).eq('name', window.myName);
-};
-
-window.claimQuest = async function() {
-  if (window.myProgress.questKills < 3) { window.showToast('ยังปราบอสูรไม่ครบ 3 ตัว!'); return; }
-  window.myProgress.questKills = 0;
-  window.gainRewards(150, 150, ['spiritStone', 'potion'], 'รางวัลเควสต์');
 };
 
 document.getElementById('chatform').addEventListener('submit', e => {
