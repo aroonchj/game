@@ -17,7 +17,7 @@ html, body {
 .brush-title { font-family: 'Noto Serif SC', 'Cinzel', serif; font-weight: 900; }
 #app { width: 100%; height: 100%; position: relative; }
 
-/* หน้าจอ Login & Register สไตล์ AAA */
+/* Login */
 #login-screen {
   position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center;
@@ -40,7 +40,6 @@ html, body {
 .main-title { font-size: 2.2em; text-align: center; color: var(--gold-bright); text-shadow: 0 0 25px rgba(250,225,125,.4); }
 .sub-desc { font-size: .85em; color: #bfae91; text-align: center; margin-top: -8px; margin-bottom: 4px; }
 
-/* แท็บสลับ เข้าสู่ระบบ / สมัครจอมยุทธ์ใหม่ */
 .auth-tabs {
   display: flex;
   background: #150e0a;
@@ -66,12 +65,8 @@ html, body {
   font-weight: 700;
   box-shadow: inset 0 -2px 0 var(--gold);
 }
-.auth-tab-btn:hover:not(.active) {
-  background: rgba(255,255,255,0.03);
-  color: #dcd2be;
-}
+.auth-tab-btn:hover:not(.active) { background: rgba(255,255,255,0.03); color: #dcd2be; }
 
-/* ฟิลด์กรอกข้อมูล */
 .field { display: flex; flex-direction: column; gap: 5px; text-align: left; }
 .field label { font-size: .82em; color: #d2c4a7; font-weight: 600; }
 .field input {
@@ -89,7 +84,6 @@ html, body {
   box-shadow: 0 0 10px rgba(250,225,125,0.2);
 }
 
-/* Grid ตัวเลือกอาชีพ & ชุด */
 .grid-opt { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
 .grid-opt-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
 .opt-btn {
@@ -153,7 +147,7 @@ button { cursor: pointer; border: none; font-family: 'Noto Sans Thai', sans-seri
 .hud-exp { height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold-bright)); transition: width .3s; }
 .hud-stats-row { font-size: .72em; color: #fae17d; display: flex; justify-content: space-between; margin-top: 2px; }
 
-#top-menu { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; pointer-events: auto; }
+#top-menu { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; pointer-events: auto; flex-wrap: wrap; justify-content: center; }
 .menu-btn {
   background: rgba(20, 15, 11, 0.85);
   border: 1px solid #5a452d;
@@ -235,9 +229,14 @@ button { cursor: pointer; border: none; font-family: 'Noto Sans Thai', sans-seri
 
 /* Modals */
 .modal { display: none; position: absolute; inset: 0; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 90; pointer-events: auto; }
-.modal-box { background: var(--panel-bg); border: 1px solid var(--border); border-radius: 8px; padding: 22px; width: 460px; max-width: 92%; max-height: 85vh; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+.modal-box { background: var(--panel-bg); border: 1px solid var(--border); border-radius: 8px; padding: 22px; width: 480px; max-width: 92%; max-height: 85vh; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
 .modal-box h3 { color: var(--gold-bright); text-align: center; font-size: 1.3em; margin-bottom: 4px; }
 .modal-content-box { background: #1c140e; border: 1px solid #4a3822; padding: 14px; border-radius: 6px; font-size: .85em; display: flex; flex-direction: column; gap: 6px; }
+
+/* Equipment Container */
+.equip-container { display: flex; flex-direction: column; gap: 6px; }
+.equip-slot { background: #18100a; border: 1px solid #4a3822; border-radius: 5px; padding: 8px 12px; display: flex; justify-content: space-between; font-size: .85em; }
+.equip-slot b { color: var(--gold-bright); }
 
 .inv-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .inv-slot { background: #1c140e; border: 1px solid #4a3822; border-radius: 6px; padding: 8px 4px; text-align: center; font-size: .75em; min-height: 64px; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
