@@ -2,14 +2,12 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>刃義 · ยุทธภพเปิด (Supabase)</title>
+<title>刃義 · ยุทธภพเปิด v2</title>
 
-<!-- ⚠️ ใส่ SUPABASE_URL กับ SUPABASE_ANON_KEY ของคุณตรงนี้ก่อน แล้วอัปขึ้น GitHub ได้เลย -->
 <script>
   window.SUPABASE_URL = "https://mflemycqwksuktvktlko.supabase.co";
   window.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mbGVteWNxd2tzdWt0dmt0bGtvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3OTA1MjksImV4cCI6MjEwMzM2NjUyOX0.8SCV1ZDz3lOulzzh7jONZj73McRwn-duAaaoGC6XTso";
 </script>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
@@ -26,71 +24,79 @@ html,body{ margin:0; height:100%; background:radial-gradient(ellipse at 50% 15%,
 .brush-title{ font-family:'Noto Serif SC','Noto Sans Thai',serif; font-weight:900; letter-spacing:.08em; }
 #app{ width:100%; height:100%; display:flex; align-items:center; justify-content:center; flex-direction:column; position:relative; }
 
-#configWarning{
-  display:none; position:absolute; top:0; left:0; right:0; background:#7a2230; color:#fff;
-  text-align:center; font-size:.8em; padding:8px; z-index:50;
-}
+#configWarning{ display:none; position:absolute; top:0; left:0; right:0; background:#7a2230; color:#fff;
+  text-align:center; font-size:.8em; padding:8px; z-index:50; }
 
-#landing{ display:flex; flex-direction:column; align-items:center; gap:20px; padding:40px 32px; max-width:440px; text-align:center; }
-#landing h1{ font-size:2.2em; margin:0; color:var(--gold-bright); text-shadow:0 0 18px rgba(240,207,106,.35); }
-#landing .sub{ color:#b9ac8f; font-size:.92em; margin-top:-14px; }
+#landing{ display:flex; flex-direction:column; align-items:center; gap:16px; padding:32px; max-width:440px; text-align:center; max-height:94vh; overflow-y:auto; }
+#landing h1{ font-size:2em; margin:0; color:var(--gold-bright); text-shadow:0 0 18px rgba(240,207,106,.35); }
+#landing .sub{ color:#b9ac8f; font-size:.9em; margin-top:-10px; }
 .divider{ width:120px; height:2px; background:linear-gradient(90deg,transparent,var(--gold),transparent); margin:2px 0 4px; }
 .field{ display:flex; flex-direction:column; gap:6px; width:100%; text-align:left; }
-.field label{ font-size:.8em; color:#c9bda0; }
-.field input{ background:var(--ink-2); border:1px solid #4a3d2a; color:var(--paper); padding:12px 14px; border-radius:2px; font-size:1.05em; font-family:inherit; outline:none; }
+.field label{ font-size:.78em; color:#c9bda0; }
+.field input{ background:var(--ink-2); border:1px solid #4a3d2a; color:var(--paper); padding:11px 14px; border-radius:2px; font-size:1em; font-family:inherit; outline:none; }
 .field input:focus{ border-color:var(--gold); }
 button{ cursor:pointer; border:none; font-family:'Noto Sans Thai',sans-serif; font-weight:600; }
-#joinBtn{ margin-top:4px; width:100%; background:linear-gradient(180deg,var(--gold-bright),var(--gold)); color:#241c0e; padding:14px; font-size:1.05em; border-radius:2px; box-shadow:0 4px 18px rgba(201,162,39,.25); }
+#joinBtn{ margin-top:2px; width:100%; background:linear-gradient(180deg,var(--gold-bright),var(--gold)); color:#241c0e; padding:14px; font-size:1.05em; border-radius:2px; box-shadow:0 4px 18px rgba(201,162,39,.25); }
 #joinBtn:disabled{ opacity:.5; cursor:not-allowed; }
-.hint{ font-size:.76em; color:#8a7c60; line-height:1.6; }
+.hint{ font-size:.74em; color:#8a7c60; line-height:1.6; }
 .classpick{ display:flex; gap:8px; width:100%; }
-.classbtn{ flex:1; padding:8px 4px; border:1px solid #4a3d2a; background:var(--ink-2); color:#c9bda0; border-radius:2px; font-size:.78em; }
+.classbtn{ flex:1; padding:8px 4px; border:1px solid #4a3d2a; background:var(--ink-2); color:#c9bda0; border-radius:2px; font-size:.76em; }
 .classbtn.active{ border-color:var(--gold-bright); color:var(--gold-bright); background:#2a2213; }
 
 #game{ display:none; flex-direction:column; align-items:center; width:100%; height:100%; }
-#topbar{ width:min(900px,95vw); display:flex; align-items:center; gap:14px; padding:12px 6px 6px; }
-#bossblock{ flex:1; }
-#bossname{ font-size:.85em; color:#c9bda0; display:flex; justify-content:space-between; }
-#bossname .kills{ color:#8a7c60; }
-.hpbar-outer{ width:100%; height:14px; background:#2a2116; border:1px solid #4a3d2a; border-radius:2px; overflow:hidden; margin-top:4px; }
-.hpbar-inner{ height:100%; transition:width .25s ease; background:linear-gradient(90deg,#6a1420,#c23b4a); }
+#topbar{ width:min(920px,96vw); display:flex; align-items:flex-start; gap:12px; padding:10px 6px 4px; flex-wrap:wrap; }
+#meblock{ flex:1; min-width:220px; font-size:.78em; color:#c9bda0; }
+#meblock .lvline{ display:flex; justify-content:space-between; margin-bottom:3px; }
+.expbar-outer{ width:100%; height:8px; background:#2a2116; border:1px solid #4a3d2a; border-radius:2px; overflow:hidden; }
+.expbar-inner{ height:100%; background:linear-gradient(90deg,var(--gold),var(--gold-bright)); transition:width .3s; }
+#costumeBtn{ margin-top:5px; background:transparent; border:1px solid var(--gold); color:var(--gold-bright); font-size:.7em; padding:3px 10px; border-radius:2px; }
 
-#roster{ display:flex; gap:8px; flex-wrap:wrap; max-width:280px; }
-.rostertag{ font-size:.7em; padding:4px 8px; border-radius:2px; border:1px solid #4a3d2a; color:#8a7c60; }
+#roster{ display:flex; gap:6px; flex-wrap:wrap; max-width:300px; }
+.rostertag{ font-size:.68em; padding:3px 7px; border-radius:2px; border:1px solid #4a3d2a; color:#8a7c60; }
 .rostertag.active{ color:var(--paper); }
 
 canvas{ background:radial-gradient(ellipse at 50% 30%,#28321f 0%,#171c12 75%); border:1px solid #4a3d2a; border-radius:2px; box-shadow:0 10px 40px rgba(0,0,0,.5), inset 0 0 70px rgba(0,0,0,.4); touch-action:none; }
 
-#status{ margin-top:10px; font-size:.83em; color:#c9bda0; min-height:1.3em; }
-#controls-hint{ margin-top:4px; font-size:.7em; color:#6b5f47; }
-#room-tag{ position:absolute; top:12px; left:50%; transform:translateX(-50%); font-size:.7em; color:#8a7c60; letter-spacing:.06em; }
+#status{ margin-top:8px; font-size:.82em; color:#c9bda0; min-height:1.3em; }
+#controls-hint{ margin-top:3px; font-size:.68em; color:#6b5f47; }
+#room-tag{ position:absolute; top:10px; left:50%; transform:translateX(-50%); font-size:.68em; color:#8a7c60; letter-spacing:.05em; }
 
-#chatlog{ position:absolute; left:14px; bottom:14px; width:240px; max-height:110px; overflow:hidden; font-size:.72em; color:#c9bda0; display:flex; flex-direction:column-reverse; gap:2px; pointer-events:none; }
-#chatform{ display:flex; gap:6px; margin-top:8px; width:min(860px,90vw); }
-#chatInput{ flex:1; background:var(--ink-2); border:1px solid #4a3d2a; color:var(--paper); padding:8px 10px; border-radius:2px; font-family:inherit; font-size:.85em; outline:none; }
-#chatSendBtn{ background:transparent; border:1px solid var(--gold); color:var(--gold-bright); padding:0 16px; border-radius:2px; font-size:.85em; }
+#chatlog{ position:absolute; left:12px; bottom:12px; width:230px; max-height:100px; overflow:hidden; font-size:.7em; color:#c9bda0; display:flex; flex-direction:column-reverse; gap:2px; pointer-events:none; }
+#chatform{ display:flex; gap:6px; margin-top:6px; width:min(860px,90vw); }
+#chatInput{ flex:1; background:var(--ink-2); border:1px solid #4a3d2a; color:var(--paper); padding:7px 10px; border-radius:2px; font-family:inherit; font-size:.82em; outline:none; }
+#chatSendBtn{ background:transparent; border:1px solid var(--gold); color:var(--gold-bright); padding:0 14px; border-radius:2px; font-size:.82em; }
 
-#touchpad{ display:none; position:absolute; bottom:70px; width:min(900px,95vw); justify-content:space-between; padding:0 10px; z-index:5; }
-.dpad{ display:grid; grid-template-columns:repeat(3,42px); grid-template-rows:repeat(3,42px); gap:3px; }
+#touchpad{ display:none; position:absolute; bottom:64px; width:min(900px,95vw); justify-content:space-between; padding:0 10px; z-index:5; }
+.dpad{ display:grid; grid-template-columns:repeat(3,40px); grid-template-rows:repeat(3,40px); gap:3px; }
 .dbtn{ background:rgba(201,162,39,.15); border:1px solid var(--gold); color:var(--gold-bright); border-radius:6px; display:flex;align-items:center;justify-content:center; }
-.touchbtn{ width:60px; height:60px; border-radius:50%; background:rgba(201,162,39,.18); border:1px solid var(--gold); color:var(--gold-bright); font-size:1.3em; display:flex; align-items:center; justify-content:center; }
+.touchbtn{ width:58px; height:58px; border-radius:50%; background:rgba(201,162,39,.18); border:1px solid var(--gold); color:var(--gold-bright); font-size:1.25em; display:flex; align-items:center; justify-content:center; }
 @media (pointer:coarse){ #touchpad{ display:flex; } }
+
+#costumeModal{ display:none; position:absolute; inset:0; background:rgba(10,8,5,.85); align-items:center; justify-content:center; z-index:40; }
+#costumeModal .panel{ background:var(--ink-2); border:1px solid #4a3d2a; padding:22px; border-radius:4px; max-width:360px; width:90%; text-align:center; }
+#costumeModal h3{ margin:0 0 12px; color:var(--gold-bright); font-family:'Noto Serif SC',serif; }
+#costumeList{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-bottom:14px; }
+.swatch{ width:56px; height:56px; border-radius:4px; border:2px solid #4a3d2a; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:.65em; color:#fff; }
+.swatch.selected{ border-color:var(--gold-bright); box-shadow:0 0 12px rgba(240,207,106,.4); }
+#closeCostume{ background:transparent; border:1px solid var(--gold); color:var(--gold-bright); padding:8px 20px; border-radius:2px; }
+
+#toast{ position:absolute; top:56px; left:50%; transform:translateX(-50%); font-size:.85em; color:var(--gold-bright); background:rgba(20,15,10,.8); padding:6px 16px; border-radius:3px; border:1px solid var(--gold); display:none; z-index:30; }
 </style>
 </head>
 <body>
 <div id="app">
 
-  <div id="configWarning">⚠️ ยังไม่ได้ใส่ SUPABASE_URL / SUPABASE_ANON_KEY ในโค้ด — แก้ในไฟล์ก่อนใช้งานจริง</div>
+  <div id="configWarning">⚠️ ยังไม่ได้ใส่ SUPABASE_URL / SUPABASE_ANON_KEY</div>
 
   <div id="landing">
-    <div class="brush-title" style="font-size:.8em;letter-spacing:.3em;color:#8a7c60;">刃 義</div>
+    <div class="brush-title" style="font-size:.78em;letter-spacing:.3em;color:#8a7c60;">刃 義</div>
     <h1 class="brush-title">ยุทธภพเปิด</h1>
-    <div class="sub">ปาร์ตี้สูงสุด 4 คน เดินโลกเปิด ล่าอสูรร่วมกัน — ผ่าน Supabase Realtime</div>
+    <div class="sub">ปาร์ตี้สูงสุด 4 คน · เลเวล/ชุด/ไอเทม เก็บถาวร</div>
     <div class="divider"></div>
 
     <div class="field">
-      <label>ชื่อยอดฝีมือของท่าน</label>
-      <input id="nameInput" maxlength="12" placeholder="เช่น อาจารย์เหม่ย" />
+      <label>ชื่อยอดฝีมือ (ต้องไม่ซ้ำกับเพื่อน — ใช้อ้างอิงข้อมูลถาวร)</label>
+      <input id="nameInput" maxlength="12" placeholder="เช่น เหม่ย88" />
     </div>
     <div class="field">
       <label>สำนัก</label>
@@ -102,33 +108,38 @@ canvas{ background:radial-gradient(ellipse at 50% 30%,#28321f 0%,#171c12 75%); b
       </div>
     </div>
     <div class="field">
-      <label>รหัสห้อง (บอกเพื่อนให้ใส่ตรงกัน)</label>
+      <label>ชื่อกิลด์ (ไม่บังคับ)</label>
+      <input id="guildInput" maxlength="14" placeholder="เช่น ธาราทอง" />
+    </div>
+    <div class="field">
+      <label>รหัสห้อง</label>
       <input id="roomInput" maxlength="16" placeholder="เช่น sect888" />
     </div>
 
     <button id="joinBtn">เข้าสู่ยุทธภพ</button>
-    <div class="hint">รองรับสูงสุด 4 คนต่อห้อง · ข้อมูลซิงก์ผ่าน Supabase Realtime แบบ push ทันที ไม่ต้องเปิดพร้อมกันในเครื่องเดียว</div>
+    <div class="hint">เลเวล/EXP/ชุดที่ปลดล็อก/ไอเทม จะถูกจำไว้ตามชื่อของคุณ กลับมาเล่นครั้งหน้าข้อมูลยังอยู่</div>
   </div>
 
   <div id="game">
     <div id="room-tag"></div>
+    <div id="toast"></div>
     <div id="topbar">
-      <div id="bossblock">
-        <div id="bossname"><span>妖 · อสูรเงา</span><span class="kills" id="killsCount">ปราบไปแล้ว: 0</span></div>
-        <div class="hpbar-outer"><div class="hpbar-inner" id="bosshp" style="width:100%"></div></div>
+      <div id="meblock">
+        <div class="lvline"><span id="lvText">Lv.1</span><span id="guildText"></span></div>
+        <div class="expbar-outer"><div class="expbar-inner" id="expBar" style="width:0%"></div></div>
+        <button id="costumeBtn">เปลี่ยนชุด</button>
       </div>
       <div id="roster"></div>
     </div>
 
     <canvas id="canvas" width="900" height="460"></canvas>
     <div id="status">กำลังเชื่อมต่อ...</div>
-    <div id="controls-hint">เดิน: ลูกศร / WASD (4 ทิศ) &nbsp;·&nbsp; โจมตี: Space หรือ แตะปุ่ม 刃</div>
+    <div id="controls-hint">เดิน: ลูกศร/WASD &nbsp;·&nbsp; โจมตี: Space หรือแตะ 刃 &nbsp;·&nbsp; ล่าอสูรทั้ง 3 ตัวในแมพ</div>
 
     <form id="chatform">
       <input id="chatInput" maxlength="60" placeholder="พิมพ์คุยกับปาร์ตี้..." autocomplete="off" />
       <button id="chatSendBtn" type="submit">ส่ง</button>
     </form>
-
     <div id="chatlog"></div>
 
     <div id="touchpad">
@@ -141,23 +152,40 @@ canvas{ background:radial-gradient(ellipse at 50% 30%,#28321f 0%,#171c12 75%); b
     </div>
   </div>
 
+  <div id="costumeModal">
+    <div class="panel">
+      <h3>เลือกชุด</h3>
+      <div id="costumeList"></div>
+      <button id="closeCostume">ปิด</button>
+    </div>
+  </div>
+
 </div>
 
 <script>
 (function(){
 "use strict";
 
-// ---------- config check ----------
 if(!window.SUPABASE_URL || window.SUPABASE_URL.includes('YOUR-PROJECT')){
   document.getElementById('configWarning').style.display='block';
 }
 
 const CLASS_DEFS = [
-  { key:'cloud',  label:'ดาบเมฆ',   main:'#8a6a1a', accent:'#f0cf6a' },
-  { key:'dragon', label:'หมัดมังกร', main:'#5a1c26', accent:'#c23b4a' },
-  { key:'lyre',   label:'พิณมนตรา', main:'#2c4a3a', accent:'#6fae8f' },
-  { key:'shadow', label:'เงาราตรี', main:'#2e2447', accent:'#8a76c2' },
+  { label:'ดาบเมฆ',   main:'#8a6a1a', accent:'#f0cf6a' },
+  { label:'หมัดมังกร', main:'#5a1c26', accent:'#c23b4a' },
+  { label:'พิณมนตรา', main:'#2c4a3a', accent:'#6fae8f' },
+  { label:'เงาราตรี', main:'#2e2447', accent:'#8a76c2' },
 ];
+const COSTUME_DEFS = [
+  { label:'ทอง',   main:'#8a6a1a', accent:'#f0cf6a' },
+  { label:'อัคคี', main:'#5a1c26', accent:'#c23b4a' },
+  { label:'หยก',   main:'#2c4a3a', accent:'#6fae8f' },
+  { label:'ราตรี', main:'#2e2447', accent:'#8a76c2' },
+  { label:'หิมะ',  main:'#4a4a55', accent:'#dfe8ee' },
+  { label:'พิศวาส',main:'#5a2044', accent:'#e888c2' },
+];
+const ITEM_POOL = ['ผ้าพันคอไหมทอง','ตราสำนักหยก','กระดิ่งวิญญาณ','ชุดหิมะขาว','ชุดพิศวาสชมพู','ลูกประคำมงคล'];
+const COSTUME_ITEM_MAP = { 'ชุดหิมะขาว':4, 'ชุดพิศวาสชมพู':5 };
 
 const ARENA_W=900, ARENA_H=460;
 const MOVE_SPEED=3.6;
@@ -165,43 +193,61 @@ const ATTACK_RANGE=95;
 const ATTACK_DURATION=260;
 const ATTACK_COOLDOWN=480;
 const DAMAGE=9;
-const BOSS_MAX_HP=420;
+const MONSTER_MAX_HP=150;
 const MAX_PLAYERS=4;
 const TRACK_MS=110;
+const EXP_PER_KILL=20;
 
-let sb = null;
-let channel = null;
-let roomCode="", myName="", myClass=0, myId="";
+const MONSTER_SPAWNS = [
+  { id:'m1', x:220, y:150 },
+  { id:'m2', x:680, y:150 },
+  { id:'m3', x:450, y:310 },
+];
+
+let sb=null, channel=null;
+let roomCode="", myName="", myClass=0, myGuild="", myId="";
 let gameActive=false, isHost=false;
 let keys={};
 let particles=[];
 let chatMessages=[];
-let lastAttackCooldownUntil=0;
-let lastTrack=0;
-let killsSeen=-1;
-let hostLastProcessed = {}; // presenceKey -> last attackAt processed
+let lastAttackCooldownUntil=0, lastTrack=0;
+let hostLastProcessed = {};
+let killsTotalSeen = 0;
+let lastDropSeenTs = 0;
 
-let me = { x:200,y:230, facing:1, attacking:false, attackUntil:0, name:'', classIdx:0, chatMsg:'', chatAt:0, attackAt:0, joinedAt:0 };
-let presenceRoster = {}; // key -> meta (includes me)
-let boss = { hp:BOSS_MAX_HP, maxHp:BOSS_MAX_HP, kills:0 };
-const bossPos = { x: ARENA_W/2, y: 120 };
+let me = {
+  x:200,y:230, facing:1, attacking:false, attackUntil:0,
+  name:'', classIdx:0, guild:'', costume:0,
+  chatMsg:'', chatAt:0, attackAt:0, joinedAt:0
+};
+let myProgress = { level:1, exp:0, unlockedCostumes:[0], inventory:[] };
+let presenceRoster = {};
+let monsters = MONSTER_SPAWNS.map(s=>({ id:s.id, x:s.x, y:s.y, hp:MONSTER_MAX_HP, maxHp:MONSTER_MAX_HP, alive:true }));
+let roomKillsTotal = 0;
 
 const landing=document.getElementById('landing');
 const gameEl=document.getElementById('game');
 const joinBtn=document.getElementById('joinBtn');
 const nameInput=document.getElementById('nameInput');
 const roomInput=document.getElementById('roomInput');
+const guildInput=document.getElementById('guildInput');
 const classPick=document.getElementById('classPick');
 const statusEl=document.getElementById('status');
 const roomTag=document.getElementById('room-tag');
-const bosshpEl=document.getElementById('bosshp');
-const killsCountEl=document.getElementById('killsCount');
 const rosterEl=document.getElementById('roster');
 const chatlogEl=document.getElementById('chatlog');
 const chatform=document.getElementById('chatform');
 const chatInput=document.getElementById('chatInput');
 const canvas=document.getElementById('canvas');
 const ctx=canvas.getContext('2d');
+const lvText=document.getElementById('lvText');
+const guildText=document.getElementById('guildText');
+const expBar=document.getElementById('expBar');
+const costumeBtn=document.getElementById('costumeBtn');
+const costumeModal=document.getElementById('costumeModal');
+const costumeList=document.getElementById('costumeList');
+const closeCostume=document.getElementById('closeCostume');
+const toastEl=document.getElementById('toast');
 
 classPick.querySelectorAll('.classbtn').forEach(btn=>{
   btn.addEventListener('click', ()=>{
@@ -212,44 +258,72 @@ classPick.querySelectorAll('.classbtn').forEach(btn=>{
 });
 
 joinBtn.addEventListener('click', joinRoom);
-[nameInput, roomInput].forEach(inp=> inp.addEventListener('keydown', e=>{ if(e.key==='Enter') joinRoom(); }));
+[nameInput, roomInput, guildInput].forEach(inp=> inp.addEventListener('keydown', e=>{ if(e.key==='Enter') joinRoom(); }));
 
-function genId(){
-  return 'p_' + Math.random().toString(36).slice(2,10);
+function genId(){ return 'p_' + Math.random().toString(36).slice(2,10); }
+function expNeeded(level){ return 100 * level; }
+function showToast(msg){
+  toastEl.textContent = msg;
+  toastEl.style.display='block';
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(()=>{ toastEl.style.display='none'; }, 3200);
 }
 
 async function joinRoom(){
-  const nm = nameInput.value.trim() || 'นักดาบนิรนาม';
+  const nm = nameInput.value.trim();
   const rc = roomInput.value.trim().toLowerCase().replace(/\s+/g,'');
+  const gd = guildInput.value.trim();
+  if(!nm){ nameInput.focus(); return; }
   if(!rc){ roomInput.focus(); return; }
   if(!window.SUPABASE_URL || window.SUPABASE_URL.includes('YOUR-PROJECT')){
-    alert('ยังไม่ได้ตั้งค่า Supabase URL/Key ในไฟล์นี้ครับ — แก้ตรงส่วน <script> ด้านบนของไฟล์ก่อน');
+    alert('ยังไม่ได้ตั้งค่า Supabase URL/Key ในไฟล์นี้');
     return;
   }
 
-  myName=nm; roomCode=rc; myId=genId();
+  myName=nm; roomCode=rc; myGuild=gd; myId=genId();
   joinBtn.disabled=true; joinBtn.textContent='กำลังเข้าห้อง...';
 
   try{
     sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 
-    // ensure room row exists
-    const { data: existing } = await sb.from('mmo_rooms').select('*').eq('room_code', roomCode).maybeSingle();
-    if(existing){
-      boss.hp = existing.boss_hp; boss.maxHp = existing.boss_max_hp; boss.kills = existing.kills;
+    // load or create persistent player row
+    const { data: prow } = await sb.from('mmo_players').select('*').eq('name', myName).maybeSingle();
+    if(prow){
+      myProgress.level = prow.level;
+      myProgress.exp = prow.exp;
+      myProgress.unlockedCostumes = prow.unlocked_costumes || [myClass];
+      myProgress.inventory = prow.inventory || [];
+      if(gd) myGuild = gd; else myGuild = prow.guild || '';
+      me.costume = (prow.costume!=null) ? prow.costume : myClass;
     } else {
-      await sb.from('mmo_rooms').insert({ room_code: roomCode, boss_hp: BOSS_MAX_HP, boss_max_hp: BOSS_MAX_HP, kills: 0 });
+      myProgress = { level:1, exp:0, unlockedCostumes:[myClass], inventory:[] };
+      me.costume = myClass;
+      await sb.from('mmo_players').insert({
+        name: myName, level:1, exp:0, guild:myGuild, costume:myClass, unlocked_costumes:[myClass], inventory:[]
+      });
+    }
+
+    // load or create room row
+    const { data: rrow } = await sb.from('mmo_rooms').select('*').eq('room_code', roomCode).maybeSingle();
+    if(rrow){
+      roomKillsTotal = rrow.kills || 0;
+      if(rrow.monsters && rrow.monsters.length===3){ monsters = rrow.monsters; }
+      if(rrow.last_drop) lastDropSeenTs = rrow.last_drop.ts || 0;
+    } else {
+      await sb.from('mmo_rooms').insert({ room_code: roomCode, boss_hp:0, boss_max_hp:0, kills:0, monsters: monsters });
     }
 
     me = {
       x: 150 + Math.random()*100, y: 260 + Math.random()*80,
       facing:1, attacking:false, attackUntil:0,
-      name:myName, classIdx:myClass, chatMsg:'', chatAt:0, attackAt:0, joinedAt: Date.now()
+      name:myName, classIdx:myClass, guild:myGuild, costume:me.costume,
+      chatMsg:'', chatAt:0, attackAt:0, joinedAt: Date.now(),
+      level: myProgress.level
     };
 
     channel = sb.channel('game-room-' + roomCode, { config:{ presence:{ key: myId } } });
 
-    channel.on('presence', { event: 'sync' }, ()=>{
+    channel.on('presence', { event:'sync' }, ()=>{
       const state = channel.presenceState();
       const roster = {};
       Object.keys(state).forEach(k=>{
@@ -259,24 +333,30 @@ async function joinRoom(){
       presenceRoster = roster;
       recomputeHost();
       renderRoster();
-      if(isHost) processAttacksAgainstBoss();
+      if(isHost) processAttacks();
     });
 
     channel.on('postgres_changes',
       { event:'UPDATE', schema:'public', table:'mmo_rooms', filter:`room_code=eq.${roomCode}` },
       (payload)=>{
-        boss.hp = payload.new.boss_hp;
-        boss.maxHp = payload.new.boss_max_hp;
-        boss.kills = payload.new.kills;
+        if(payload.new.monsters) monsters = payload.new.monsters;
+        roomKillsTotal = payload.new.kills || 0;
+        if(payload.new.last_drop && payload.new.last_drop.ts > lastDropSeenTs){
+          lastDropSeenTs = payload.new.last_drop.ts;
+          const d = payload.new.last_drop;
+          if(d.playerName === myName){
+            showToast(`ได้รับไอเทม: ${d.item}!`);
+          } else {
+            showToast(`${d.playerName} ได้รับ ${d.item}`);
+          }
+        }
       }
     );
 
     channel.subscribe(async (status)=>{
-      if(status === 'SUBSCRIBED'){
+      if(status==='SUBSCRIBED'){
         const current = channel.presenceState();
-        const count = Object.keys(current).length;
-        if(count >= MAX_PLAYERS){
-          statusEl.textContent = '';
+        if(Object.keys(current).length >= MAX_PLAYERS){
           alert('ห้องนี้เต็มแล้ว (ปาร์ตี้เต็ม 4 คน) ลองรหัสห้องอื่นครับ');
           await channel.unsubscribe();
           joinBtn.disabled=false; joinBtn.textContent='เข้าสู่ยุทธภพ';
@@ -286,8 +366,9 @@ async function joinRoom(){
 
         landing.style.display='none';
         gameEl.style.display='flex';
-        roomTag.textContent = `ห้อง: ${roomCode} · ${CLASS_DEFS[myClass].label}`;
+        roomTag.textContent = `ห้อง: ${roomCode}`;
         statusEl.textContent = 'กำลังมองหาสหายร่วมยุทธภพ...';
+        updateMeHUD();
         gameActive=true;
         requestAnimationFrame(loop);
       }
@@ -296,64 +377,169 @@ async function joinRoom(){
   }catch(err){
     console.error(err);
     joinBtn.disabled=false; joinBtn.textContent='เข้าสู่ยุทธภพ';
-    alert('เชื่อมต่อ Supabase ไม่สำเร็จ เช็ค URL/Key และ table mmo_rooms อีกครั้งครับ');
+    alert('เชื่อมต่อ Supabase ไม่สำเร็จ เช็ค URL/Key/ตารางอีกครั้งครับ');
   }
 }
 
 function recomputeHost(){
-  const keys = Object.keys(presenceRoster);
-  if(keys.length===0){ isHost=false; return; }
-  let earliestKey = keys[0];
-  keys.forEach(k=>{
-    const a = presenceRoster[k], b = presenceRoster[earliestKey];
-    if(a && b && (a.joinedAt||0) < (b.joinedAt||0)) earliestKey = k;
+  const ks = Object.keys(presenceRoster);
+  if(ks.length===0){ isHost=false; return; }
+  let earliest = ks[0];
+  ks.forEach(k=>{
+    const a=presenceRoster[k], b=presenceRoster[earliest];
+    if(a && b && (a.joinedAt||0) < (b.joinedAt||0)) earliest=k;
   });
-  isHost = (earliestKey === myId);
+  isHost = (earliest===myId);
 }
 
-function processAttacksAgainstBoss(){
-  if(boss.hp<=0) return;
-  let dmg = 0;
+async function persistRoomMonsters(extra){
+  const payload = Object.assign({ monsters: monsters, kills: roomKillsTotal }, extra||{});
+  await sb.from('mmo_rooms').update(payload).eq('room_code', roomCode);
+}
+
+async function awardKillRewards(killerKey, monsterId){
+  const killer = presenceRoster[killerKey] || (killerKey===myId ? me : null);
+  const killerName = killer ? killer.name : null;
+  const item = ITEM_POOL[Math.floor(Math.random()*ITEM_POOL.length)];
+
+  // EXP to everyone currently present (party-wide reward)
+  const allKeys = Object.keys(presenceRoster);
+  for(const k of allKeys){
+    const p = presenceRoster[k];
+    if(!p || !p.name) continue;
+    try{
+      const { data: row } = await sb.from('mmo_players').select('*').eq('name', p.name).maybeSingle();
+      if(!row) continue;
+      let newExp = (row.exp||0) + EXP_PER_KILL;
+      let newLevel = row.level||1;
+      while(newExp >= expNeeded(newLevel)){
+        newExp -= expNeeded(newLevel);
+        newLevel += 1;
+      }
+      await sb.from('mmo_players').update({ exp:newExp, level:newLevel }).eq('name', p.name);
+      if(p.name===myName){ myProgress.exp=newExp; myProgress.level=newLevel; updateMeHUD(); }
+    }catch(e){}
+  }
+
+  // item drop to killer only
+  if(killerName){
+    try{
+      const { data: row } = await sb.from('mmo_players').select('*').eq('name', killerName).maybeSingle();
+      if(row){
+        const inv = (row.inventory||[]).concat([item]);
+        let unlocked = row.unlocked_costumes || [];
+        if(COSTUME_ITEM_MAP[item]!=null && !unlocked.includes(COSTUME_ITEM_MAP[item])){
+          unlocked = unlocked.concat([COSTUME_ITEM_MAP[item]]);
+        }
+        await sb.from('mmo_players').update({ inventory:inv, unlocked_costumes:unlocked }).eq('name', killerName);
+        if(killerName===myName){ myProgress.inventory=inv; myProgress.unlockedCostumes=unlocked; }
+      }
+    }catch(e){}
+  }
+
+  await persistRoomMonsters({ last_drop: { playerName: killerName||'?', item, monsterId, ts: Date.now() } });
+}
+
+function processAttacks(){
+  let changed=false;
   Object.keys(presenceRoster).forEach(k=>{
     const p = presenceRoster[k];
     if(!p || !p.attackAt) return;
-    if(hostLastProcessed[k] === p.attackAt) return;
-    hostLastProcessed[k] = p.attackAt;
-    const dist = Math.hypot((p.x||0)-bossPos.x, (p.y||0)-bossPos.y);
-    if(dist < ATTACK_RANGE) dmg += DAMAGE;
+    if(hostLastProcessed[k]===p.attackAt) return;
+    hostLastProcessed[k]=p.attackAt;
+    monsters.forEach(m=>{
+      if(!m.alive) return;
+      const dist = Math.hypot((p.x||0)-m.x, (p.y||0)-m.y);
+      if(dist < ATTACK_RANGE){
+        m.hp = Math.max(0, m.hp - DAMAGE);
+        changed=true;
+        if(m.hp<=0 && m.alive){
+          m.alive=false;
+          roomKillsTotal += 1;
+          spawnDeathBurstAt(m.x, m.y);
+          awardKillRewards(k, m.id);
+          setTimeout(()=>{
+            m.hp = m.maxHp; m.alive=true;
+            persistRoomMonsters();
+          }, 5000);
+        }
+      }
+    });
   });
-  if(dmg>0){
-    const newHp = Math.max(0, boss.hp - dmg);
-    let newKills = boss.kills;
-    boss.hp = newHp;
-    if(newHp<=0){
-      newKills += 1;
-      spawnDeathBurst();
-      setTimeout(async ()=>{
-        await sb.from('mmo_rooms').update({ boss_hp: BOSS_MAX_HP, kills: newKills }).eq('room_code', roomCode);
-      }, 2200);
-    }
-    sb.from('mmo_rooms').update({ boss_hp: newHp, kills: newKills }).eq('room_code', roomCode).then(()=>{});
+  // also process own (host's) attack
+  if(me.attackAt && hostLastProcessed[myId]!==me.attackAt){
+    hostLastProcessed[myId]=me.attackAt;
+    monsters.forEach(m=>{
+      if(!m.alive) return;
+      const dist = Math.hypot(me.x-m.x, me.y-m.y);
+      if(dist < ATTACK_RANGE){
+        m.hp = Math.max(0, m.hp - DAMAGE);
+        changed=true;
+        if(m.hp<=0 && m.alive){
+          m.alive=false;
+          roomKillsTotal += 1;
+          spawnDeathBurstAt(m.x, m.y);
+          awardKillRewards(myId, m.id);
+          setTimeout(()=>{
+            m.hp = m.maxHp; m.alive=true;
+            persistRoomMonsters();
+          }, 5000);
+        }
+      }
+    });
   }
+  if(changed) persistRoomMonsters();
 }
 
 function renderRoster(){
-  rosterEl.innerHTML = '';
-  const keys = Object.keys(presenceRoster);
-  keys.forEach(k=>{
+  rosterEl.innerHTML='';
+  const ks = Object.keys(presenceRoster);
+  ks.forEach(k=>{
     const p = presenceRoster[k];
     const span = document.createElement('span');
-    span.className = 'rostertag active';
-    span.textContent = (k===myId ? myName+' (ท่าน)' : (p.name||'?'));
+    span.className='rostertag active';
+    const nm = (k===myId ? myName+' (ท่าน)' : (p.name||'?'));
+    const g = p.guild ? `[${p.guild}] ` : '';
+    span.textContent = g+nm;
     rosterEl.appendChild(span);
   });
-  for(let i=keys.length;i<MAX_PLAYERS;i++){
-    const span = document.createElement('span');
-    span.className='rostertag';
-    span.textContent='— ว่าง —';
+  for(let i=ks.length;i<MAX_PLAYERS;i++){
+    const span=document.createElement('span');
+    span.className='rostertag'; span.textContent='— ว่าง —';
     rosterEl.appendChild(span);
   }
 }
+
+function updateMeHUD(){
+  lvText.textContent = `Lv.${myProgress.level}`;
+  guildText.textContent = myGuild ? `[${myGuild}]` : '';
+  const pct = Math.min(100, (myProgress.exp/expNeeded(myProgress.level))*100);
+  expBar.style.width = pct+'%';
+}
+
+// costume modal
+costumeBtn.addEventListener('click', ()=>{
+  costumeList.innerHTML='';
+  COSTUME_DEFS.forEach((c,idx)=>{
+    const unlocked = myProgress.unlockedCostumes.includes(idx);
+    const sw = document.createElement('div');
+    sw.className = 'swatch' + (me.costume===idx?' selected':'');
+    sw.style.background = `linear-gradient(160deg, ${c.accent}, ${c.main})`;
+    sw.style.opacity = unlocked ? '1' : '.35';
+    sw.textContent = unlocked ? c.label : '🔒';
+    if(unlocked){
+      sw.addEventListener('click', async ()=>{
+        me.costume = idx;
+        await trackNow();
+        try{ await sb.from('mmo_players').update({ costume: idx }).eq('name', myName); }catch(e){}
+        costumeModal.style.display='none';
+      });
+    }
+    costumeList.appendChild(sw);
+  });
+  costumeModal.style.display='flex';
+});
+closeCostume.addEventListener('click', ()=>{ costumeModal.style.display='none'; });
 
 // ---------- input ----------
 window.addEventListener('keydown', e=>{
@@ -362,9 +548,8 @@ window.addEventListener('keydown', e=>{
 });
 window.addEventListener('keyup', e=>{ keys[e.key.toLowerCase()]=false; });
 canvas.addEventListener('mousedown', tryAttack);
-
-function bindHold(id, key){
-  const el = document.getElementById(id);
+function bindHold(id,key){
+  const el=document.getElementById(id);
   el.addEventListener('touchstart', e=>{ e.preventDefault(); keys[key]=true; });
   el.addEventListener('touchend', e=>{ keys[key]=false; });
 }
@@ -373,26 +558,25 @@ document.getElementById('tpAttack').addEventListener('touchstart', e=>{ e.preven
 
 function tryAttack(){
   if(!gameActive) return;
-  const now = Date.now();
+  const now=Date.now();
   if(now < lastAttackCooldownUntil) return;
-  lastAttackCooldownUntil = now + ATTACK_COOLDOWN;
-  me.attacking=true; me.attackUntil = now+ATTACK_DURATION; me.attackAt = now;
+  lastAttackCooldownUntil = now+ATTACK_COOLDOWN;
+  me.attacking=true; me.attackUntil=now+ATTACK_DURATION; me.attackAt=now;
   spawnSlash();
   trackNow();
 }
-
 function spawnSlash(){
-  const dir = me.facing;
-  const ox = me.x+dir*26, oy = me.y-40;
-  const c = CLASS_DEFS[myClass];
+  const dir=me.facing;
+  const ox=me.x+dir*26, oy=me.y-40;
+  const c = COSTUME_DEFS[me.costume] || COSTUME_DEFS[0];
   for(let i=0;i<14;i++){
     particles.push({ x:ox,y:oy+(Math.random()-0.5)*26, vx:dir*(3+Math.random()*4), vy:(Math.random()-0.5)*2,
       life:1, decay:0.045+Math.random()*0.02, r:2+Math.random()*3, color:c.accent });
   }
 }
-function spawnDeathBurst(){
-  for(let i=0;i<40;i++){
-    particles.push({ x:bossPos.x, y:bossPos.y, vx:(Math.random()-0.5)*8, vy:(Math.random()-0.5)*8,
+function spawnDeathBurstAt(x,y){
+  for(let i=0;i<36;i++){
+    particles.push({ x,y, vx:(Math.random()-0.5)*8, vy:(Math.random()-0.5)*8,
       life:1, decay:0.02+Math.random()*0.02, r:2+Math.random()*4, color:'#f0cf6a' });
   }
 }
@@ -403,17 +587,17 @@ chatform.addEventListener('submit', async e=>{
   const text = chatInput.value.trim();
   if(!text) return;
   chatInput.value='';
-  me.chatMsg = text; me.chatAt = Date.now();
+  me.chatMsg=text; me.chatAt=Date.now();
   addChatLine(myName, text);
   trackNow();
 });
-function addChatLine(name, text){
+function addChatLine(name,text){
   chatMessages.unshift({name,text});
   chatMessages = chatMessages.slice(0,5);
   chatlogEl.innerHTML = chatMessages.map(m=>`<div><b style="color:#f0cf6a">${escapeHtml(m.name)}:</b> ${escapeHtml(m.text)}</div>`).join('');
 }
-function escapeHtml(s){ return s.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-let seenChatAt = {};
+function escapeHtml(s){ return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+let seenChatAt={};
 
 async function trackNow(){
   if(!channel) return;
@@ -424,35 +608,30 @@ async function trackNow(){
 function loop(ts){
   if(!gameActive) return;
 
-  let dx=0, dy=0;
+  let dx=0,dy=0;
   if(keys['arrowleft']||keys['a']) dx-=MOVE_SPEED;
   if(keys['arrowright']||keys['d']) dx+=MOVE_SPEED;
   if(keys['arrowup']||keys['w']) dy-=MOVE_SPEED;
   if(keys['arrowdown']||keys['s']) dy+=MOVE_SPEED;
-  if(dx!==0){ me.facing = dx>0?1:-1; }
+  if(dx!==0) me.facing = dx>0?1:-1;
   me.x = Math.max(30, Math.min(ARENA_W-30, me.x+dx));
   me.y = Math.max(60, Math.min(ARENA_H-30, me.y+dy));
 
-  const now = Date.now();
+  const now=Date.now();
   if(me.attacking && now>me.attackUntil) me.attacking=false;
-
-  if(ts - lastTrack > TRACK_MS){ lastTrack = ts; trackNow(); }
+  if(ts-lastTrack>TRACK_MS){ lastTrack=ts; trackNow(); }
 
   Object.keys(presenceRoster).forEach(k=>{
     if(k===myId) return;
-    const p = presenceRoster[k];
+    const p=presenceRoster[k];
     if(p && p.chatMsg && p.chatAt && seenChatAt[k]!==p.chatAt){
       seenChatAt[k]=p.chatAt;
       addChatLine(p.name||'?', p.chatMsg);
     }
   });
 
-  if(killsSeen>=0 && boss.kills>killsSeen){
-    statusEl.textContent = 'ปาร์ตี้ปราบอสูรสำเร็จ! กำลังจะมีตัวใหม่เกิดขึ้น...';
-  }
-  killsSeen = boss.kills||0;
-  killsCountEl.textContent = 'ปราบไปแล้ว: ' + (boss.kills||0);
-  bosshpEl.style.width = Math.max(0,(boss.hp/boss.maxHp)*100) + '%';
+  if(roomKillsTotal>killsTotalSeen && killsTotalSeen>=0) statusEl.textContent = `ปาร์ตี้ปราบอสูรไปแล้วรวม ${roomKillsTotal} ตัว`;
+  killsTotalSeen = roomKillsTotal;
 
   particles.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; p.life-=p.decay; });
   particles = particles.filter(p=>p.life>0);
@@ -461,18 +640,17 @@ function loop(ts){
   requestAnimationFrame(loop);
 }
 
-function drawFigure(p, classIdx){
-  const c = CLASS_DEFS[classIdx] || CLASS_DEFS[0];
+function drawFigure(p, costumeIdx){
+  const c = COSTUME_DEFS[costumeIdx] || COSTUME_DEFS[0];
   ctx.save();
   ctx.translate(p.x,p.y);
   ctx.scale(p.facing,1);
 
   ctx.beginPath(); ctx.ellipse(0,6,22,6,0,0,Math.PI*2); ctx.fillStyle='rgba(0,0,0,.4)'; ctx.fill();
-
   ctx.beginPath();
   ctx.moveTo(-13,0); ctx.quadraticCurveTo(-22,-30,-8,-58); ctx.lineTo(8,-58);
   ctx.quadraticCurveTo(24,-30,13,0); ctx.closePath();
-  const grad = ctx.createLinearGradient(0,-58,0,0);
+  const grad=ctx.createLinearGradient(0,-58,0,0);
   grad.addColorStop(0,c.accent); grad.addColorStop(1,c.main);
   ctx.fillStyle=grad; ctx.fill();
   ctx.strokeStyle='rgba(0,0,0,.3)'; ctx.stroke();
@@ -481,7 +659,7 @@ function drawFigure(p, classIdx){
   ctx.beginPath(); ctx.arc(0,-80,3.5,0,Math.PI*2); ctx.fillStyle='#1a1410'; ctx.fill();
 
   if(p.attacking && Date.now()<p.attackUntil){
-    const prog = 1-Math.max(0,(p.attackUntil-Date.now())/ATTACK_DURATION);
+    const prog=1-Math.max(0,(p.attackUntil-Date.now())/ATTACK_DURATION);
     ctx.save();
     ctx.rotate(-0.9+prog*1.8);
     ctx.beginPath(); ctx.moveTo(5,-45); ctx.lineTo(58,-48);
@@ -493,54 +671,55 @@ function drawFigure(p, classIdx){
 
   ctx.save();
   ctx.font='11px "Noto Sans Thai",sans-serif'; ctx.textAlign='center'; ctx.fillStyle='#cfc7ad';
-  ctx.fillText(p.name||'', p.x, p.y-92);
+  const label = (p.guild ? `[${p.guild}] `:'') + (p.name||'');
+  ctx.fillText(label, p.x, p.y-92);
   ctx.restore();
 }
 
-function drawBoss(){
-  if(boss.hp<=0) return;
+function drawMonster(m){
   ctx.save();
-  ctx.translate(bossPos.x, bossPos.y);
-  const pulse = 1 + Math.sin(Date.now()/300)*0.03;
+  ctx.translate(m.x,m.y);
+  if(!m.alive){ ctx.restore(); return; }
+  const pulse = 1+Math.sin(Date.now()/300)*0.03;
   ctx.scale(pulse,pulse);
-  ctx.beginPath(); ctx.ellipse(0,8,60,14,0,0,Math.PI*2); ctx.fillStyle='rgba(0,0,0,.45)'; ctx.fill();
+  ctx.beginPath(); ctx.ellipse(0,8,48,12,0,0,Math.PI*2); ctx.fillStyle='rgba(0,0,0,.45)'; ctx.fill();
   ctx.beginPath();
-  ctx.moveTo(-46,10); ctx.quadraticCurveTo(-60,-50,-10,-78);
-  ctx.quadraticCurveTo(0,-88,10,-78); ctx.quadraticCurveTo(60,-50,46,10);
-  ctx.quadraticCurveTo(0,26,-46,10); ctx.closePath();
-  const g = ctx.createRadialGradient(0,-30,10,0,-30,90);
+  ctx.moveTo(-36,10); ctx.quadraticCurveTo(-48,-40,-8,-62);
+  ctx.quadraticCurveTo(0,-70,8,-62); ctx.quadraticCurveTo(48,-40,36,10);
+  ctx.quadraticCurveTo(0,20,-36,10); ctx.closePath();
+  const g=ctx.createRadialGradient(0,-24,8,0,-24,72);
   g.addColorStop(0,'#3a2a44'); g.addColorStop(1,'#120c16');
   ctx.fillStyle=g; ctx.fill();
-  ctx.beginPath(); ctx.arc(-14,-52,5,0,Math.PI*2); ctx.arc(14,-52,5,0,Math.PI*2);
-  ctx.fillStyle='#ff5a5a'; ctx.shadowColor='#ff5a5a'; ctx.shadowBlur=14; ctx.fill();
+  ctx.beginPath(); ctx.arc(-11,-42,4,0,Math.PI*2); ctx.arc(11,-42,4,0,Math.PI*2);
+  ctx.fillStyle='#ff5a5a'; ctx.shadowColor='#ff5a5a'; ctx.shadowBlur=12; ctx.fill();
   ctx.restore();
 
+  // hp bar above
   ctx.save();
-  ctx.font='13px "Noto Sans Thai",sans-serif'; ctx.textAlign='center'; ctx.fillStyle='#c9bda0';
-  ctx.fillText('妖 อสูรเงา', bossPos.x, bossPos.y-100);
+  const w=60;
+  ctx.translate(m.x-w/2, m.y-84);
+  ctx.fillStyle='rgba(0,0,0,.5)'; ctx.fillRect(0,0,w,6);
+  ctx.fillStyle='#c23b4a'; ctx.fillRect(0,0,w*(m.hp/m.maxHp),6);
   ctx.restore();
 }
 
 function render(){
   ctx.clearRect(0,0,ARENA_W,ARENA_H);
-
   ctx.strokeStyle='rgba(140,160,110,.08)';
-  for(let gx=0; gx<ARENA_W; gx+=40){
-    ctx.beginPath(); ctx.moveTo(gx,0); ctx.lineTo(gx,ARENA_H); ctx.stroke();
-  }
+  for(let gx=0; gx<ARENA_W; gx+=40){ ctx.beginPath(); ctx.moveTo(gx,0); ctx.lineTo(gx,ARENA_H); ctx.stroke(); }
   ctx.fillStyle='rgba(50,60,40,.35)';
   ctx.beginPath();
-  ctx.moveTo(700,60); ctx.lineTo(760,20); ctx.lineTo(820,60); ctx.lineTo(790,60);
-  ctx.lineTo(790,90); ctx.lineTo(730,90); ctx.lineTo(730,60); ctx.closePath(); ctx.fill();
+  ctx.moveTo(760,60); ctx.lineTo(810,20); ctx.lineTo(860,60); ctx.lineTo(835,60);
+  ctx.lineTo(835,90); ctx.lineTo(785,90); ctx.lineTo(785,60); ctx.closePath(); ctx.fill();
 
-  drawBoss();
+  monsters.forEach(drawMonster);
 
   Object.keys(presenceRoster).forEach(k=>{
     if(k===myId) return;
-    const p = presenceRoster[k];
-    if(p) drawFigure(p, p.classIdx||0);
+    const p=presenceRoster[k];
+    if(p) drawFigure(p, p.costume!=null?p.costume:0);
   });
-  drawFigure(me, myClass);
+  drawFigure(me, me.costume);
 
   particles.forEach(p=>{
     ctx.save(); ctx.globalAlpha=Math.max(0,p.life);
