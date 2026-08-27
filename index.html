@@ -3,14 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>刃義 · ยุทธภพ 3D Sword of Justice</title>
+<title>刃義 · ยุทธภพ Sword of Justice 3D Open World</title>
 
 <script>
   window.SUPABASE_URL = "https://mflemycqwksuktvktlko.supabase.co";
   window.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mbGVteWNxd2tzdWt0dmt0bGtvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3OTA1MjksImV4cCI6MjEwMzM2NjUyOX0.8SCV1ZDz3lOulzzh7jONZj73McRwn-duAaaoGC6XTso";
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- โหลดเอนจิน Three.js สำหรับเรนเดอร์ 3D -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
 <style>
@@ -19,14 +18,15 @@
 :root{
   --ink:#0b0806; --paper:#efe6d5;
   --gold:#d4af37; --gold-bright:#fae17d;
-  --panel-bg: rgba(18, 13, 9, 0.92);
+  --crimson:#8b1e2f; --crimson-bright:#e63950;
+  --panel-bg: rgba(18, 13, 9, 0.94);
 }
 *{ box-sizing:border-box; }
 html,body{ margin:0; height:100%; background:#000; color:var(--paper); font-family:'Noto Sans Thai',sans-serif; overflow:hidden; user-select:none; }
 .brush-title{ font-family:'Noto Serif SC','Noto Sans Thai',serif; font-weight:900; }
 #app{ width:100%; height:100%; position:relative; }
 
-#landing{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:radial-gradient(circle,#22150c,#080503); z-index:50; }
+#landing{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:radial-gradient(circle,#24160d,#060403); z-index:100; }
 #landing-box{ display:flex; flex-direction:column; align-items:center; gap:14px; padding:32px; max-width:440px; width:90%; text-align:center; background:var(--panel-bg); border:1px solid #5a452d; border-radius:8px; box-shadow:0 12px 40px rgba(0,0,0,0.9); }
 #landing-box h1{ font-size:2.2em; margin:0; color:var(--gold-bright); text-shadow:0 0 20px rgba(250,225,125,.4); }
 #landing-box .sub{ color:#bfae91; font-size:.9em; margin-top:-8px; }
@@ -42,18 +42,23 @@ button{ cursor:pointer; border:none; font-family:'Noto Sans Thai',sans-serif; fo
 
 #ui-layer{ position:absolute; inset:0; pointer-events:none; display:flex; flex-direction:column; justify-content:space-between; padding:12px; }
 #topbar{ display:flex; align-items:flex-start; justify-content:space-between; pointer-events:auto; }
-#meblock{ width:280px; font-size:.82em; color:#dcd2be; }
+#meblock{ width:300px; font-size:.82em; color:#dcd2be; background:rgba(0,0,0,0.5); padding:8px; border-radius:6px; border:1px solid #4a3822; }
 #meblock .lvline{ display:flex; justify-content:space-between; margin-bottom:4px; font-weight:700; }
-.bar-outer{ width:100%; height:10px; background:#221810; border:1px solid #5a452d; border-radius:4px; overflow:hidden; margin-bottom:4px; }
+.bar-outer{ width:100%; height:8px; background:#221810; border:1px solid #5a452d; border-radius:4px; overflow:hidden; margin-bottom:4px; }
 .bar-hp{ height:100%; background:linear-gradient(90deg,#9e1b2f,#f24962); transition:width .2s; }
 .bar-exp{ height:100%; background:linear-gradient(90deg,var(--gold),var(--gold-bright)); transition:width .3s; }
+.stats-line{ display:flex; justify-content:space-between; font-size:.9em; color:#fae17d; margin-top:2px; }
 
-#roster{ display:flex; gap:6px; flex-wrap:wrap; }
+.top-buttons{ display:flex; gap:8px; }
+.btn-ui{ background:linear-gradient(180deg,#312316,#1b130c); border:1px solid #6b5334; color:var(--gold-bright); font-size:.78em; padding:6px 14px; border-radius:4px; box-shadow:0 4px 10px rgba(0,0,0,0.5); }
+.btn-ui:hover{ filter:brightness(1.2); }
+
+#roster{ display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
 .rostertag{ font-size:.72em; padding:4px 9px; border-radius:4px; border:1px solid #5a452d; color:var(--gold-bright); background:rgba(212,175,55,.1); }
 
 #bottom-ui{ display:flex; flex-direction:column; align-items:center; gap:8px; pointer-events:auto; }
 #skillbar{ display:flex; gap:12px; }
-.skill-btn{ width:60px; height:60px; border-radius:8px; background:linear-gradient(145deg, #2a1f18, #140d09); border:2px solid #6b5334; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--gold-bright); position:relative; overflow:hidden; cursor:pointer; }
+.skill-btn{ width:62px; height:62px; border-radius:8px; background:linear-gradient(145deg, #2a1f18, #140d09); border:2px solid #6b5334; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--gold-bright); position:relative; overflow:hidden; cursor:pointer; }
 .skill-btn .key{ font-size:.7em; color:#a89679; position:absolute; top:2px; left:4px; }
 .skill-btn .name{ font-size:.72em; font-weight:700; margin-top:14px; }
 .skill-btn .cd-overlay{ position:absolute; inset:0; background:rgba(0,0,0,0.7); height:0%; top:0; }
@@ -64,7 +69,19 @@ button{ cursor:pointer; border:none; font-family:'Noto Sans Thai',sans-serif; fo
 #chatlog{ position:absolute; left:16px; bottom:80px; width:260px; max-height:120px; overflow:hidden; font-size:.75em; color:#dcd2be; display:flex; flex-direction:column-reverse; gap:3px; pointer-events:none; }
 
 #room-tag{ position:absolute; top:12px; left:50%; transform:translateX(-50%); font-size:.75em; color:#a39274; background:rgba(0,0,0,.6); padding:4px 14px; border-radius:12px; border:1px solid #4a3822; }
-#toast{ position:absolute; top:60px; left:50%; transform:translateX(-50%); font-size:.88em; color:var(--gold-bright); background:rgba(18,13,9,.92); padding:8px 20px; border-radius:20px; border:1px solid var(--gold); display:none; z-index:60; }
+#toast{ position:absolute; top:60px; left:50%; transform:translateX(-50%); font-size:.88em; color:var(--gold-bright); background:rgba(18,13,9,.94); padding:8px 22px; border-radius:20px; border:1px solid var(--gold); display:none; z-index:70; box-shadow:0 4px 15px rgba(0,0,0,.7); }
+
+/* Modals */
+.modal{ display:none; position:absolute; inset:0; background:rgba(0,0,0,0.85); align-items:center; justify-content:center; z-index:80; pointer-events:auto; }
+.modal-panel{ background:var(--panel-bg); border:1px solid #5a452d; border-radius:8px; padding:24px; max-width:480px; width:92%; text-align:center; box-shadow:0 10px 40px rgba(0,0,0,0.9); }
+.modal-panel h3{ margin:0 0 16px; color:var(--gold-bright); font-size:1.4em; }
+.shop-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-bottom:16px; }
+.shop-item{ background:#1c140e; border:1px solid #4a3822; border-radius:6px; padding:12px; display:flex; flex-direction:column; gap:6px; align-items:center; }
+.shop-item .iname{ font-weight:700; color:#fae17d; font-size:.88em; }
+.shop-item .iprice{ color:#ffd13b; font-size:.8em; }
+.btn-buy{ background:linear-gradient(180deg,#f3d36b,var(--gold)); color:#1a1205; border-radius:3px; padding:4px 12px; font-size:.75em; font-weight:700; width:100%; }
+
+.upgrade-box{ background:#1c140e; border:1px solid #4a3822; border-radius:6px; padding:16px; margin-bottom:16px; font-size:.9em; }
 </style>
 </head>
 <body>
@@ -72,21 +89,21 @@ button{ cursor:pointer; border:none; font-family:'Noto Sans Thai',sans-serif; fo
 
   <div id="landing">
     <div id="landing-box">
-      <div class="brush-title" style="font-size:.85em;letter-spacing:.3em;color:#a89779;">刃 義 3D</div>
-      <h1 class="brush-title">ยุทธภพ 3D</h1>
-      <div class="sub">Sword of Justice · มิติยุทธภพ 3D เต็มรูปแบบ</div>
+      <div class="brush-title" style="font-size:.85em;letter-spacing:.3em;color:#a89779;">刃 義 · 3D</div>
+      <h1 class="brush-title">ยุทธภพเปิด 3D</h1>
+      <div class="sub">Sword of Justice · แผนที่กว้างใหญ่ & ระบบเมืองเต็มรูปแบบ</div>
 
       <div class="field">
         <label>ชื่อจอมยุทธ์</label>
-        <input id="nameInput" maxlength="12" placeholder="เช่น หวงเฟยหง" />
+        <input id="nameInput" maxlength="12" placeholder="เช่น เล่งฮู้ชง" />
       </div>
       <div class="field">
         <label>สำนัก / กิลด์</label>
-        <input id="guildInput" maxlength="14" placeholder="เช่น บัวหิมะ" />
+        <input id="guildInput" maxlength="14" placeholder="เช่น หัวซาน" />
       </div>
       <div class="field">
-        <label>รหัสห้อง</label>
-        <input id="roomInput" maxlength="16" placeholder="เช่น tpe888" />
+        <label>รหัสห้องเมือง</label>
+        <input id="roomInput" maxlength="16" placeholder="เช่น luoyang888" />
       </div>
 
       <button id="joinBtn">ก้าวสู่ยุทธภพ 3D</button>
@@ -103,7 +120,17 @@ button{ cursor:pointer; border:none; font-family:'Noto Sans Thai',sans-serif; fo
           <div class="lvline"><span id="lvText">Lv.1</span><span id="guildText"></span></div>
           <div class="bar-outer"><div class="bar-hp" id="myHpBar" style="width:100%"></div></div>
           <div class="bar-outer"><div class="bar-exp" id="expBar" style="width:0%"></div></div>
+          <div class="stats-line">
+            <span>💰 <span id="moneyText">0</span> ตำลึง</span>
+            <span>⚔️ กระบี่: <span id="swordText">+0</span> (ATK: <span id="atkText">20</span>)</span>
+          </div>
         </div>
+
+        <div class="top-buttons">
+          <button class="btn-ui" id="shopBtn">🏪 ร้านค้าเมือง</button>
+          <button class="btn-ui" id="upgradeBtn">🔨 ตีบวกกระบี่</button>
+        </div>
+
         <div id="roster"></div>
       </div>
 
@@ -111,7 +138,7 @@ button{ cursor:pointer; border:none; font-family:'Noto Sans Thai',sans-serif; fo
         <div id="skillbar">
           <div class="skill-btn" id="btnAtk">
             <span class="key">Space</span>
-            <span class="name">ฟันดาบ</span>
+            <span class="name">เพลงดาบ</span>
             <div class="cd-overlay" id="cdAtk"></div>
           </div>
           <div class="skill-btn" id="btnQ">
@@ -140,8 +167,52 @@ button{ cursor:pointer; border:none; font-family:'Noto Sans Thai',sans-serif; fo
       <div id="chatlog"></div>
     </div>
 
-    <!-- 3D Canvas Rendering Target -->
+    <!-- 3D Canvas Target -->
     <div id="canvas3d"></div>
+  </div>
+
+  <!-- Shop Modal -->
+  <div class="modal" id="shopModal">
+    <div class="modal-panel">
+      <h3 class="brush-title">ร้านค้ายุทธภพ</h3>
+      <div class="shop-grid">
+        <div class="shop-item">
+          <span class="iname">🧪 ยาฟื้นพลัง (+50 HP)</span>
+          <span class="iprice">50 ตำลึง</span>
+          <button class="btn-buy" onclick="buyPotion()">ซื้อ</button>
+        </div>
+        <div class="shop-item">
+          <span class="iname">🥋 ชุดคลุมหิมะขาว</span>
+          <span class="iprice">200 ตำลึง</span>
+          <button class="btn-buy" onclick="buyCostume(1)">ซื้อ</button>
+        </div>
+        <div class="shop-item">
+          <span class="iname">🥋 ชุดอัคคีเพลิง</span>
+          <span class="iprice">300 ตำลึง</span>
+          <button class="btn-buy" onclick="buyCostume(2)">ซื้อ</button>
+        </div>
+        <div class="shop-item">
+          <span class="iname">🥋 ชุดมังกรทองคำ</span>
+          <span class="iprice">500 ตำลึง</span>
+          <button class="btn-buy" onclick="buyCostume(3)">ซื้อ</button>
+        </div>
+      </div>
+      <button class="btn-ui" onclick="document.getElementById('shopModal').style.display='none'">ปิดหน้าร้าน</button>
+    </div>
+  </div>
+
+  <!-- Upgrade Modal -->
+  <div class="modal" id="upgradeModal">
+    <div class="modal-panel">
+      <h3 class="brush-title">ช่างตีเหล็กหลวง</h3>
+      <div class="upgrade-box">
+        <p>ระดับปัจจุบัน: <b style="color:var(--gold-bright)" id="upgCur">กระบี่ +0</b></p>
+        <p>พลังโจมตี: <b style="color:#ff6b6b" id="upgAtk">20 ATK</b> ➜ <b style="color:#68d391" id="upgNextAtk">28 ATK</b></p>
+        <p>ค่าใช้จ่าย: <b style="color:#ffd13b" id="upgCost">100 ตำลึง</b></p>
+      </div>
+      <button class="btn-buy" style="padding:10px;font-size:1em;margin-bottom:8px;" onclick="upgradeSword()">ตีบวกกระบี่</button>
+      <button class="btn-ui" onclick="document.getElementById('upgradeModal').style.display='none'">ปิด</button>
+    </div>
   </div>
 
 </div>
@@ -150,24 +221,28 @@ button{ cursor:pointer; border:none; font-family:'Noto Sans Thai',sans-serif; fo
 (function(){
 "use strict";
 
-const PLAYER_MAX_HP = 150;
-const MONSTER_MAX_HP = 250;
-const EXP_PER_KILL = 50;
-const MOVE_SPEED = 0.22;
+const PLAYER_MAX_HP = 160;
+const MONSTER_MAX_HP = 260;
+const MOVE_SPEED = 0.26;
 
 let sb = null, channel = null;
 let myName = "", roomCode = "", myGuild = "", myId = "";
 let gameActive = false, isHost = false;
 let keys = {};
 let otherPlayers = {};
-let myProgress = { level: 1, exp: 0 };
 let lastSyncTime = 0;
 
+// Progress
+let myProgress = {
+  level: 1, exp: 0, money: 100, swordPlus: 0, costume: 0,
+  unlockedCostumes: [0]
+};
+
 let cooldowns = {
-  atk: { cd: 350, until: 0, dmg: 20, range: 4.5 },
-  Q: { cd: 1800, until: 0, dmg: 40, range: 8.0 },
-  E: { cd: 4000, until: 0, dmg: 60, range: 9.0 },
-  R: { cd: 7000, until: 0, dmg: 95, range: 11.0 }
+  atk: { cd: 350, until: 0, mult: 1.0, range: 4.8 },
+  Q: { cd: 2000, until: 0, mult: 2.0, range: 9.0 },
+  E: { cd: 4500, until: 0, mult: 3.2, range: 10.5 },
+  R: { cd: 7500, until: 0, mult: 4.8, range: 13.0 }
 };
 
 let me = {
@@ -176,16 +251,20 @@ let me = {
   isDead: false, respawnAt: 0, joinedAt: 0
 };
 
-// ข้อมูลมอนสเตอร์ 3D
-let monsters = [
-  { id: 'm1', x: 14, z: -8, hp: MONSTER_MAX_HP, maxHp: MONSTER_MAX_HP, alive: true, mesh: null },
-  { id: 'm2', x: 14, z: 8, hp: MONSTER_MAX_HP, maxHp: MONSTER_MAX_HP, alive: true, mesh: null }
+// จุดเกิดมอนสเตอร์รอบแผนที่
+const MONSTER_SPAWNS = [
+  { id: 'm1', x: 28, z: -25, hp: MONSTER_MAX_HP, maxHp: MONSTER_MAX_HP, alive: true, mesh: null, isBoss: false },
+  { id: 'm2', x: 34, z: 25, hp: MONSTER_MAX_HP, maxHp: MONSTER_MAX_HP, alive: true, mesh: null, isBoss: false },
+  { id: 'm3', x: -35, z: 28, hp: MONSTER_MAX_HP, maxHp: MONSTER_MAX_HP, alive: true, mesh: null, isBoss: false },
+  { id: 'boss1', x: 45, z: 0, hp: 600, maxHp: 600, alive: true, mesh: null, isBoss: true } // จอมอสูรหิน
 ];
+let monsters = JSON.parse(JSON.stringify(MONSTER_SPAWNS));
 
-// Three.js Core Variables
+// 3D Variables
 let scene, camera, renderer;
 let myHeroMesh = null;
 let vfxParticles = [];
+let cherryPetals = [];
 
 const landing = document.getElementById('landing');
 const game3d = document.getElementById('game3d');
@@ -202,10 +281,15 @@ const lvText = document.getElementById('lvText');
 const guildText = document.getElementById('guildText');
 const myHpBar = document.getElementById('myHpBar');
 const expBar = document.getElementById('expBar');
+const moneyText = document.getElementById('moneyText');
+const swordText = document.getElementById('swordText');
+const atkText = document.getElementById('atkText');
 const toastEl = document.getElementById('toast');
 
 function genId(){ return 'p_' + Math.random().toString(36).slice(2,8); }
-function expNeeded(lvl){ return 100 * lvl; }
+function expNeeded(lvl){ return 120 * lvl; }
+function getBaseAtk(){ return 20 + (myProgress.swordPlus * 8); }
+
 function showToast(msg){
   toastEl.textContent = msg;
   toastEl.style.display = 'block';
@@ -213,15 +297,15 @@ function showToast(msg){
   showToast._t = setTimeout(()=>{ toastEl.style.display='none'; }, 3000);
 }
 
-// ---------------- Init 3D Scene ----------------
+// ---------------- Initialize 3D Open World ----------------
 function init3D(){
   const container = document.getElementById('canvas3d');
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x0e0b08);
-  scene.fog = new THREE.FogExp2(0x0e0b08, 0.025);
+  scene.background = new THREE.Color(0x0e0906);
+  scene.fog = new THREE.FogExp2(0x0e0906, 0.015);
 
   camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-  camera.position.set(0, 22, 24);
+  camera.position.set(0, 24, 26);
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -229,145 +313,247 @@ function init3D(){
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   container.appendChild(renderer.domElement);
 
-  // แสงไฟ
-  const ambientLight = new THREE.AmbientLight(0xfff0dd, 0.7);
+  // Lighting
+  const ambientLight = new THREE.AmbientLight(0xffecd0, 0.65);
   scene.add(ambientLight);
 
-  const dirLight = new THREE.DirectionalLight(0xffecd0, 1.2);
-  dirLight.position.set(20, 40, 20);
-  dirLight.castShadow = true;
-  dirLight.shadow.mapSize.width = 1024;
-  dirLight.shadow.mapSize.height = 1024;
-  scene.add(dirLight);
+  const sun = new THREE.DirectionalLight(0xffe2b8, 1.4);
+  sun.position.set(40, 60, 30);
+  sun.castShadow = true;
+  sun.shadow.mapSize.width = 2048;
+  sun.shadow.mapSize.height = 2048;
+  scene.add(sun);
 
-  // พื้นลานประลองหิน
-  const floorGeo = new THREE.PlaneGeometry(60, 60);
-  const floorMat = new THREE.MeshStandardMaterial({ color: 0x241a14, roughness: 0.8 });
-  const floor = new THREE.Mesh(floorGeo, floorMat);
-  floor.rotation.x = -Math.PI / 2;
-  floor.receiveShadow = true;
-  scene.add(floor);
+  // พื้นดิน Open World ขนาดใหญ่ 160 x 160 เมตร
+  const groundGeo = new THREE.PlaneGeometry(160, 160);
+  const groundMat = new THREE.MeshStandardMaterial({ color: 0x1f1712, roughness: 0.85 });
+  const ground = new THREE.Mesh(groundGeo, groundMat);
+  ground.rotation.x = -Math.PI / 2;
+  ground.receiveShadow = true;
+  scene.add(ground);
 
-  // เส้นตารางลานหิน
-  const grid = new THREE.GridHelper(60, 20, 0xd4af37, 0x3d2c1f);
-  grid.position.y = 0.02;
+  // ลานกระเบื้องเมืองหลวง
+  const cityFloorGeo = new THREE.PlaneGeometry(50, 50);
+  const cityFloorMat = new THREE.MeshStandardMaterial({ color: 0x2e2219, roughness: 0.6 });
+  const cityFloor = new THREE.Mesh(cityFloorGeo, cityFloorMat);
+  cityFloor.rotation.x = -Math.PI / 2;
+  cityFloor.position.y = 0.02;
+  cityFloor.receiveShadow = true;
+  scene.add(cityFloor);
+
+  const grid = new THREE.GridHelper(50, 25, 0xd4af37, 0x423122);
+  grid.position.y = 0.03;
   scene.add(grid);
 
-  // ซุ้มประตูจีน & กำแพง
-  createChineseGate(-20, 0);
-  createChineseGate(20, 0);
-
-  // เสาโคมไฟโบราณ
-  createLanternPost(-12, -12);
-  createLanternPost(-12, 12);
-  createLanternPost(12, -12);
-  createLanternPost(12, 12);
+  // สร้างสิ่งก่อสร้างรอบเมือง
+  buildLuoyangCity();
 
   // สร้างโมเดลตัวละครของตัวเอง
-  myHeroMesh = createHero3D(0xd4af37);
-  scene.add(myHeroMesh);
+  updateMyHeroMesh();
 
   // สร้างมอนสเตอร์ 3D
   monsters.forEach(m => {
-    m.mesh = createMonster3D();
+    m.mesh = createMonster3D(m.isBoss);
     m.mesh.position.set(m.x, 0, m.z);
     scene.add(m.mesh);
   });
 
+  // สร้างระบบกลีบดอกท้อปลิว 3D
+  createFallingPetals();
+
   window.addEventListener('resize', onWindowResize);
 }
 
-function createChineseGate(x, z){
-  const gateGroup = new THREE.Group();
-  const pillarMat = new THREE.MeshStandardMaterial({ color: 0x6e1b24 });
-  const goldMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.6, roughness: 0.3 });
+function buildLuoyangCity(){
+  // 1. พระราชวัง/โรงเตี๊ยมใหญ่
+  createPalaceBuilding(0, -20);
 
-  // เสาสองต้น
-  const p1 = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 8), pillarMat);
-  p1.position.set(-3, 4, 0);
-  p1.castShadow = true;
+  // 2. ซุ้มประตูเมือง 4 ทิศ
+  createGrandGate(0, 25, 0);
+  createGrandGate(-25, 0, Math.PI/2);
+  createGrandGate(25, 0, Math.PI/2);
+
+  // 3. ป่าไผ่และต้นท้อรอบเมือง
+  createBambooForest(-45, -35);
+  createBambooForest(-45, 35);
+  createCherryTree(-12, 10);
+  createCherryTree(12, 10);
+  createCherryTree(-12, -10);
+  createCherryTree(12, -10);
+
+  // 4. โคมไฟเมืองหลวง
+  [ [-10,-10], [10,-10], [-10,10], [10,10], [0,18], [-18,0], [18,0] ].forEach(([lx, lz]) => {
+    createLanternPost(lx, lz);
+  });
+}
+
+function createPalaceBuilding(x, z){
+  const group = new THREE.Group();
+  const woodMat = new THREE.MeshStandardMaterial({ color: 0x3d1c14, roughness: 0.7 });
+  const roofMat = new THREE.MeshStandardMaterial({ color: 0x7a1c25, roughness: 0.4 });
+  const goldMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.6 });
+
+  // ฐานอาคาร
+  const base = new THREE.Mesh(new THREE.BoxGeometry(22, 5, 12), woodMat);
+  base.position.y = 2.5;
+  base.castShadow = true;
+  group.add(base);
+
+  // หลังคาชั้น 1
+  const roof1 = new THREE.Mesh(new THREE.ConeGeometry(15, 3, 4), roofMat);
+  roof1.position.y = 6.5;
+  roof1.rotation.y = Math.PI/4;
+  group.add(roof1);
+
+  // หลังคาชั้น 2
+  const roof2 = new THREE.Mesh(new THREE.ConeGeometry(11, 2.5, 4), goldMat);
+  roof2.position.y = 9;
+  roof2.rotation.y = Math.PI/4;
+  group.add(roof2);
+
+  group.position.set(x, 0, z);
+  scene.add(group);
+}
+
+function createGrandGate(x, z, rot){
+  const group = new THREE.Group();
+  const pMat = new THREE.MeshStandardMaterial({ color: 0x5a181e });
+  const rMat = new THREE.MeshStandardMaterial({ color: 0xd4af37 });
+
+  const p1 = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 10), pMat);
+  p1.position.set(-4, 5, 0);
   const p2 = p1.clone();
-  p2.position.set(3, 4, 0);
-  gateGroup.add(p1, p2);
+  p2.position.set(4, 5, 0);
+  group.add(p1, p2);
 
-  // คานและหลังคา
-  const beam = new THREE.Mesh(new THREE.BoxGeometry(8, 0.8, 1.2), pillarMat);
-  beam.position.set(0, 7.5, 0);
-  const roof = new THREE.Mesh(new THREE.ConeGeometry(5.5, 2, 4), goldMat);
-  roof.position.set(0, 9, 0);
-  roof.rotation.y = Math.PI / 4;
-  gateGroup.add(beam, roof);
+  const beam = new THREE.Mesh(new THREE.BoxGeometry(11, 1, 1.5), pMat);
+  beam.position.y = 9.5;
+  const roof = new THREE.Mesh(new THREE.ConeGeometry(7.5, 2.5, 4), rMat);
+  roof.position.y = 11.5;
+  roof.rotation.y = Math.PI/4;
+  group.add(beam, roof);
 
-  gateGroup.position.set(x, 0, z);
-  scene.add(gateGroup);
+  group.position.set(x, 0, z);
+  group.rotation.y = rot;
+  scene.add(group);
+}
+
+function createCherryTree(x, z){
+  const group = new THREE.Group();
+  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.5, 5), new THREE.MeshStandardMaterial({ color: 0x3d2314 }));
+  trunk.position.y = 2.5;
+
+  const leaves = new THREE.Mesh(new THREE.DodecahedronGeometry(2.4), new THREE.MeshStandardMaterial({ color: 0xffa8b8 }));
+  leaves.position.y = 5.2;
+
+  group.add(trunk, leaves);
+  group.position.set(x, 0, z);
+  scene.add(group);
+}
+
+function createBambooForest(startX, startZ){
+  const bambooMat = new THREE.MeshStandardMaterial({ color: 0x2e5c38, roughness: 0.5 });
+  for(let i=0; i<16; i++){
+    const b = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 7 + Math.random()*3), bambooMat);
+    b.position.set(startX + (Math.random()-0.5)*18, 4, startZ + (Math.random()-0.5)*18);
+    scene.add(b);
+  }
 }
 
 function createLanternPost(x, z){
   const group = new THREE.Group();
-  const post = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.2, 5), new THREE.MeshStandardMaterial({ color: 0x3d2817 }));
-  post.position.y = 2.5;
+  const post = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.18, 4.5), new THREE.MeshStandardMaterial({ color: 0x2b1c11 }));
+  post.position.y = 2.25;
 
-  const lantern = new THREE.Mesh(new THREE.SphereGeometry(0.6, 12, 12), new THREE.MeshBasicMaterial({ color: 0xff3b30 }));
-  lantern.position.set(0, 4.5, 0);
+  const lantern = new THREE.Mesh(new THREE.SphereGeometry(0.55, 10, 10), new THREE.MeshBasicMaterial({ color: 0xff3b30 }));
+  lantern.position.y = 4.2;
 
-  const light = new THREE.PointLight(0xff5533, 1.2, 10);
-  light.position.set(0, 4.5, 0);
+  const light = new THREE.PointLight(0xff5533, 1.0, 9);
+  light.position.y = 4.2;
 
   group.add(post, lantern, light);
   group.position.set(x, 0, z);
   scene.add(group);
 }
 
-// ---------------- 3D Hero Model ----------------
-function createHero3D(robeColor = 0xd4af37){
-  const hero = new THREE.Group();
-  const robeMat = new THREE.MeshStandardMaterial({ color: robeColor, roughness: 0.5 });
-  const skinMat = new THREE.MeshStandardMaterial({ color: 0xfce5cd });
-  const hatMat = new THREE.MeshStandardMaterial({ color: 0xc5a059, roughness: 0.8 });
-  const swordMat = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.8 });
+function createFallingPetals(){
+  const pGeo = new THREE.PlaneGeometry(0.2, 0.2);
+  const pMat = new THREE.MeshBasicMaterial({ color: 0xffb7c5, side: THREE.DoubleSide });
+  for(let i=0; i<60; i++){
+    const petal = new THREE.Mesh(pGeo, pMat);
+    petal.position.set((Math.random()-0.5)*80, Math.random()*15, (Math.random()-0.5)*80);
+    petal.userData = { vy: 0.03 + Math.random()*0.04, vx: 0.02 + Math.random()*0.02 };
+    scene.add(petal);
+    cherryPetals.push(petal);
+  }
+}
 
-  // ลำตัวชุดจอมยุทธ์
-  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.7, 1.6, 12), robeMat);
+// ---------------- 3D Hero Model ----------------
+const COSTUME_COLORS = [0xd4af37, 0xe2e8f0, 0xe63950, 0xf6e05e];
+
+function createHero3D(costumeIdx = 0){
+  const hero = new THREE.Group();
+  const cColor = COSTUME_COLORS[costumeIdx] || 0xd4af37;
+
+  const robeMat = new THREE.MeshStandardMaterial({ color: cColor, roughness: 0.4 });
+  const skinMat = new THREE.MeshStandardMaterial({ color: 0xfce5cd });
+  const hatMat = new THREE.MeshStandardMaterial({ color: 0xbfa15f, roughness: 0.8 });
+  const swordMat = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.9 });
+
+  // ลำตัวชุดจอมยุทธ์ Hanfu
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.7, 1.7, 12), robeMat);
   body.position.y = 1.0;
   body.castShadow = true;
   hero.add(body);
 
+  // ผ้าคลุมหลัง
+  const cape = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.5, 0.1), new THREE.MeshStandardMaterial({ color: 0x5a181e }));
+  cape.position.set(0, 1.0, -0.42);
+  hero.add(cape);
+
   // ศีรษะ
   const head = new THREE.Mesh(new THREE.SphereGeometry(0.35, 16, 16), skinMat);
-  head.position.y = 2.0;
+  head.position.y = 2.05;
   hero.add(head);
 
   // หมวกงอบไม้ไผ่
-  const hat = new THREE.Mesh(new THREE.ConeGeometry(0.9, 0.35, 16), hatMat);
-  hat.position.y = 2.3;
+  const hat = new THREE.Mesh(new THREE.ConeGeometry(0.95, 0.35, 16), hatMat);
+  hat.position.y = 2.38;
   hero.add(hat);
 
-  // กระบี่สะพายหลัง
-  const sword = new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.6, 0.2), swordMat);
-  sword.position.set(0.3, 1.3, -0.4);
+  // กระบี่ยุทธภพ
+  const sword = new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.8, 0.22), swordMat);
+  sword.position.set(0.32, 1.3, -0.45);
   sword.rotation.z = Math.PI / 6;
   hero.add(sword);
 
   return hero;
 }
 
-// ---------------- 3D Monster Model ----------------
-function createMonster3D(){
-  const mon = new THREE.Group();
-  const bodyMat = new THREE.MeshStandardMaterial({ color: 0x4a1843, roughness: 0.6 });
-  const eyeMat = new THREE.MeshBasicMaterial({ color: 0xff2233 });
+function updateMyHeroMesh(){
+  if(myHeroMesh) scene.remove(myHeroMesh);
+  myHeroMesh = createHero3D(myProgress.costume);
+  scene.add(myHeroMesh);
+}
 
-  // หินโกเลมอสูร
-  const body = new THREE.Mesh(new THREE.DodecahedronGeometry(1.2), bodyMat);
-  body.position.y = 1.2;
+// ---------------- 3D Monster Model ----------------
+function createMonster3D(isBoss = false){
+  const mon = new THREE.Group();
+  const scale = isBoss ? 1.8 : 1.0;
+
+  const bodyMat = new THREE.MeshStandardMaterial({ color: isBoss ? 0x2d182e : 0x4a1843, roughness: 0.5 });
+  const eyeMat = new THREE.MeshBasicMaterial({ color: isBoss ? 0xffbb00 : 0xff2233 });
+
+  const body = new THREE.Mesh(new THREE.DodecahedronGeometry(1.2 * scale), bodyMat);
+  body.position.y = 1.2 * scale;
   body.castShadow = true;
   mon.add(body);
 
-  // ดวงตาสีแดง
-  const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 8), eyeMat);
-  eyeL.position.set(-0.35, 1.4, 0.95);
+  // ดวงตาเรืองแสง
+  const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.18 * scale, 8, 8), eyeMat);
+  eyeL.position.set(-0.35 * scale, 1.4 * scale, 0.95 * scale);
   const eyeR = eyeL.clone();
-  eyeR.position.set(0.35, 1.4, 0.95);
+  eyeR.position.set(0.35 * scale, 1.4 * scale, 0.95 * scale);
   mon.add(eyeL, eyeR);
 
   return mon;
@@ -379,7 +565,7 @@ function onWindowResize(){
   renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
-// ---------------- Realtime Networking ----------------
+// ---------------- Networking & Database ----------------
 async function joinRoom(){
   const nm = nameInput.value.trim();
   const rc = roomInput.value.trim().toLowerCase().replace(/\s+/g,'');
@@ -388,7 +574,7 @@ async function joinRoom(){
 
   myName = nm; roomCode = rc; myGuild = gd; myId = genId();
   me.id = myId;
-  joinBtn.disabled = true; joinBtn.textContent = 'กำลังเชื่อมต่อยุทธภพ 3D...';
+  joinBtn.disabled = true; joinBtn.textContent = 'กำลังเชื่อมต่อยุทธภพ...';
 
   try{
     sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
@@ -397,14 +583,21 @@ async function joinRoom(){
     if(prow){
       myProgress.level = prow.level || 1;
       myProgress.exp = prow.exp || 0;
+      myProgress.money = prow.money != null ? prow.money : 100;
+      myProgress.swordPlus = prow.sword_plus != null ? prow.sword_plus : 0;
+      myProgress.costume = prow.costume != null ? prow.costume : 0;
+      myProgress.unlockedCostumes = prow.unlocked_costumes || [0];
     } else {
-      myProgress = { level: 1, exp: 0 };
-      await sb.from('mmo_players').insert({ name: myName, level: 1, exp: 0, guild: myGuild });
+      myProgress = { level: 1, exp: 0, money: 100, swordPlus: 0, costume: 0, unlockedCostumes: [0] };
+      await sb.from('mmo_players').insert({
+        name: myName, level: 1, exp: 0, guild: myGuild,
+        money: 100, sword_plus: 0, costume: 0, unlocked_costumes: [0]
+      });
     }
 
     me.joinedAt = Date.now();
 
-    const channelName = 'room3d_' + roomCode;
+    const channelName = 'room3d_ow_' + roomCode;
     channel = sb.channel(channelName, {
       config: { broadcast: { ack: false, self: false }, presence: { key: myId } }
     });
@@ -412,7 +605,7 @@ async function joinRoom(){
     channel.on('broadcast', { event: 'pos' }, ({ payload }) => {
       if(payload && payload.id && payload.id !== myId){
         if(!otherPlayers[payload.id]){
-          const mesh = createHero3D(0xe63950);
+          const mesh = createHero3D(payload.costume || 0);
           scene.add(mesh);
           otherPlayers[payload.id] = { ...payload, mesh };
         } else {
@@ -430,7 +623,9 @@ async function joinRoom(){
     });
 
     channel.on('broadcast', { event: 'reward' }, ({ payload }) => {
-      if(payload && payload.targetName === myName) gainExp(payload.exp, payload.sourceName);
+      if(payload && payload.targetName === myName){
+        gainRewards(payload.exp, payload.money, payload.sourceName);
+      }
     });
 
     channel.on('presence', { event: 'sync' }, () => {
@@ -459,7 +654,7 @@ async function joinRoom(){
         channel.track({ name: myName, guild: myGuild, joinedAt: me.joinedAt });
         landing.style.display = 'none';
         game3d.style.display = 'block';
-        roomTag.textContent = `ลานประลอง 3D: ${roomCode}`;
+        roomTag.textContent = `เมืองลั่วหยาง: ${roomCode}`;
         init3D();
         updateMeHUD();
         gameActive = true;
@@ -473,7 +668,7 @@ async function joinRoom(){
   }
 }
 
-// ---------------- สกิล 3D Effects ----------------
+// ---------------- Skills & Combat ----------------
 function castSkill(k){
   if(!gameActive || me.isDead) return;
   const sk = cooldowns[k];
@@ -483,15 +678,15 @@ function castSkill(k){
   sk.until = now + sk.cd;
   triggerSkillVisuals3D(k, me.x, me.z);
 
-  const payload = { id: myId, name: myName, x: me.x, z: me.z, skill: k, dmg: sk.dmg, range: sk.range };
+  const totalDmg = Math.round(getBaseAtk() * sk.mult);
+  const payload = { id: myId, name: myName, x: me.x, z: me.z, skill: k, dmg: totalDmg, range: sk.range };
   if(channel) channel.send({ type: 'broadcast', event: 'skill', payload });
   if(isHost) checkSkillHitMonster(payload);
 }
 
 function triggerSkillVisuals3D(skill, x, z){
   if(skill === 'atk' || skill === 'Q'){
-    // วงแหวนคลื่นดาบฟัน
-    const ringGeo = new THREE.RingGeometry(0.5, skill==='Q'?3.5:2.0, 32);
+    const ringGeo = new THREE.RingGeometry(0.5, skill==='Q'?4.5:2.5, 32);
     const ringMat = new THREE.MeshBasicMaterial({ color: skill==='Q'?0xfae17d:0xffffff, side: THREE.DoubleSide, transparent: true, opacity: 0.9 });
     const ring = new THREE.Mesh(ringGeo, ringMat);
     ring.rotation.x = -Math.PI / 2;
@@ -499,30 +694,28 @@ function triggerSkillVisuals3D(skill, x, z){
     scene.add(ring);
     vfxParticles.push({ mesh: ring, life: 1.0, decay: 0.05, scaleUp: true });
   } else if(skill === 'E'){
-    // หมื่นกระบี่แสงตกลงมาจากฟ้า
-    for(let i=0; i<8; i++){
+    for(let i=0; i<10; i++){
       setTimeout(()=>{
-        const sw = new THREE.Mesh(new THREE.BoxGeometry(0.1, 2.2, 0.3), new THREE.MeshBasicMaterial({ color: 0x48bb78 }));
-        const rx = x + (Math.random()-0.5)*7;
-        const rz = z + (Math.random()-0.5)*7;
-        sw.position.set(rx, 10, rz);
+        const sw = new THREE.Mesh(new THREE.BoxGeometry(0.12, 2.5, 0.35), new THREE.MeshBasicMaterial({ color: 0x48bb78 }));
+        const rx = x + (Math.random()-0.5)*9;
+        const rz = z + (Math.random()-0.5)*9;
+        sw.position.set(rx, 12, rz);
         scene.add(sw);
-        vfxParticles.push({ mesh: sw, vy: -0.6, life: 1.0, decay: 0.03 });
-      }, i * 40);
+        vfxParticles.push({ mesh: sw, vy: -0.7, life: 1.0, decay: 0.03 });
+      }, i * 35);
     }
   } else if(skill === 'R'){
-    // ปราณเพลิงระเบิดรอบทิศ
-    const blast = new THREE.Mesh(new THREE.SphereGeometry(1.5, 16, 16), new THREE.MeshBasicMaterial({ color: 0xff3344, wireframe: true }));
+    const blast = new THREE.Mesh(new THREE.SphereGeometry(1.6, 16, 16), new THREE.MeshBasicMaterial({ color: 0xff3344, wireframe: true }));
     blast.position.set(x, 1.2, z);
     scene.add(blast);
-    vfxParticles.push({ mesh: blast, life: 1.0, decay: 0.03, scaleSpeed: 0.35 });
+    vfxParticles.push({ mesh: blast, life: 1.0, decay: 0.03, scaleSpeed: 0.45 });
   }
 }
 
 function checkSkillHitMe(atk){
   if(me.isDead || !atk) return;
   const dist = Math.hypot((atk.x||0) - me.x, (atk.z||0) - me.z);
-  if(dist < (atk.range || 4.5)){
+  if(dist < (atk.range || 4.8)){
     me.hp = Math.max(0, me.hp - (atk.dmg || 20));
     updateMeHUD();
     if(me.hp <= 0){
@@ -530,7 +723,7 @@ function checkSkillHitMe(atk){
       me.respawnAt = Date.now() + 3500;
       showToast(`ท่านพ่ายแพ้ให้กับ [${atk.name}] !`);
       if(channel){
-        channel.send({ type: 'broadcast', event: 'reward', payload: { targetName: atk.name, exp: EXP_PER_KILL*2, sourceName: myName } });
+        channel.send({ type: 'broadcast', event: 'reward', payload: { targetName: atk.name, exp: 60, money: 30, sourceName: myName } });
       }
     }
   }
@@ -541,35 +734,102 @@ function checkSkillHitMonster(atk){
   monsters.forEach(m => {
     if(!m.alive) return;
     const dist = Math.hypot((atk.x||0) - m.x, (atk.z||0) - m.z);
-    if(dist < (atk.range || 4.5)){
+    if(dist < (atk.range || 4.8)){
       m.hp = Math.max(0, m.hp - (atk.dmg || 20));
       if(m.hp <= 0 && m.alive){
         m.alive = false;
         m.mesh.visible = false;
-        if(channel) channel.send({ type: 'broadcast', event: 'reward', payload: { targetName: atk.name, exp: EXP_PER_KILL, sourceName: 'อสูร 3D' } });
-        if(atk.name === myName) gainExp(EXP_PER_KILL, 'อสูร 3D');
+        const rewardExp = m.isBoss ? 200 : 50;
+        const rewardMoney = m.isBoss ? 150 : 25;
+
+        if(channel) channel.send({ type: 'broadcast', event: 'reward', payload: { targetName: atk.name, exp: rewardExp, money: rewardMoney, sourceName: m.isBoss ? 'จอมอสูรหิน' : 'อสูร' } });
+        if(atk.name === myName) gainRewards(rewardExp, rewardMoney, m.isBoss ? 'จอมอสูรหิน' : 'อสูร');
 
         setTimeout(()=>{
-          m.hp = MONSTER_MAX_HP;
+          m.hp = m.maxHp;
           m.alive = true;
           m.mesh.visible = true;
-        }, 5000);
+        }, m.isBoss ? 12000 : 6000);
       }
     }
   });
 }
 
-async function gainExp(amt, src){
-  myProgress.exp += amt;
-  showToast(`+${amt} EXP (${src})`);
+async function gainRewards(expAmt, moneyAmt, src){
+  myProgress.exp += expAmt;
+  myProgress.money += moneyAmt;
+  showToast(`+${expAmt} EXP | +${moneyAmt} ตำลึง (${src})`);
+
   while(myProgress.exp >= expNeeded(myProgress.level)){
     myProgress.exp -= expNeeded(myProgress.level);
     myProgress.level += 1;
-    showToast(`🌟 สำเร็จขั้นบรรลุ Lv.${myProgress.level} 🌟`);
+    showToast(`🌟 บรรลุวิชา! เลเวลอัปเป็น Lv.${myProgress.level} 🌟`);
   }
   updateMeHUD();
-  await sb.from('mmo_players').update({ exp: myProgress.exp, level: myProgress.level }).eq('name', myName);
+  await sb.from('mmo_players').update({
+    exp: myProgress.exp, level: myProgress.level, money: myProgress.money
+  }).eq('name', myName);
 }
+
+// ---------------- Shop & Upgrade System ----------------
+window.buyPotion = async function(){
+  if(myProgress.money < 50){ showToast('ตำลึงไม่พอ!'); return; }
+  myProgress.money -= 50;
+  me.hp = Math.min(me.maxHp, me.hp + 50);
+  updateMeHUD();
+  showToast('ดื่มยาฟื้นพลัง +50 HP เรียบร้อย!');
+  await sb.from('mmo_players').update({ money: myProgress.money }).eq('name', myName);
+};
+
+window.buyCostume = async function(idx){
+  const costs = [0, 200, 300, 500];
+  const cost = costs[idx];
+  if(myProgress.unlockedCostumes.includes(idx)){
+    myProgress.costume = idx;
+    updateMyHeroMesh();
+    showToast('เปลี่ยนชุดยุทธภพเรียบร้อย!');
+    await sb.from('mmo_players').update({ costume: idx }).eq('name', myName);
+    return;
+  }
+  if(myProgress.money < cost){ showToast(`ตำลึงไม่พอ! ต้องการ ${cost} ตำลึง`); return; }
+  myProgress.money -= cost;
+  myProgress.unlockedCostumes.push(idx);
+  myProgress.costume = idx;
+  updateMyHeroMesh();
+  updateMeHUD();
+  showToast('ปลดล็อกและสวมใส่ชุดใหม่แล้ว!');
+  await sb.from('mmo_players').update({
+    money: myProgress.money, costume: idx, unlocked_costumes: myProgress.unlockedCostumes
+  }).eq('name', myName);
+};
+
+window.upgradeSword = async function(){
+  const cost = 100 + (myProgress.swordPlus * 50);
+  if(myProgress.money < cost){ showToast(`ตำลึงไม่พอ! ต้องการ ${cost} ตำลึง`); return; }
+  myProgress.money -= cost;
+  myProgress.swordPlus += 1;
+  updateMeHUD();
+  updateUpgradeModalUI();
+  showToast(`⚔️ ตีบวกสำเร็จ! กระบี่กลายเป็น +${myProgress.swordPlus}`);
+  await sb.from('mmo_players').update({
+    money: myProgress.money, sword_plus: myProgress.swordPlus
+  }).eq('name', myName);
+};
+
+function updateUpgradeModalUI(){
+  document.getElementById('upgCur').textContent = `กระบี่ +${myProgress.swordPlus}`;
+  document.getElementById('upgAtk').textContent = `${getBaseAtk()} ATK`;
+  document.getElementById('upgNextAtk').textContent = `${getBaseAtk() + 8} ATK`;
+  document.getElementById('upgCost').textContent = `${100 + (myProgress.swordPlus * 50)} ตำลึง`;
+}
+
+document.getElementById('shopBtn').addEventListener('click', ()=>{
+  document.getElementById('shopModal').style.display = 'flex';
+});
+document.getElementById('upgradeBtn').addEventListener('click', ()=>{
+  updateUpgradeModalUI();
+  document.getElementById('upgradeModal').style.display = 'flex';
+});
 
 function renderRoster(state){
   rosterEl.innerHTML = '';
@@ -587,14 +847,17 @@ function updateMeHUD(){
   guildText.textContent = myGuild ? `[${myGuild}]` : '';
   myHpBar.style.width = Math.max(0, (me.hp / me.maxHp) * 100) + '%';
   expBar.style.width = Math.min(100, (myProgress.exp / expNeeded(myProgress.level)) * 100) + '%';
+  moneyText.textContent = myProgress.money;
+  swordText.textContent = `+${myProgress.swordPlus}`;
+  atkText.textContent = getBaseAtk();
 }
 
-// ---------------- Loop & Animations ----------------
+// ---------------- Game Loop ----------------
 function animate(){
   if(!gameActive) return;
   requestAnimationFrame(animate);
 
-  // ควบคุมการเคลื่อนที่ 3D
+  // ควบคุมการเดิน Open World
   if(!me.isDead){
     let dx = 0, dz = 0;
     if(keys['w'] || keys['arrowup']) dz -= MOVE_SPEED;
@@ -602,8 +865,8 @@ function animate(){
     if(keys['a'] || keys['arrowleft']) dx -= MOVE_SPEED;
     if(keys['d'] || keys['arrowright']) dx += MOVE_SPEED;
 
-    me.x = Math.max(-26, Math.min(26, me.x + dx));
-    me.z = Math.max(-26, Math.min(26, me.z + dz));
+    me.x = Math.max(-75, Math.min(75, me.x + dx));
+    me.z = Math.max(-75, Math.min(75, me.z + dz));
 
     if(dx !== 0 || dz !== 0){
       me.rot = Math.atan2(dx, dz);
@@ -614,22 +877,22 @@ function animate(){
       me.hp = PLAYER_MAX_HP;
       me.x = 0; me.z = 0;
       updateMeHUD();
-      showToast('ฟื้นกำลังคืนชีพแล้ว!');
+      showToast('ฟื้นคืนชีพ ณ ลานเมืองหลวง!');
     }
   }
 
-  // อัปเดตตำแหน่งโมเดลตัวเอง
+  // อัปเดตโมเดลตัวเอง
   if(myHeroMesh){
     myHeroMesh.position.set(me.x, me.isDead ? -0.8 : 0, me.z);
     myHeroMesh.rotation.y = me.rot;
   }
 
-  // กล้องเคลื่อนที่ตามผู้เล่น
-  camera.position.x += (me.x - camera.position.x) * 0.05;
-  camera.position.z += (me.z + 18 - camera.position.z) * 0.05;
-  camera.lookAt(me.x, 1, me.z);
+  // กล้องติดตามนุ่มนวล
+  camera.position.x += (me.x - camera.position.x) * 0.06;
+  camera.position.z += (me.z + 22 - camera.position.z) * 0.06;
+  camera.lookAt(me.x, 1.2, me.z);
 
-  // อัปเดตตำแหน่งผู้เล่นอื่น
+  // อัปเดตผู้เล่นคนอื่น
   Object.values(otherPlayers).forEach(p => {
     if(p.mesh){
       p.mesh.position.set(p.x, p.isDead ? -0.8 : 0, p.z);
@@ -637,30 +900,36 @@ function animate(){
     }
   });
 
-  // อนิเมชันมอนสเตอร์ลอยตัว
+  // อนิเมชันมอนสเตอร์
   monsters.forEach((m, idx) => {
     if(m.mesh && m.alive){
-      m.mesh.position.y = 1.0 + Math.sin(Date.now()*0.003 + idx)*0.3;
+      m.mesh.position.y = (m.isBoss ? 1.5 : 1.0) + Math.sin(Date.now()*0.003 + idx)*0.3;
       m.mesh.rotation.y += 0.015;
     }
   });
 
-  // อัปเดต VFX 3D
+  // กลีบดอกท้อปลิว
+  cherryPetals.forEach(p => {
+    p.position.y -= p.userData.vy;
+    p.position.x += p.userData.vx;
+    if(p.position.y < 0) p.position.y = 15;
+    if(p.position.x > 40) p.position.x = -40;
+  });
+
+  // VFX
   for(let i = vfxParticles.length - 1; i >= 0; i--){
     const p = vfxParticles[i];
     p.life -= p.decay;
     if(p.vy) p.mesh.position.y += p.vy;
     if(p.scaleUp) p.mesh.scale.multiplyScalar(1.06);
     if(p.scaleSpeed) p.mesh.scale.addScalar(p.scaleSpeed);
-    if(p.mesh.material) p.mesh.material.opacity = p.life;
-
     if(p.life <= 0){
       scene.remove(p.mesh);
       vfxParticles.splice(i, 1);
     }
   }
 
-  // อัปเดต Cooldown UI
+  // Cooldowns
   const now = Date.now();
   ['atk','Q','E','R'].forEach(k => {
     const el = document.getElementById('cd' + (k==='atk'?'Atk':k));
@@ -670,13 +939,13 @@ function animate(){
     }
   });
 
-  // Sync เครือข่าย
+  // Sync Broadcast
   if(now - lastSyncTime > 150 && channel){
     lastSyncTime = now;
     channel.send({
       type: 'broadcast',
       event: 'pos',
-      payload: { id: myId, name: myName, guild: myGuild, x: me.x, z: me.z, rot: me.rot, hp: me.hp, isDead: me.isDead }
+      payload: { id: myId, name: myName, guild: myGuild, x: me.x, z: me.z, rot: me.rot, costume: myProgress.costume, hp: me.hp, isDead: me.isDead }
     });
   }
 
