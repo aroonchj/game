@@ -3,18 +3,281 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>WHERE WINDS MEET · MODULAR MMORPG</title>
-<link rel="stylesheet" href="style.css">
+<title>WHERE WINDS MEET · FULL ULTIMATE 3D MMORPG</title>
+
+<script>
+  window.SUPABASE_URL = "https://mflemycqwksuktvktlko.supabase.co";
+  window.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mbGVteWNxd2tzdWt0dmt0bGtvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3OTA1MjksImV4cCI6MjEwMzM2NjUyOX0.8SCV1ZDz3lOulzzh7jONZj73McRwn-duAaaoGC6XTso";
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Noto+Serif+SC:wght@600;900&family=Noto+Sans+Thai:wght@400;600;700&display=swap');
+
+:root {
+  --gold: #d4af37;
+  --gold-bright: #fae17d;
+  --panel-bg: rgba(14, 10, 8, 0.96);
+  --border: #5a452d;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  width: 100%; height: 100%;
+  background: #030202;
+  color: #efe6d5;
+  font-family: 'Noto Sans Thai', sans-serif;
+  overflow: hidden;
+  user-select: none;
+}
+.brush-title { font-family: 'Noto Serif SC', 'Cinzel', serif; font-weight: 900; }
+#app { width: 100%; height: 100%; position: relative; }
+
+/* หน้าจอ Login & Register */
+#login-screen {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(circle at 60% 40%, #1e110a 0%, #030202 90%);
+  z-index: 100;
+}
+#login-box {
+  background: var(--panel-bg);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 26px;
+  width: 500px; max-width: 92%;
+  display: flex; flex-direction: column; gap: 10px;
+  box-shadow: 0 16px 60px rgba(0,0,0,0.95), inset 0 0 20px rgba(212,175,55,0.05);
+  max-height: 94vh;
+  overflow-y: auto;
+}
+
+.header-tag { font-size: .8em; letter-spacing: .35em; text-align: center; color: #a89779; }
+.main-title { font-size: 2.1em; text-align: center; color: var(--gold-bright); text-shadow: 0 0 25px rgba(250,225,125,.4); }
+.sub-desc { font-size: .82em; color: #bfae91; text-align: center; margin-top: -6px; margin-bottom: 2px; }
+
+.auth-tabs { display: flex; background: #150e0a; border: 1px solid #4a3822; border-radius: 6px; overflow: hidden; margin-bottom: 2px; }
+.auth-tab-btn { flex: 1; padding: 9px 0; background: transparent; border: none; color: #a89779; font-size: .88em; font-weight: 600; cursor: pointer; transition: all .2s; }
+.auth-tab-btn.active { background: linear-gradient(180deg, #382515, #22140a); color: var(--gold-bright); font-weight: 700; box-shadow: inset 0 -2px 0 var(--gold); }
+
+.field { display: flex; flex-direction: column; gap: 4px; text-align: left; }
+.field label { font-size: .8em; color: #d2c4a7; font-weight: 600; }
+.field input {
+  background: #18100a !important;
+  border: 1px solid #5a452d !important;
+  color: #efe6d5 !important;
+  padding: 9px 12px;
+  border-radius: 6px;
+  font-size: .95em;
+  outline: none;
+}
+.field input:focus { border-color: var(--gold-bright) !important; box-shadow: 0 0 10px rgba(250,225,125,0.2); }
+
+.grid-opt { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+.grid-opt-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.opt-btn {
+  background: #18100a;
+  border: 1px solid #4a3822;
+  color: #bfae91;
+  padding: 8px 4px;
+  border-radius: 5px;
+  font-size: .78em;
+  cursor: pointer;
+  text-align: center;
+  transition: all .15s;
+}
+.opt-btn.active {
+  border-color: var(--gold-bright);
+  color: var(--gold-bright);
+  background: #312316;
+  font-weight: 700;
+  box-shadow: 0 0 8px rgba(212,175,55,0.2);
+}
+
+button { cursor: pointer; border: none; font-family: 'Noto Sans Thai', sans-serif; font-weight: 600; }
+#startBtn {
+  width: 100%;
+  background: linear-gradient(180deg, #f3d36b, var(--gold));
+  color: #1a1205;
+  padding: 12px;
+  font-size: 1.05em;
+  border-radius: 6px;
+  font-weight: 700;
+  margin-top: 4px;
+  box-shadow: 0 4px 18px rgba(212,175,55,.35);
+}
+
+/* In-game HUD */
+#game-view { width: 100%; height: 100%; display: none; position: relative; }
+#canvas3d { width: 100%; height: 100%; display: block; }
+#hud { position: absolute; inset: 0; pointer-events: none; }
+
+#player-hud {
+  position: absolute; top: 16px; left: 16px;
+  display: flex; gap: 12px; align-items: center;
+  pointer-events: auto;
+}
+#avatar {
+  width: 58px; height: 58px;
+  border-radius: 50%;
+  border: 2px solid var(--gold);
+  background: url('https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150') center/cover;
+  box-shadow: 0 0 14px rgba(212,175,55,0.4);
+}
+#bars-box { width: 230px; display: flex; flex-direction: column; gap: 3px; }
+.hud-name-row { font-size: .8em; font-weight: 700; color: var(--gold-bright); display: flex; justify-content: space-between; align-items: center; }
+.vip-badge { background: linear-gradient(90deg, #b91c1c, #ef4444); color: #fff; font-size: .7em; padding: 1px 6px; border-radius: 4px; border: 1px solid #fca5a5; }
+
+.hud-bar { width: 100%; height: 8px; background: rgba(0,0,0,0.7); border: 1px solid #4a3822; border-radius: 4px; overflow: hidden; }
+.hud-hp { height: 100%; background: linear-gradient(90deg, #9e1b2f, #f24962); transition: width .2s; }
+.hud-exp { height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold-bright)); transition: width .3s; }
+.hud-stats-row { font-size: .72em; color: #fae17d; display: flex; justify-content: space-between; margin-top: 2px; }
+
+#boss-bar-box {
+  position: absolute; top: 18px; left: 50%; transform: translateX(-50%);
+  width: 480px; max-width: 90%; display: none; flex-direction: column; align-items: center; gap: 3px; pointer-events: none; z-index: 85;
+}
+.boss-title-row { font-size: .88em; font-weight: 700; color: #ff4d4f; text-shadow: 0 0 10px rgba(255,77,79,0.8); display: flex; justify-content: space-between; width: 100%; }
+.boss-hp-frame { width: 100%; height: 14px; background: rgba(0,0,0,0.85); border: 1.5px solid #d4af37; border-radius: 7px; overflow: hidden; box-shadow: 0 0 15px rgba(212,175,55,0.4); }
+.boss-hp-fill { height: 100%; background: linear-gradient(90deg, #820014, #ff4d4f); width: 100%; transition: width .15s; }
+
+#top-menu { position: absolute; top: 56px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; pointer-events: auto; flex-wrap: wrap; justify-content: center; }
+.menu-btn {
+  background: rgba(20, 15, 11, 0.85);
+  border: 1px solid #5a452d;
+  color: var(--gold-bright);
+  padding: 6px 14px;
+  border-radius: 4px;
+  font-size: .76em;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+}
+.menu-btn:hover { background: rgba(40, 30, 20, 0.9); }
+.menu-btn-small { background: rgba(20, 15, 11, 0.85); border: 1px solid #5a452d; color: var(--gold-bright); padding: 2px 8px; font-size: .7em; border-radius: 3px; }
+
+#top-right { position: absolute; top: 16px; right: 16px; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+#minimap {
+  width: 96px; height: 96px;
+  border-radius: 50%;
+  border: 2px solid var(--gold);
+  background: radial-gradient(circle, #1c2d27, #080f0c);
+  position: relative;
+  box-shadow: 0 0 15px rgba(0,0,0,0.9);
+  overflow: hidden;
+}
+#minimap .p-dot {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 6px #22c55e;
+}
+#quest-box {
+  background: rgba(18, 13, 9, 0.85);
+  border: 1px solid #4a3822;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: .76em;
+  text-align: right;
+  max-width: 240px;
+  pointer-events: auto;
+}
+#quest-box b { color: var(--gold-bright); }
+
+#auto-btn {
+  position: absolute; right: 250px; bottom: 30px;
+  background: linear-gradient(180deg, #312316, #18100a);
+  border: 2px solid var(--border);
+  color: #a89779;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: .85em;
+  font-weight: 700;
+  pointer-events: auto;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.8);
+  transition: all .2s;
+  z-index: 85;
+}
+#auto-btn.active {
+  background: linear-gradient(180deg, #b91c1c, #ef4444);
+  color: #fff;
+  border-color: #fca5a5;
+  box-shadow: 0 0 15px rgba(239,68,68,0.8);
+}
+
+/* Skill Wheel */
+#skill-wheel { position: absolute; right: 20px; bottom: 20px; width: 220px; height: 220px; pointer-events: auto; }
+.btn-main-atk {
+  position: absolute; right: 10px; bottom: 10px;
+  width: 76px; height: 76px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #5a1c1a, #180606);
+  border: 2px solid var(--gold);
+  color: #fff; font-size: 1.7em;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 22px rgba(212,175,55,0.4);
+  cursor: pointer;
+}
+.btn-sub-skill {
+  position: absolute;
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: rgba(20, 15, 10, 0.92);
+  border: 1.5px solid #6b5334;
+  color: var(--gold-bright);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-size: .72em;
+  cursor: pointer;
+  overflow: hidden;
+}
+.btn-sub-skill .cd-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.8); height: 0%; top: 0; }
+
+#btnQ { right: 95px; bottom: 15px; }
+#btnE { right: 85px; bottom: 75px; }
+#btnR { right: 20px; bottom: 95px; }
+
+#chatlog { position: absolute; left: 16px; bottom: 60px; width: 280px; max-height: 120px; overflow: hidden; font-size: .75em; color: #dcd2be; display: flex; flex-direction: column-reverse; gap: 3px; pointer-events: none; }
+#chatform { position: absolute; left: 16px; bottom: 16px; display: flex; gap: 6px; width: 300px; pointer-events: auto; }
+#chatInput { flex: 1; background: rgba(18, 13, 9, 0.85); border: 1px solid #4a3822; color: #efe6d5; padding: 6px 10px; border-radius: 4px; font-size: .8em; outline: none; }
+#chatSendBtn { background: linear-gradient(180deg, #f3d36b, var(--gold)); color: #1a1205; padding: 0 12px; border-radius: 4px; font-size: .8em; font-weight: 700; }
+
+/* Modals */
+.modal { display: none; position: absolute; inset: 0; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 90; pointer-events: auto; }
+.modal-box { background: var(--panel-bg); border: 1px solid var(--border); border-radius: 8px; padding: 22px; width: 480px; max-width: 92%; max-height: 85vh; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+.modal-box h3 { color: var(--gold-bright); text-align: center; font-size: 1.3em; margin-bottom: 4px; }
+.modal-content-box { background: #1c140e; border: 1px solid #4a3822; padding: 14px; border-radius: 6px; font-size: .85em; display: flex; flex-direction: column; gap: 6px; }
+
+.equip-container { display: flex; flex-direction: column; gap: 6px; }
+.equip-slot { background: #18100a; border: 1px solid #4a3822; border-radius: 5px; padding: 8px 12px; display: flex; justify-content: space-between; font-size: .85em; align-items: center; }
+.equip-slot b { color: var(--gold-bright); }
+
+.inv-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.inv-slot { background: #1c140e; border: 1px solid #4a3822; border-radius: 6px; padding: 8px 4px; text-align: center; font-size: .75em; min-height: 64px; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
+.inv-slot b { color: var(--gold-bright); }
+.btn-action-gold { background: linear-gradient(180deg, #f3d36b, var(--gold)); color: #1a1205; padding: 10px; font-weight: 700; border-radius: 4px; }
+
+#toast { position: absolute; top: 75px; left: 50%; transform: translateX(-50%); font-size: .88em; color: var(--gold-bright); background: rgba(18, 13, 9, .94); padding: 8px 24px; border-radius: 20px; border: 1px solid var(--gold); display: none; z-index: 80; box-shadow: 0 4px 20px rgba(0,0,0,.8); }
+
+/* Debug Log Panel */
+#debugPanel { position: fixed; right: 10px; bottom: 10px; width: 340px; max-height: 220px; overflow-y: auto; background: rgba(0,0,0,0.92); border: 1px solid #5a452d; border-radius: 6px; padding: 6px 10px; font-family: monospace; font-size: .72em; color: #8fda8f; z-index: 9999; }
+#debugPanel .hdr { display: flex; justify-content: space-between; color: #fae17d; margin-bottom: 4px; font-weight: bold; font-family: 'Noto Sans Thai', sans-serif; }
+#debugPanel .hdr button { background: #2b1c11; border: 1px solid #5a452d; color: #efe6d5; font-size: .8em; padding: 1px 6px; border-radius: 2px; cursor: pointer; }
+#debugPanel .line { white-space: pre-wrap; word-break: break-all; border-top: 1px solid #222; padding: 2px 0; }
+#debugPanel .err { color: #ff6b6b; }
+#debugPanel .warn { color: #ffd13b; }
+</style>
 </head>
 <body>
 <div id="app">
+
+  <!-- หน้าจอ Login & Register -->
   <div id="login-screen">
     <div id="login-box">
       <div class="brush-title header-tag">WHERE WINDS MEET · ARPG 3D</div>
       <h1 class="brush-title main-title" id="authTitle">สร้างจอมยุทธ์ใหม่</h1>
-      <div class="sub-desc">โลกแห่งจอมยุทธ์ Open-World MMORPG</div>
+      <div class="sub-desc" id="authDesc">โลกแห่งจอมยุทธ์ Open-World MMORPG</div>
 
       <div class="auth-tabs">
         <button class="auth-tab-btn" id="tabLoginBtn" onclick="switchAuthTab('login')">เข้าสู่ระบบ</button>
@@ -28,31 +291,33 @@
 
       <div class="field">
         <label>รหัสผ่านวรยุทธ์ (Password)</label>
-        <input id="passInput" type="password" maxlength="20" placeholder="รหัสผ่านอย่างน้อย 6 ตัว" autocomplete="off" />
+        <input id="passInput" type="password" maxlength="20" placeholder="กรอกรหัสผ่านอย่างน้อย 6 ตัว" autocomplete="off" />
       </div>
 
       <div id="registerExtraFields" style="display: flex; flex-direction: column; gap: 10px;">
         <div class="field">
-          <label>เพศของจอมยุทธ์</label>
+          <label>เพศของจอมยุทธ์ (Gender)</label>
           <div class="grid-opt" id="genderGrid">
-            <div class="opt-btn active" onclick="selectGender('male', this)">👦 บุรุษ</div>
-            <div class="opt-btn" onclick="selectGender('female', this)">👩 สตรี</div>
+            <div class="opt-btn active" onclick="selectGender('male', this)">👦 จอมยุทธ์ชาย (บุรุษ)</div>
+            <div class="opt-btn" onclick="selectGender('female', this)">👩 เทพธิดาเซียน (สตรี)</div>
           </div>
         </div>
+
         <div class="field">
-          <label>สำนักยุทธ์</label>
+          <label>เลือกสำนักเพลงยุทธ์ (Class)</label>
           <div class="grid-opt" id="classGrid">
-            <div class="opt-btn active" onclick="selectClass(0, this)">⚔️ กระบี่เมฆา</div>
-            <div class="opt-btn" onclick="selectClass(1, this)">🗡️ ดาบสุริยัน</div>
-            <div class="opt-btn" onclick="selectClass(2, this)">🥊 หมัดมังกร</div>
-            <div class="opt-btn" onclick="selectClass(3, this)">🏹 ธนูพฤกษา</div>
+            <div class="opt-btn active" onclick="selectClass(0, this)">⚔️ กระบี่เมฆา (ว่องไว)</div>
+            <div class="opt-btn" onclick="selectClass(1, this)">🗡️ ดาบสุริยัน (ไฟเพลิง)</div>
+            <div class="opt-btn" onclick="selectClass(2, this)">🥊 หมัดมังกร (พลังปราณ)</div>
+            <div class="opt-btn" onclick="selectClass(3, this)">🏹 ธนูพฤกษา (ลมกรด)</div>
           </div>
         </div>
+
         <div class="field">
-          <label>ชุดคลุม</label>
+          <label>ชุดคลุมเริ่มต้น</label>
           <div class="grid-opt-4" id="colorGrid">
-            <div class="opt-btn active" onclick="selectColor(0, this)">ขาว</div>
-            <div class="opt-btn" onclick="selectColor(1, this)">ทอง</div>
+            <div class="opt-btn active" onclick="selectColor(0, this)">หิมะขาว</div>
+            <div class="opt-btn" onclick="selectColor(1, this)">ทองคำ</div>
             <div class="opt-btn" onclick="selectColor(2, this)">อัคคี</div>
             <div class="opt-btn" onclick="selectColor(3, this)">ราตรี</div>
           </div>
@@ -61,13 +326,14 @@
 
       <div class="field">
         <label>รหัสห้องเซิร์ฟเวอร์</label>
-        <input id="roomInput" value="luoyang888" autocomplete="off" />
+        <input id="roomInput" maxlength="16" placeholder="เช่น luoyang888" value="luoyang888" autocomplete="off" />
       </div>
 
-      <button id="startBtn">เข้าสู่ยุทธภพ</button>
+      <button id="startBtn">สร้างตัวละคร & ก้าวสู่ยุทธภพ</button>
     </div>
   </div>
 
+  <!-- หน้าจอเกม 3D และ UI HUD -->
   <div id="game-view">
     <div id="toast"></div>
 
@@ -84,31 +350,116 @@
       <div id="player-hud">
         <div id="avatar"></div>
         <div id="bars-box">
-          <div class="hud-name-row"><span id="pNameText">จอมยุทธ์</span><span class="vip-badge" id="vipBadge">VIP 0</span><span id="pLvText">Lv.1</span></div>
+          <div class="hud-name-row">
+            <span id="pNameText">จอมยุทธ์</span>
+            <span class="vip-badge" id="vipBadge">VIP 0</span>
+            <span id="pLvText">Lv.1</span>
+          </div>
           <div class="hud-bar"><div class="hud-hp" id="myHpBar" style="width:100%"></div></div>
           <div class="hud-bar"><div class="hud-exp" id="myExpBar" style="width:0%"></div></div>
-          <div class="hud-stats-row"><span>💰 <span id="moneyText">200</span> ตำลึง</span><span>⚔️ ATK: <span id="atkText">35</span></span></div>
+          <div class="hud-stats-row">
+            <span>💰 <span id="moneyText">200</span> ตำลึง</span>
+            <span>⚔️ ATK: <span id="atkText">35</span> | 🛡️ DEF: <span id="defText">12</span></span>
+          </div>
         </div>
       </div>
+
       <button id="auto-btn" onclick="toggleAutoBattle()">🤖 ออโต้บอท: ปิด</button>
+
       <div id="top-menu">
-        <button class="menu-btn" onclick="openModal('charModal')">👤 ตัวละคร</button>
-        <button class="menu-btn" onclick="openModal('invModal')">🎒 กระเป๋า</button>
-        <button class="menu-btn" onclick="openModal('teleportModal')">🌀 วาร์ป</button>
-        <button class="menu-btn" onclick="openModal('vipModal')">👑 VIP</button>
+        <button class="menu-btn" onclick="openModal('charModal')">👤 ข้อมูล & เกราะ</button>
+        <button class="menu-btn" onclick="openModal('invModal')">🎒 ช่องเก็บของ</button>
+        <button class="menu-btn" onclick="openModal('teleportModal')">🌀 วาร์ปแผนที่</button>
+        <button class="menu-btn" onclick="openModal('forgeModal')">🔨 ตีบวกกระบี่</button>
+        <button class="menu-btn" onclick="openModal('vipModal')">👑 VIP 1-10</button>
+        <button class="menu-btn" onclick="openModal('wardrobeModal')">🥋 ตู้เสื้อผ้า</button>
       </div>
+
+      <div id="top-right">
+        <div id="minimap"><div class="p-dot"></div></div>
+        <div id="quest-box">
+          <b>📜 ภารกิจ: ล่าอสูรนอกเมือง</b><br>
+          <span id="questProgressText">ความคืบหน้า (0/3)</span><br>
+          <button class="menu-btn-small" onclick="claimQuest()">รับรางวัล</button>
+        </div>
+      </div>
+
       <div id="skill-wheel">
-        <div class="btn-main-atk" onclick="window.CombatSystem.castSkill('atk')">⚔️</div>
+        <div class="btn-main-atk" id="btnAtk" onclick="window.CombatSystem.castSkill('atk')">⚔️</div>
+        <div class="btn-sub-skill" id="btnQ" onclick="window.CombatSystem.castSkill('Q')"><span id="nameQ">ตัดเมฆา</span><div class="cd-overlay" id="cdQ"></div></div>
+        <div class="btn-sub-skill" id="btnE" onclick="window.CombatSystem.castSkill('E')"><span id="nameE">หมื่นกระบี่</span><div class="cd-overlay" id="cdE"></div></div>
+        <div class="btn-sub-skill" id="btnR" onclick="window.CombatSystem.castSkill('R')"><span id="nameR">ไม้ตาย</span><div class="cd-overlay" id="cdR"></div></div>
       </div>
+
+      <div id="chatlog"></div>
+      <form id="chatform">
+        <input id="chatInput" maxlength="60" placeholder="พิมพ์คุยในยุทธภพ..." autocomplete="off" />
+        <button id="chatSendBtn" type="submit">ส่ง</button>
+      </form>
     </div>
+
     <div id="canvas3d"></div>
   </div>
 
-  <div class="modal" id="charModal"><div class="modal-box"><h3>ข้อมูลตัวละคร</h3><button class="menu-btn" onclick="closeModal('charModal')">ปิด</button></div></div>
-  <div class="modal" id="inspectModal"><div class="modal-box"><h3 id="inspectTitle">ข้อมูลเพื่อน</h3><div id="inspectContent"></div><button class="menu-btn" onclick="closeModal('inspectModal')">ปิด</button></div></div>
-  <div class="modal" id="teleportModal"><div class="modal-box"><h3>วาร์ปแผนที่</h3><button class="opt-btn" onclick="teleportTo(0,0,'ลานเมืองหลวง')">🏛️ ลานเมืองหลวง</button><button class="opt-btn" onclick="teleportTo(0,50,'ลานประลอง PvP')">⚔️ ลานประลอง PvP</button><button class="menu-btn" onclick="closeModal('teleportModal')">ปิด</button></div></div>
-  <div class="modal" id="invModal"><div class="modal-box"><h3>กระเป๋า</h3><button class="menu-btn" onclick="closeModal('invModal')">ปิด</button></div></div>
-  <div class="modal" id="vipModal"><div class="modal-box"><h3>VIP</h3><button class="menu-btn" onclick="closeModal('vipModal')">ปิด</button></div></div>
+  <!-- Modals -->
+  <div class="modal" id="charModal">
+    <div class="modal-box">
+      <h3 class="brush-title">อุปกรณ์สวมใส่จอมยุทธ์</h3>
+      <div class="equip-container">
+        <div class="equip-slot"><span>หมวก:</span> <b id="eqHelmText">- ไม่มี -</b></div>
+        <div class="equip-slot"><span>เสื้อเกราะ:</span> <b id="eqArmorText">- ไม่มี -</b></div>
+        <div class="equip-slot"><span>ปลอกแขน:</span> <b id="eqBracerText">- ไม่มี -</b></div>
+        <div class="equip-slot"><span>สนับแข้ง:</span> <b id="eqBootsText">- ไม่มี -</b></div>
+        <div class="equip-slot"><span>อาวุธประจำตัว:</span> <b id="eqWeaponText">กระบี่เริ่มต้น</b></div>
+      </div>
+      <div class="modal-content-box">
+        <p id="eqTotalStatsText">🔥 <b>พลังรบรวม (RP): 150</b></p>
+      </div>
+      <button class="menu-btn" onclick="closeModal('charModal')">ปิด</button>
+    </div>
+  </div>
+
+  <div class="modal" id="inspectModal">
+    <div class="modal-box">
+      <h3 class="brush-title" id="inspectTitle">ข้อมูลจอมยุทธ์</h3>
+      <div class="modal-content-box" id="inspectContent">กำลังโหลดข้อมูล...</div>
+      <button class="menu-btn" onclick="closeModal('inspectModal')">ปิด</button>
+    </div>
+  </div>
+
+  <div class="modal" id="teleportModal">
+    <div class="modal-box">
+      <h3 class="brush-title">ค่ายกลเคลื่อนย้ายยุทธภพ</h3>
+      <div class="grid-opt" style="gap:8px;">
+        <button class="opt-btn" onclick="teleportTo(0, 0, 'ลานเมืองหลวงลั่วหยาง')">🏛️ ลานเมืองหลวง (Safe Zone)</button>
+        <button class="opt-btn" onclick="teleportTo(0, -60, 'ทุ่งหญ้าหมาป่า (Lv.1 - 3)')">🐺 ทุ่งหญ้าหมาป่า (Lv.1 - 3)</button>
+        <button class="opt-btn" onclick="teleportTo(-70, 20, 'ป่าไผ่ซ่อนพยัคฆ์ (Lv.10 - 15)')">🎋 ป่าไผ่ซ่อนพยัคฆ์ (Lv.10 - 15)</button>
+        <button class="opt-btn" onclick="teleportTo(75, 30, 'หุบเขาโกเลมศิลา (Lv.25 - 30)')">🗿 หุบเขาโกเลมศิลา (Lv.25 - 30)</button>
+        <button class="opt-btn" onclick="teleportTo(90, -70, 'รังมังกรศิลาพันปี (Boss Lv.50)')">🐉 รังมังกรศิลา (Boss Lv.50)</button>
+        <button class="opt-btn" style="border-color:#ff4d4f; color:#ff4d4f;" onclick="teleportTo(0, 50, 'ลานประลองยุทธ (PvP Arena)')">⚔️ ลานประลอง PvP Arena</button>
+      </div>
+      <button class="menu-btn" onclick="closeModal('teleportModal')">ปิด</button>
+    </div>
+  </div>
+
+  <div class="modal" id="invModal">
+    <div class="modal-box">
+      <h3 class="brush-title">กระเป๋ายุทธภพ</h3>
+      <div class="inv-grid" id="invGrid"></div>
+      <button class="menu-btn" onclick="closeModal('invModal')">ปิด</button>
+    </div>
+  </div>
+
+  <div class="modal" id="vipModal">
+    <div class="modal-box">
+      <h3 class="brush-title">สิทธิพิเศษ VIP ประจำยุทธภพ</h3>
+      <div class="modal-content-box" id="vipModalContent">
+        <p>สถานะปัจจุบัน: <b style="color:var(--gold-bright)" id="vipStatusText">VIP 0</b></p>
+      </div>
+      <button class="btn-action-gold" onclick="upgradeVIP()">เลื่อนขั้น VIP</button>
+      <button class="menu-btn" onclick="closeModal('vipModal')">ปิด</button>
+    </div>
+  </div>
 
   <div id="debugPanel">
     <div class="hdr"><span>🔧 Debug Log</span><button id="clearDebugBtn">ล้าง</button></div>
@@ -116,10 +467,539 @@
   </div>
 </div>
 
-<script src="js/config.js"></script>
-<script src="js/world.js"></script>
-<script src="js/player.js"></script>
-<script src="js/combat.js"></script>
-<script src="js/main.js"></script>
+<script>
+(function(){
+"use strict";
+
+window.CONFIG = {
+  SUPABASE_URL: window.SUPABASE_URL,
+  SUPABASE_ANON_KEY: window.SUPABASE_ANON_KEY,
+  PLAYER_MAX_HP: 200,
+  ROBE_COLORS: [0xf4efe6, 0xd4af37, 0xc53030, 0x1f242d],
+  CLASS_DATA: [
+    { name: 'กระบี่เมฆา', qName: 'ตัดเมฆา', eName: 'หมื่นกระบี่', rName: 'จักรพรรดิ' },
+    { name: 'ดาบสุริยัน', qName: 'เพลิงผลาญ', eName: 'คลื่นสุริยัน', rName: 'มังกรเพลิง' },
+    { name: 'หมัดมังกร', qName: 'คลื่นปราณ', eName: 'ฝ่ามือมังกร', rName: 'มิติมังกร' },
+    { name: 'ธนูพฤกษา', qName: 'ศรทะลวง', eName: 'พายุใบไม้', rName: 'ฝนธนู' }
+  ],
+  VIP_DATA: [
+    { level: 0, title: 'จอมยุทธ์พเนจร', cost: 0, atkBonus: 1.0, defBonus: 1.0, expBonus: 1.0, speedBonus: 1.0 },
+    { level: 1, title: 'ผู้กล้าฝึกหัด', cost: 100, atkBonus: 1.1, defBonus: 1.1, expBonus: 1.15, speedBonus: 1.05 },
+    { level: 2, title: 'ผู้เยี่ยมยุทธ์', cost: 250, atkBonus: 1.15, defBonus: 1.15, expBonus: 1.25, speedBonus: 1.10 },
+    { level: 3, title: 'จอมยุทธ์เลื่องชื่อ', cost: 500, atkBonus: 1.22, defBonus: 1.20, expBonus: 1.35, speedBonus: 1.15 },
+    { level: 4, title: 'ยอดฝีมือไร้พ่าย', cost: 900, atkBonus: 1.30, defBonus: 1.25, expBonus: 1.50, speedBonus: 1.20 },
+    { level: 5, title: 'ปรมาจารย์ยุทธจักร', cost: 1500, atkBonus: 1.40, defBonus: 1.35, expBonus: 1.70, speedBonus: 1.25 },
+    { level: 6, title: 'ราชันย์กระบี่', cost: 2400, atkBonus: 1.50, defBonus: 1.45, expBonus: 2.00, speedBonus: 1.30 },
+    { level: 7, title: 'เซียนพิภพ', cost: 3600, atkBonus: 1.65, defBonus: 1.55, expBonus: 2.30, speedBonus: 1.35 },
+    { level: 8, title: 'มหาเทพจุติ', cost: 5200, atkBonus: 1.80, defBonus: 1.70, expBonus: 2.70, speedBonus: 1.40 },
+    { level: 9, title: 'จักรพรรดิสวรรค์', cost: 7500, atkBonus: 2.00, defBonus: 1.85, expBonus: 3.20, speedBonus: 1.50 },
+    { level: 10, title: 'เทพบรรพกาลไร้ขอบเขต', cost: 11000, atkBonus: 2.50, defBonus: 2.20, expBonus: 4.00, speedBonus: 1.65 }
+  ],
+  RARITY_TIERS: {
+    white: { name: 'ธรรมดา', color: '#e2e8f0', mult: 1.0 },
+    green: { name: 'ยุทธภพ', color: '#48bb78', mult: 1.3 },
+    blue: { name: 'วิญญาณ', color: '#4299e1', mult: 1.7 },
+    purple: { name: 'ล้ำค่า', color: '#9f7aea', mult: 2.2 },
+    orange: { name: 'เทพยุทธ์', color: '#ed8936', mult: 2.9 },
+    red: { name: 'เซียนสวรรค์', color: '#f56565', mult: 3.8 },
+    pink: { name: 'บรรพกาล', color: '#ed64a6', mult: 5.0 }
+  },
+  EQUIP_BASE: {
+    'helm_lv1': { baseName: 'หมวกสาน', slot: 'helm', reqLvl: 1, baseHp: 30, baseDef: 4 },
+    'armor_lv1': { baseName: 'ชุดผ้าป่าน', slot: 'armor', reqLvl: 1, baseHp: 25, baseDef: 6 },
+    'boots_lv1': { baseName: 'รองเท้าฟาง', slot: 'boots', reqLvl: 1, baseDef: 3, baseSpeed: 1.02 }
+  }
+};
+
+window.QUEST_LIST = [
+  { id: 1, title: 'ภารกิจที่ 1: กำจัดหมาป่าทมิฬ (Lv.1 - 3)', targetType: 'wolf', reqCount: 3, curCount: 0, rewardExp: 180, rewardMoney: 80, done: false },
+  { id: 2, title: 'ภารกิจที่ 2: ปราบโจรป่าไผ่ (Lv.10 - 15)', targetType: 'bandit', reqCount: 3, curCount: 0, rewardExp: 450, rewardMoney: 180, done: false }
+];
+
+window.sb = null; window.channel = null;
+window.myName = ""; window.roomCode = "";
+window.myGender = "male"; window.myClassIdx = 0; window.myColorIdx = 0;
+window.gameActive = false; window.isHost = false;
+window.authMode = 'register';
+window.isAutoBattle = false;
+let lastSyncTime = 0;
+
+window.myProgress = {
+  level: 1, exp: 0, money: 100, swordPlus: 0, vipLevel: 0,
+  equipment: { helm: { baseKey: 'helm_lv1', color: 'white' }, armor: { baseKey: 'armor_lv1', color: 'white' }, bracer: null, boots: { baseKey: 'boots_lv1', color: 'white' }, weapon: 'กระบี่เริ่มต้น' },
+  inventoryItems: [{ id: 'item_init_1', baseKey: 'helm_lv1', color: 'green' }],
+  inventoryMaterials: { potion: 3, spiritStone: 2, herb: 4 },
+  unlockedCostumes: [0], activeQuestIdx: 0
+};
+
+window.selectGender = function(g, el) { window.myGender = g; document.querySelectorAll('#genderGrid .opt-btn').forEach(b => b.classList.remove('active')); if (el) el.classList.add('active'); };
+window.selectClass = function(idx, el) { window.myClassIdx = idx; document.querySelectorAll('#classGrid .opt-btn').forEach(b => b.classList.remove('active')); if (el) el.classList.add('active'); };
+window.selectColor = function(idx, el) { window.myColorIdx = idx; document.querySelectorAll('#colorGrid .opt-btn').forEach(b => b.classList.remove('active')); if (el) el.classList.add('active'); };
+window.switchAuthTab = function(mode) {
+  window.authMode = mode;
+  const loginBtn = document.getElementById('tabLoginBtn');
+  const regBtn = document.getElementById('tabRegisterBtn');
+  const extraFields = document.getElementById('registerExtraFields');
+  const startBtn = document.getElementById('startBtn');
+  const authTitle = document.getElementById('authTitle');
+
+  if (mode === 'login') {
+    if (loginBtn) loginBtn.classList.add('active');
+    if (regBtn) regBtn.classList.remove('active');
+    if (extraFields) extraFields.style.display = 'none';
+    if (startBtn) startBtn.textContent = 'เข้าสู่ยุทธภพ';
+    if (authTitle) authTitle.textContent = 'เข้าสู่ระบบยุทธภพ';
+  } else {
+    if (regBtn) regBtn.classList.add('active');
+    if (loginBtn) loginBtn.classList.remove('active');
+    if (extraFields) extraFields.style.display = 'flex';
+    if (startBtn) startBtn.textContent = 'สร้างตัวละคร & ก้าวสู่ยุทธภพ';
+    if (authTitle) authTitle.textContent = 'สร้างจอมยุทธ์ใหม่';
+  }
+};
+
+window.toggleAutoBattle = function() {
+  if (window.myProgress.vipLevel < 3) { window.showToast('🔒 ระบบออโต้บอทต้องมีสถานะ VIP 3 ขึ้นไป!'); return; }
+  window.isAutoBattle = !window.isAutoBattle;
+  const btn = document.getElementById('auto-btn');
+  if (btn) {
+    if (window.isAutoBattle) { btn.classList.add('active'); btn.textContent = '🤖 ออโต้บอท: เปิด'; window.showToast('เปิดระบบออโต้บอทแล้ว!'); }
+    else { btn.classList.remove('active'); btn.textContent = '🤖 ออโต้บอท: ปิด'; window.showToast('ปิดระบบออโต้บอทแล้ว'); }
+  }
+};
+
+window.getItemStats = function(baseKey, color) {
+  const base = window.CONFIG.EQUIP_BASE[baseKey];
+  if (!base) return null;
+  const tier = window.CONFIG.RARITY_TIERS[color] || window.CONFIG.RARITY_TIERS.white;
+  const mult = tier.mult;
+  return {
+    fullName: `[${tier.name}] ${base.baseName}`,
+    color: tier.color,
+    tierKey: color,
+    reqLvl: base.reqLvl,
+    slot: base.slot,
+    hp: base.baseHp ? Math.round(base.baseHp * mult) : 0,
+    def: base.baseDef ? Math.round(base.baseDef * mult) : 0,
+    atk: base.baseAtk ? Math.round(base.baseAtk * mult) : 0,
+    speed: base.baseSpeed || 1.0
+  };
+};
+
+// ---------------- 3. World 3D (Orbit Camera 360 & Click Effect) ----------------
+window.World3D = {
+  scene: null, camera: null, renderer: null, raycaster: new THREE.Raycaster(), mouse: new THREE.Vector2(),
+  cameraAngle: 0, cameraDist: 14, cameraHeight: 12, isDragging: false, previousMousePosition: { x: 0, y: 0 }, clickRingMesh: null,
+
+  init(containerId) {
+    const container = document.getElementById(containerId);
+    this.scene = new THREE.Scene();
+    this.scene.background = new THREE.Color(0x06080e);
+    this.scene.fog = new THREE.FogExp2(0x080b12, 0.007);
+
+    this.camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.shadowMap.enabled = true;
+    container.appendChild(this.renderer.domElement);
+
+    const hemiLight = new THREE.HemisphereLight(0xffecd0, 0x1a2130, 0.7);
+    this.scene.add(hemiLight);
+    const sun = new THREE.DirectionalLight(0xffdfba, 1.8);
+    sun.position.set(70, 95, 45);
+    sun.castShadow = true;
+    this.scene.add(sun);
+
+    const ground = new THREE.Mesh(
+      new THREE.PlaneGeometry(300, 300),
+      new THREE.MeshStandardMaterial({ color: 0x14100c, roughness: 0.85 })
+    );
+    ground.rotation.x = -Math.PI / 2;
+    ground.receiveShadow = true;
+    ground.name = "ground";
+    this.scene.add(ground);
+
+    const pvpZone = new THREE.Mesh(
+      new THREE.RingGeometry(15, 18, 32),
+      new THREE.MeshBasicMaterial({ color: 0xff4d4f, side: THREE.DoubleSide, transparent: true, opacity: 0.7 })
+    );
+    pvpZone.rotation.x = -Math.PI / 2;
+    pvpZone.position.set(0, 0.05, 50);
+    this.scene.add(pvpZone);
+
+    const ringGeo = new THREE.RingGeometry(0.5, 0.8, 32);
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0xd4af37, side: THREE.DoubleSide, transparent: true, opacity: 0 });
+    this.clickRingMesh = new THREE.Mesh(ringGeo, ringMat);
+    this.clickRingMesh.rotation.x = -Math.PI / 2;
+    this.clickRingMesh.position.y = 0.08;
+    this.scene.add(this.clickRingMesh);
+
+    this.initControls();
+
+    window.addEventListener('resize', () => {
+      this.camera.aspect = window.innerWidth / window.innerHeight;
+      this.camera.updateProjectionMatrix();
+      this.renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  },
+
+  initControls() {
+    window.addEventListener('mousedown', e => { if (e.button === 2) this.isDragging = true; });
+    window.addEventListener('mouseup', e => { if (e.button === 2) this.isDragging = false; });
+    window.addEventListener('contextmenu', e => e.preventDefault());
+
+    window.addEventListener('mousemove', e => {
+      if (this.isDragging) {
+        const deltaX = e.movementX || e.clientX - this.previousMousePosition.x;
+        this.cameraAngle -= deltaX * 0.008;
+      }
+      this.previousMousePosition = { x: e.clientX, y: e.clientY };
+    });
+
+    window.addEventListener('wheel', e => {
+      this.cameraDist = Math.max(6, Math.min(25, this.cameraDist + e.deltaY * 0.02));
+      this.cameraHeight = Math.max(5, Math.min(20, this.cameraHeight + e.deltaY * 0.015));
+    });
+
+    window.addEventListener('pointerdown', e => {
+      if (!window.gameActive || window.PlayerManager.me.isDead) return;
+      if (e.target.closest('#hud') || e.target.closest('.modal') || e.target.closest('#debugPanel')) return;
+      if (e.button !== 0) return;
+
+      this.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+      this.mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+      this.raycaster.setFromCamera(this.mouse, this.camera);
+
+      const otherMeshes = Object.values(window.PlayerManager.otherPlayers).map(p => p.mesh).filter(Boolean);
+      const intersectsPlayers = this.raycaster.intersectObjects(otherMeshes, true);
+      if (intersectsPlayers.length > 0) {
+        let hit = intersectsPlayers[0].object;
+        while (hit.parent && !hit.userData.playerId) hit = hit.parent;
+        if (hit.userData.playerId) { window.inspectPlayer(hit.userData.playerId); return; }
+      }
+
+      const monsterMeshes = window.CombatSystem.monsters.map(m => m.mesh).filter(Boolean);
+      const intersectsMonsters = this.raycaster.intersectObjects(monsterMeshes, true);
+      if (intersectsMonsters.length > 0) {
+        let hitM = intersectsMonsters[0].object;
+        while (hitM.parent && !hitM.userData.monsterId) hitM = hitM.parent;
+        if (hitM.userData.monsterId) {
+          window.CombatSystem.setTargetMonster(hitM.userData.monsterId);
+          return;
+        }
+      }
+
+      const groundObj = this.scene.getObjectByName("ground");
+      if (groundObj) {
+        const intersects = this.raycaster.intersectObject(groundObj);
+        if (intersects.length > 0) {
+          const pt = intersects[0].point;
+          window.PlayerManager.targetPos = pt;
+          if (this.clickRingMesh) {
+            this.clickRingMesh.position.set(pt.x, 0.08, pt.z);
+            this.clickRingMesh.material.opacity = 1.0;
+            this.clickRingMesh.scale.set(0.5, 0.5, 0.5);
+          }
+        }
+      }
+    });
+  },
+
+  updateEffect() {
+    if (this.clickRingMesh && this.clickRingMesh.material.opacity > 0) {
+      this.clickRingMesh.material.opacity -= 0.03;
+      this.clickRingMesh.scale.addScalar(0.04);
+    }
+  }
+};
+
+// ---------------- 4. Player Manager & Nameplates ----------------
+window.PlayerManager = {
+  me: { id: '', x: 0, z: 0, yaw: 0, hp: 200, maxHp: 200, isDead: false, respawnAt: 0 },
+  myHeroMesh: null, targetPos: null, otherPlayers: {},
+
+  createNameplateSprite(name, lvl, vip, isMe = false) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512; canvas.height = 128;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+    ctx.roundRect(10, 20, 492, 88, 16);
+    ctx.fill();
+    ctx.strokeStyle = isMe ? '#fae17d' : '#4299e1';
+    ctx.lineWidth = 4;
+    ctx.stroke();
+    ctx.font = 'bold 38px "Noto Sans Thai", sans-serif';
+    ctx.fillStyle = '#efe6d5';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`${name} [Lv.${lvl}] (VIP ${vip})`, 256, 64);
+    return new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true }));
+  },
+
+  createHeroMesh(colorIdx = 0, gender = 'male', classIdx = 0, name = 'จอมยุทธ์', lvl = 1, vip = 0, playerId = '') {
+    const hero = new THREE.Group();
+    hero.userData.playerId = playerId;
+    const cColor = window.CONFIG.ROBE_COLORS[colorIdx] || window.CONFIG.ROBE_COLORS[0];
+    const isFemale = gender === 'female';
+
+    const bodyMat = new THREE.MeshStandardMaterial({ color: cColor, roughness: 0.35, metalness: 0.2 });
+    const skinMat = new THREE.MeshStandardMaterial({ color: 0xfce5cd, roughness: 0.6 });
+
+    const bodyW = isFemale ? 0.3 : 0.38;
+    const bodyBottom = isFemale ? 0.55 : 0.68;
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(bodyW, bodyBottom, 1.7, 12), bodyMat);
+    body.position.y = 1.0; body.castShadow = true;
+    hero.add(body);
+
+    const head = new THREE.Mesh(new THREE.SphereGeometry(isFemale ? 0.3 : 0.34, 16, 16), skinMat);
+    head.position.y = 2.05; head.castShadow = true;
+    hero.add(head);
+
+    const nameSprite = this.createNameplateSprite(name, lvl, vip, playerId === this.me.id);
+    nameSprite.position.set(0, 2.8, 0);
+    hero.add(nameSprite);
+
+    return hero;
+  },
+
+  updatePhysics(speedMult = 1.0) {
+    if (this.me.isDead) {
+      if (Date.now() > this.me.respawnAt) {
+        this.me.isDead = false; this.me.hp = this.me.maxHp; this.me.x = 0; this.me.z = 0;
+        window.updateMeHUD(); window.showToast('ฟื้นคืนชีพ ณ ลานเมือง!');
+      }
+      return;
+    }
+
+    const baseSpeed = 0.22 * speedMult;
+    if (this.targetPos) {
+      const dx = this.targetPos.x - this.me.x;
+      const dz = this.targetPos.z - this.me.z;
+      const dist = Math.hypot(dx, dz);
+      if (dist > 0.3) {
+        this.me.yaw = Math.atan2(-dx, -dz);
+        this.me.x += (dx / dist) * baseSpeed;
+        this.me.z += (dz / dist) * baseSpeed;
+      } else {
+        this.targetPos = null;
+      }
+    }
+
+    if (this.myHeroMesh) {
+      this.myHeroMesh.position.set(this.me.x, 0, this.me.z);
+      this.myHeroMesh.rotation.y = this.me.yaw;
+    }
+
+    const cam = window.World3D.camera;
+    cam.position.x = this.me.x + Math.sin(World3D.cameraAngle) * World3D.cameraDist;
+    cam.position.y = World3D.cameraHeight;
+    cam.position.z = this.me.z + Math.cos(World3D.cameraAngle) * World3D.cameraDist;
+    cam.lookAt(this.me.x, 0, this.me.z);
+  }
+};
+
+window.inspectPlayer = function(targetId) {
+  const p = window.PlayerManager.otherPlayers[targetId];
+  if (!p) return;
+  const modal = document.getElementById('inspectModal');
+  const title = document.getElementById('inspectTitle');
+  const content = document.getElementById('inspectContent');
+  if (title) title.textContent = `ข้อมูลจอมยุทธ์: ${p.name}`;
+  if (content) {
+    content.innerHTML = `<p>⭐ สำนัก: <b>${window.CONFIG.CLASS_DATA[p.classIdx || 0].name}</b></p><p>⭐ เลเวล: <b>Lv.${p.level || 1}</b></p><p>👑 สถานะ: <b>VIP ${p.vipLevel || 0}</b></p><p>🔥 พลังรบรวม (RP): <b style="color:var(--gold-bright);">${p.rp || 150}</b></p>`;
+  }
+  if (modal) modal.style.display = 'flex';
+};
+
+// ---------------- 5. Combat & Auto-Battle ----------------
+window.CombatSystem = {
+  cooldowns: { atk: { cd: 280, until: 0 } },
+  currentTargetPath: null,
+  monsters: [
+    { id: 'm1', name: 'หมาป่าทมิฬ', lvl: 3, x: 20, z: -40, hp: 180, maxHp: 180, alive: true, mesh: null }
+  ],
+  initMonsters() {
+    this.monsters.forEach(m => {
+      const mon = new THREE.Group();
+      mon.userData.monsterId = m.id;
+      const body = new THREE.Mesh(new THREE.DodecahedronGeometry(1.2), new THREE.MeshStandardMaterial({ color: 0x242a33 }));
+      body.position.y = 1.2; mon.add(body);
+      m.mesh = mon; mon.position.set(m.x, 0, m.z);
+      window.World3D.scene.add(mon);
+    });
+  },
+  setTargetMonster(id) {
+    const target = this.monsters.find(m => m.id === id);
+    if (target && target.alive) {
+      this.currentTargetPath = target;
+      window.showToast(`ล็อคเป้าหมาย: [${target.name}]`);
+      const bossBar = document.getElementById('boss-bar-box');
+      const bossName = document.getElementById('bossNameText');
+      const bossLvl = document.getElementById('bossLvlText');
+      const bossHp = document.getElementById('bossHpFill');
+      if (bossBar) bossBar.style.display = 'flex';
+      if (bossName) bossName.textContent = target.name;
+      if (bossLvl) bossLvl.textContent = `Lv.${target.lvl}`;
+      if (bossHp) bossHp.style.width = Math.max(0, (target.hp / target.maxHp) * 100) + '%';
+    }
+  },
+  updateAutoBattle() {
+    if (!window.isAutoBattle || window.PlayerManager.me.isDead) return;
+    const me = window.PlayerManager.me;
+    this.monsters.forEach(m => {
+      if (!m.alive) return;
+      const dist = Math.hypot(m.x - me.x, m.z - me.z);
+      if (dist < 8.0 && Date.now() > (this.cooldowns.atk.until || 0)) {
+        this.castSkill('atk');
+      }
+    });
+  },
+  castSkill(k) {
+    const me = window.PlayerManager.me;
+    if (!window.gameActive || me.isDead) return;
+    const sk = this.cooldowns[k];
+    if (Date.now() < sk.until) return;
+    sk.until = Date.now() + sk.cd;
+
+    if (this.currentTargetPath && this.currentTargetPath.alive) {
+      const target = this.currentTargetPath;
+      target.hp = Math.max(0, target.hp - 35);
+      const bossHp = document.getElementById('bossHpFill');
+      if (bossHp) bossHp.style.width = Math.max(0, (target.hp / target.maxHp) * 100) + '%';
+      window.showToast(`โจมตี [${target.name}] -35 HP!`);
+      if (target.hp <= 0) {
+        target.alive = false;
+        if (target.mesh) target.mesh.visible = false;
+        window.showToast(`กำจัด [${target.name}] สำเร็จ! +180 EXP`);
+        document.getElementById('boss-bar-box').style.display = 'none';
+      }
+    } else {
+      window.showToast('ยังไม่ได้ล็อคเป้าหมายมอนสเตอร์!');
+    }
+  }
+};
+
+window.calculateRP = function() { return 250; };
+window.getBaseAtk = function() { return 45; };
+window.getBaseDef = function() { return 20; };
+window.showToast = function(msg) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg; t.style.display = 'block';
+  clearTimeout(window.showToast._t);
+  window.showToast._t = setTimeout(() => { t.style.display = 'none'; }, 3000);
+};
+
+window.debugLog = function(msg, level = 'info') {
+  const time = new Date().toLocaleTimeString('th-TH', { hour12: false });
+  const div = document.createElement('div');
+  div.className = 'line' + (level === 'error' ? ' err' : level === 'warn' ? ' warn' : '');
+  div.textContent = `[${time}] ${msg}`;
+  const debugLinesEl = document.getElementById('debugLines');
+  if (debugLinesEl) {
+    debugLinesEl.appendChild(div);
+    debugLinesEl.parentElement.scrollTop = debugLinesEl.parentElement.scrollHeight;
+  }
+};
+
+// ---------------- 6. Auth & Game Loop ----------------
+document.getElementById('startBtn').addEventListener('click', handleAuth);
+
+async function handleAuth() {
+  const nm = document.getElementById('nameInput').value.trim();
+  const pwd = document.getElementById('passInput').value.trim();
+  const rc = document.getElementById('roomInput').value.trim().toLowerCase().replace(/\s+/g, '');
+
+  if (!nm) { alert('กรุณากรอกชื่อจอมยุทธ์'); return; }
+  if (!pwd || pwd.length < 6) { alert('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'); return; }
+  if (!rc) { alert('กรุณาระบุรหัสห้อง'); return; }
+
+  window.myName = nm; window.roomCode = rc;
+  const myId = 'p_' + Math.random().toString(36).slice(2, 8);
+  window.PlayerManager.me.id = myId;
+
+  try {
+    window.sb = window.supabase.createClient(window.CONFIG.SUPABASE_URL, window.CONFIG.SUPABASE_ANON_KEY);
+    window.channel = window.sb.channel('justice_v24_' + window.roomCode, {
+      config: { broadcast: { ack: false, self: false }, presence: { key: myId } }
+    });
+
+    window.channel.on('broadcast', { event: 'pos' }, ({ payload }) => {
+      if (payload && payload.id && payload.id !== myId) {
+        const others = window.PlayerManager.otherPlayers;
+        if (!others[payload.id]) {
+          const mesh = window.PlayerManager.createHeroMesh(payload.costume || 0, payload.gender || 'male', payload.classIdx || 0, payload.name, payload.level, payload.vipLevel, payload.id);
+          window.World3D.scene.add(mesh);
+          others[payload.id] = { ...payload, mesh };
+        } else {
+          Object.assign(others[payload.id], payload);
+        }
+      }
+    });
+
+    window.channel.subscribe(status => {
+      if (status === 'SUBSCRIBED') {
+        window.channel.track({ name: window.myName, gender: window.myGender, classIdx: window.myClassIdx, costume: window.myColorIdx, level: window.myProgress.level, vipLevel: window.myProgress.vipLevel, rp: window.calculateRP(), joinedAt: Date.now() });
+
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('game-view').style.display = 'block';
+
+        window.World3D.init('canvas3d');
+        window.PlayerManager.myHeroMesh = window.PlayerManager.createHeroMesh(window.myColorIdx, window.myGender, window.myClassIdx, window.myName, window.myProgress.level, window.myProgress.vipLevel, myId);
+        window.World3D.scene.add(window.PlayerManager.myHeroMesh);
+        window.CombatSystem.initMonsters();
+
+        window.updateMeHUD();
+        window.gameActive = true;
+        window.debugLog('เข้าสู่ยุทธภพสำเร็จเรียบร้อย');
+        requestAnimationFrame(gameLoop);
+      }
+    });
+  } catch (e) {
+    window.debugLog(`Auth Error: ${e.message}`, 'error');
+    alert(e.message);
+  }
+}
+
+function gameLoop() {
+  if (!window.gameActive) return;
+  requestAnimationFrame(gameLoop);
+
+  window.PlayerManager.updatePhysics(1.0);
+  window.World3D.updateEffect();
+  window.CombatSystem.updateAutoBattle();
+
+  Object.values(window.PlayerManager.otherPlayers).forEach(p => {
+    if (p.mesh) p.mesh.position.set(p.x, 0, p.z);
+  });
+
+  if (Math.random() < 0.1 && window.channel) {
+    const me = window.PlayerManager.me;
+    window.channel.send({
+      type: 'broadcast', event: 'pos',
+      payload: { id: me.id, name: window.myName, gender: window.myGender, classIdx: window.myClassIdx, costume: window.myColorIdx, level: window.myProgress.level, vipLevel: window.myProgress.vipLevel, rp: window.calculateRP(), x: me.x, z: me.z }
+    });
+  }
+
+  window.World3D.renderer.render(window.World3D.scene, window.World3D.camera);
+}
+
+window.updateMeHUD = function() {
+  document.getElementById('pNameText').textContent = window.myName;
+  document.getElementById('pLvText').textContent = `Lv.${window.myProgress.level}`;
+  document.getElementById('vipBadge').textContent = `VIP ${window.myProgress.vipLevel}`;
+};
+
+window.teleportTo = function(x, z, name) {
+  window.PlayerManager.me.x = x;
+  window.PlayerManager.me.z = z;
+  window.PlayerManager.targetPos = null;
+  window.closeModal('teleportModal');
+  window.showToast(`🌀 วาร์ปมายัง: ${name}`);
+};
+
+window.openModal = function(id) { const el = document.getElementById(id); if (el) el.style.display = 'flex'; };
+window.closeModal = function(id) { const el = document.getElementById(id); if (el) el.style.display = 'none'; };
+</script>
 </body>
 </html>
