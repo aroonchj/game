@@ -9,12 +9,37 @@ window.myClassIdx = 0;
 window.myColorIdx = 0;
 window.gameActive = false;
 window.isHost = false;
+window.authMode = 'login'; // 'login' หรือ 'register'
 let lastSyncTime = 0;
 
 window.myProgress = {
   level: 1, exp: 0, money: 150, swordPlus: 0,
   isVip1: false, inventory: { potion: 2, spiritStone: 2, herb: 4 },
   unlockedCostumes: [0], questKills: 0
+};
+
+// สลับแท็บ Login / Register
+window.switchAuthTab = function(mode) {
+  window.authMode = mode;
+  const loginBtn = document.getElementById('tabLoginBtn');
+  const regBtn = document.getElementById('tabRegisterBtn');
+  const extraFields = document.getElementById('registerExtraFields');
+  const startBtn = document.getElementById('startBtn');
+  const authTitle = document.getElementById('authTitle');
+
+  if (mode === 'login') {
+    loginBtn.classList.add('active');
+    regBtn.classList.remove('active');
+    extraFields.style.display = 'none';
+    startBtn.textContent = 'เข้าสู่ยุทธภพ';
+    authTitle.textContent = 'เข้าสู่ระบบยุทธภพ';
+  } else {
+    regBtn.classList.add('active');
+    loginBtn.classList.remove('active');
+    extraFields.style.display = 'flex';
+    startBtn.textContent = 'สร้างตัวละคร & ก้าวสู่ยุทธภพ';
+    authTitle.textContent = 'สร้างจอมยุทธ์ใหม่';
+  }
 };
 
 // Debug Log Engine
@@ -51,45 +76,73 @@ window.showToast = function(msg) {
   window.showToast._t = setTimeout(() => { t.style.display = 'none'; }, 3000);
 };
 
-// ---------------- Join & Supabase Realtime ----------------
-document.getElementById('startBtn').addEventListener('click', joinRoom);
+// ---------------- Join & Auth Flow ----------------
+document.getElementById('startBtn').addEventListener('click', handleAuth);
 
-async function joinRoom() {
+async function handleAuth() {
   const nameInput = document.getElementById('nameInput');
+  const passInput = document.getElementById('passInput');
   const roomInput = document.getElementById('roomInput');
+  const startBtn = document.getElementById('startBtn');
+
   const nm = nameInput.value.trim();
+  const pwd = passInput.value.trim();
   const rc = roomInput.value.trim().toLowerCase().replace(/\s+/g, '');
-  if (!nm || !rc) return;
+
+  if (!nm) { alert('กรุณากรอกชื่อจอมยุทธ์'); return; }
+  if (!pwd || pwd.length < 6) { alert('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'); return; }
+  if (!rc) { alert('กรุณาระบุรหัสห้อง'); return; }
 
   window.myName = nm;
   window.roomCode = rc;
   const myId = 'p_' + Math.random().toString(36).slice(2, 8);
   window.PlayerManager.me.id = myId;
 
-  document.getElementById('startBtn').disabled = true;
-  document.getElementById('startBtn').textContent = 'กำลังเชื่อมต่อยุทธภพ...';
+  startBtn.disabled = true;
+  startBtn.textContent = 'กำลังตรวจสอบข้อมูล...';
 
   try {
-    window.debugLog(`กำลังเชื่อมต่อ: Name=${window.myName}, Room=${window.roomCode}`);
+    window.debugLog(`ตรวจสอบข้อมูล: Name=${window.myName}, Mode=${window.authMode}`);
     window.sb = window.supabase.createClient(window.CONFIG.SUPABASE_URL, window.CONFIG.SUPABASE_ANON_KEY);
 
     const { data: prow, error: prowErr } = await window.sb.from('mmo_players').select('*').eq('name', window.myName).maybeSingle();
     if (prowErr) window.debugLog('DB Load: ' + prowErr.message, 'warn');
 
-    if (prow) {
+    if (window.authMode === 'login') {
+      // โหมดเข้าสู่ระบบ
+      if (!prow) {
+        throw new Error('ไม่พบบัญชีจอมยุทธ์นี้ กรุณาสมัครสมาชิกใหม่');
+      }
+      if (prow.password && prow.password !== pwd) {
+        throw new Error('รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง');
+      }
+
       window.myProgress.level = prow.level || 1;
       window.myProgress.exp = prow.exp || 0;
       window.myProgress.money = prow.money != null ? prow.money : 150;
       window.myProgress.swordPlus = prow.sword_plus != null ? prow.sword_plus : 0;
       window.myProgress.inventory = prow.inventory || { potion: 2, spiritStone: 2, herb: 4 };
       window.myProgress.isVip1 = !!prow.is_vip1;
+      window.myColorIdx = prow.costume || 0;
+      window.debugLog('เข้าสู่ระบบสำเร็จ');
+
     } else {
+      // โหมดสร้างตัวละครใหม่
+      if (prow) {
+        throw new Error('ชื่อจอมยุทธ์นี้มีผู้อื่นใช้งานแล้ว');
+      }
+
       await window.sb.from('mmo_players').insert({
-        name: window.myName, level: 1, exp: 0, money: 150, sword_plus: 0,
-        costume: window.myColorIdx, inventory: window.myProgress.inventory
+        name: window.myName,
+        password: pwd,
+        level: 1, exp: 0, money: 150, sword_plus: 0,
+        costume: window.myColorIdx,
+        inventory: window.myProgress.inventory
       });
+      window.debugLog('สร้างบัญชีจอมยุทธ์ใหม่สำเร็จ');
     }
 
+    // เริ่มต้น Channel เชื่อมต่อ Realtime
     window.channel = window.sb.channel('justice_v7_' + window.roomCode, {
       config: { broadcast: { ack: false, self: false }, presence: { key: myId } }
     });
@@ -158,9 +211,9 @@ async function joinRoom() {
     });
 
   } catch (e) {
-    document.getElementById('startBtn').disabled = false;
-    document.getElementById('startBtn').textContent = 'ก้าวสู่ยุทธภพ';
-    alert('เชื่อมต่อไม่สำเร็จ: ' + e.message);
+    startBtn.disabled = false;
+    startBtn.textContent = window.authMode === 'login' ? 'เข้าสู่ยุทธภพ' : 'สร้างตัวละคร & ก้าวสู่ยุทธภพ';
+    alert(e.message);
   }
 }
 
@@ -173,7 +226,6 @@ function gameLoop() {
   window.CombatSystem.updateVFX();
   window.World3D.updatePetals();
 
-  // อัปเดตตำแหน่งผู้เล่นอื่น
   Object.values(window.PlayerManager.otherPlayers).forEach(p => {
     if (p.mesh) {
       p.mesh.position.set(p.x, p.y || 0, p.z);
@@ -181,7 +233,6 @@ function gameLoop() {
     }
   });
 
-  // อนิเมชันมอนสเตอร์
   window.CombatSystem.monsters.forEach((m, idx) => {
     if (m.mesh && m.alive) {
       m.mesh.position.y = 1.0 + Math.sin(Date.now() * 0.003 + idx) * 0.3;
@@ -192,7 +243,6 @@ function gameLoop() {
     }
   });
 
-  // ซิงค์ตำแหน่งผ่าน Realtime Broadcast
   const now = Date.now();
   if (now - lastSyncTime > 150 && window.channel) {
     lastSyncTime = now;
@@ -203,7 +253,6 @@ function gameLoop() {
     });
   }
 
-  // อัปเดตคูลดาวน์ UI
   ['Q','E','R'].forEach(k => {
     const el = document.getElementById('cd' + k);
     if (el) {
@@ -215,7 +264,7 @@ function gameLoop() {
   window.World3D.renderer.render(window.World3D.scene, window.World3D.camera);
 }
 
-// ---------------- UI & Reward Helpers ----------------
+// ---------------- UI & Helpers ----------------
 window.updateMeHUD = function() {
   document.getElementById('pNameText').textContent = window.myName;
   document.getElementById('pLvText').textContent = `Lv.${window.myProgress.level}`;
@@ -259,7 +308,6 @@ window.gainRewards = async function(expAmt, moneyAmt, drops, src) {
   }).eq('name', window.myName);
 };
 
-// Modals Handler
 window.openModal = function(id) {
   document.getElementById(id).style.display = 'flex';
   if (id === 'invModal') {
@@ -319,7 +367,6 @@ window.claimQuest = async function() {
   window.gainRewards(150, 150, ['spiritStone', 'potion'], 'รางวัลเควสต์');
 };
 
-// Chat
 document.getElementById('chatform').addEventListener('submit', e => {
   e.preventDefault();
   const input = document.getElementById('chatInput');
@@ -332,4 +379,3 @@ document.getElementById('chatform').addEventListener('submit', e => {
 });
 
 })();
-</script>
