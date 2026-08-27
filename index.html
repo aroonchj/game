@@ -81,6 +81,15 @@ canvas{ background:radial-gradient(ellipse at 50% 30%,#28321f 0%,#171c12 75%); b
 #closeCostume{ background:transparent; border:1px solid var(--gold); color:var(--gold-bright); padding:8px 20px; border-radius:2px; }
 
 #toast{ position:absolute; top:56px; left:50%; transform:translateX(-50%); font-size:.85em; color:var(--gold-bright); background:rgba(20,15,10,.8); padding:6px 16px; border-radius:3px; border:1px solid var(--gold); display:none; z-index:30; }
+
+#debugPanel{ position:fixed; right:8px; bottom:8px; width:340px; max-height:260px; overflow-y:auto;
+  background:rgba(0,0,0,.85); border:1px solid #4a3d2a; border-radius:4px; padding:8px 10px;
+  font-family:monospace; font-size:.68em; color:#8fda8f; z-index:100; }
+#debugPanel .err{ color:#ff7a7a; }
+#debugPanel .warn{ color:#f0cf6a; }
+#debugPanel .hdr{ display:flex; justify-content:space-between; color:#c9bda0; margin-bottom:4px; font-family:'Noto Sans Thai',sans-serif; }
+#debugPanel .hdr button{ background:none; border:1px solid #4a3d2a; color:#c9bda0; font-size:.9em; padding:0 6px; border-radius:2px; }
+#debugPanel .line{ white-space:pre-wrap; word-break:break-all; border-top:1px solid #222; padding:2px 0; }
 </style>
 </head>
 <body>
@@ -158,6 +167,11 @@ canvas{ background:radial-gradient(ellipse at 50% 30%,#28321f 0%,#171c12 75%); b
       <div id="costumeList"></div>
       <button id="closeCostume">ปิด</button>
     </div>
+  </div>
+
+  <div id="debugPanel">
+    <div class="hdr"><span>🔧 Debug Log</span><button id="clearDebugBtn">ล้าง</button></div>
+    <div id="debugLines"></div>
   </div>
 
 </div>
@@ -260,6 +274,19 @@ classPick.querySelectorAll('.classbtn').forEach(btn=>{
 joinBtn.addEventListener('click', joinRoom);
 [nameInput, roomInput, guildInput].forEach(inp=> inp.addEventListener('keydown', e=>{ if(e.key==='Enter') joinRoom(); }));
 
+const debugLinesEl = document.getElementById('debugLines');
+document.getElementById('clearDebugBtn').addEventListener('click', ()=>{ debugLinesEl.innerHTML=''; });
+function debugLog(msg, level){
+  level = level || 'info';
+  const time = new Date().toLocaleTimeString('th-TH', {hour12:false});
+  const div = document.createElement('div');
+  div.className = 'line' + (level==='error' ? ' err' : level==='warn' ? ' warn' : '');
+  div.textContent = `[${time}] ${msg}`;
+  debugLinesEl.appendChild(div);
+  debugLinesEl.parentElement.scrollTop = debugLinesEl.parentElement.scrollHeight;
+  if(level==='error') console.error(msg); else console.log(msg);
+}
+
 function genId(){ return 'p_' + Math.random().toString(36).slice(2,10); }
 function expNeeded(level){ return 100 * level; }
 function showToast(msg){
@@ -284,11 +311,15 @@ async function joinRoom(){
   joinBtn.disabled=true; joinBtn.textContent='กำลังเข้าห้อง...';
 
   try{
+    debugLog(`เริ่ม join: name=${myName} room=${roomCode} myId=${myId}`);
     sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+    debugLog('สร้าง supabase client แล้ว');
 
     // load or create persistent player row
-    const { data: prow } = await sb.from('mmo_players').select('*').eq('name', myName).maybeSingle();
+    const { data: prow, error: prowErr } = await sb.from('mmo_players').select('*').eq('name', myName).maybeSingle();
+    if(prowErr){ debugLog('อ่าน mmo_players ผิดพลาด: ' + prowErr.message, 'error'); }
     if(prow){
+      debugLog('พบผู้เล่นเดิม: Lv.' + prow.level);
       myProgress.level = prow.level;
       myProgress.exp = prow.exp;
       myProgress.unlockedCostumes = prow.unlocked_costumes || [myClass];
@@ -298,19 +329,25 @@ async function joinRoom(){
     } else {
       myProgress = { level:1, exp:0, unlockedCostumes:[myClass], inventory:[] };
       me.costume = myClass;
-      await sb.from('mmo_players').insert({
+      const { error: insErr } = await sb.from('mmo_players').insert({
         name: myName, level:1, exp:0, guild:myGuild, costume:myClass, unlocked_costumes:[myClass], inventory:[]
       });
+      if(insErr) debugLog('สร้างผู้เล่นใหม่ผิดพลาด: ' + insErr.message, 'error');
+      else debugLog('สร้างผู้เล่นใหม่สำเร็จ');
     }
 
     // load or create room row
-    const { data: rrow } = await sb.from('mmo_rooms').select('*').eq('room_code', roomCode).maybeSingle();
+    const { data: rrow, error: rrowErr } = await sb.from('mmo_rooms').select('*').eq('room_code', roomCode).maybeSingle();
+    if(rrowErr){ debugLog('อ่าน mmo_rooms ผิดพลาด: ' + rrowErr.message, 'error'); }
     if(rrow){
+      debugLog('พบห้องเดิม: kills=' + rrow.kills);
       roomKillsTotal = rrow.kills || 0;
       if(rrow.monsters && rrow.monsters.length===3){ monsters = rrow.monsters; }
       if(rrow.last_drop) lastDropSeenTs = rrow.last_drop.ts || 0;
     } else {
-      await sb.from('mmo_rooms').insert({ room_code: roomCode, boss_hp:0, boss_max_hp:0, kills:0, monsters: monsters });
+      const { error: rInsErr } = await sb.from('mmo_rooms').insert({ room_code: roomCode, boss_hp:0, boss_max_hp:0, kills:0, monsters: monsters });
+      if(rInsErr) debugLog('สร้างห้องใหม่ผิดพลาด: ' + rInsErr.message, 'error');
+      else debugLog('สร้างห้องใหม่สำเร็จ');
     }
 
     me = {
@@ -321,7 +358,9 @@ async function joinRoom(){
       level: myProgress.level
     };
 
-    channel = sb.channel('game-room-' + roomCode, { config:{ presence:{ key: myId } } });
+    const channelName = 'game-room-' + roomCode;
+    debugLog('สร้าง channel: ' + channelName);
+    channel = sb.channel(channelName, { config:{ presence:{ key: myId } } });
 
     channel.on('presence', { event:'sync' }, ()=>{
       const state = channel.presenceState();
@@ -331,14 +370,23 @@ async function joinRoom(){
         if(metas && metas.length) roster[k] = metas[metas.length-1];
       });
       presenceRoster = roster;
+      debugLog(`presence sync: เห็น ${Object.keys(roster).length} คน [${Object.keys(roster).join(', ')}] (ตัวเอง=${myId})`);
       recomputeHost();
       renderRoster();
       if(isHost) processAttacks();
     });
 
+    channel.on('presence', { event:'join' }, ({ key })=>{
+      debugLog('มีคน join presence: ' + key);
+    });
+    channel.on('presence', { event:'leave' }, ({ key })=>{
+      debugLog('มีคน leave presence: ' + key, 'warn');
+    });
+
     channel.on('postgres_changes',
       { event:'UPDATE', schema:'public', table:'mmo_rooms', filter:`room_code=eq.${roomCode}` },
       (payload)=>{
+        debugLog('ได้รับ postgres_changes update สำหรับห้อง: kills=' + payload.new.kills);
         if(payload.new.monsters) monsters = payload.new.monsters;
         roomKillsTotal = payload.new.kills || 0;
         if(payload.new.last_drop && payload.new.last_drop.ts > lastDropSeenTs){
@@ -353,16 +401,26 @@ async function joinRoom(){
       }
     );
 
-    channel.subscribe(async (status)=>{
+    channel.subscribe(async (status, err)=>{
+      debugLog('channel status เปลี่ยนเป็น: ' + status + (err ? (' | error: ' + (err.message||err)) : ''), status==='SUBSCRIBED' ? 'info' : (status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED') ? 'error' : 'warn');
+
+      if(status==='CHANNEL_ERROR' || status==='TIMED_OUT'){
+        joinBtn.disabled=false; joinBtn.textContent='เข้าสู่ยุทธภพ';
+        alert('เชื่อมต่อ Realtime ไม่สำเร็จ (' + status + ') — ดูรายละเอียดใน Debug Log มุมขวาล่าง');
+        return;
+      }
+
       if(status==='SUBSCRIBED'){
         const current = channel.presenceState();
+        debugLog('subscribed แล้ว presence ปัจจุบัน: ' + Object.keys(current).length + ' คน');
         if(Object.keys(current).length >= MAX_PLAYERS){
           alert('ห้องนี้เต็มแล้ว (ปาร์ตี้เต็ม 4 คน) ลองรหัสห้องอื่นครับ');
           await channel.unsubscribe();
           joinBtn.disabled=false; joinBtn.textContent='เข้าสู่ยุทธภพ';
           return;
         }
-        await channel.track(me);
+        const trackResult = await channel.track(me);
+        debugLog('track ผลลัพธ์: ' + JSON.stringify(trackResult));
 
         landing.style.display='none';
         gameEl.style.display='flex';
@@ -375,6 +433,7 @@ async function joinRoom(){
     });
 
   }catch(err){
+    debugLog('join ล้มเหลว: ' + (err.message||err), 'error');
     console.error(err);
     joinBtn.disabled=false; joinBtn.textContent='เข้าสู่ยุทธภพ';
     alert('เชื่อมต่อ Supabase ไม่สำเร็จ เช็ค URL/Key/ตารางอีกครั้งครับ');
@@ -394,7 +453,8 @@ function recomputeHost(){
 
 async function persistRoomMonsters(extra){
   const payload = Object.assign({ monsters: monsters, kills: roomKillsTotal }, extra||{});
-  await sb.from('mmo_rooms').update(payload).eq('room_code', roomCode);
+  const { error } = await sb.from('mmo_rooms').update(payload).eq('room_code', roomCode);
+  if(error) debugLog('persistRoomMonsters ผิดพลาด: ' + error.message, 'error');
 }
 
 async function awardKillRewards(killerKey, monsterId){
@@ -599,9 +659,13 @@ function addChatLine(name,text){
 function escapeHtml(s){ return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 let seenChatAt={};
 
+let trackErrLoggedOnce=false;
 async function trackNow(){
   if(!channel) return;
-  try{ await channel.track(me); }catch(e){}
+  try{
+    const res = await channel.track(me);
+    if(res!=='ok' && !trackErrLoggedOnce){ trackErrLoggedOnce=true; debugLog('track() ไม่ได้ผลลัพธ์ ok: ' + JSON.stringify(res), 'warn'); }
+  }catch(e){ debugLog('trackNow error: ' + e.message, 'error'); }
 }
 
 // ---------- loop ----------
