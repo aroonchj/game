@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>WHERE WINDS MEET · XIANXIA 3D MMORPG</title>
+<title>WHERE WINDS MEET · DYNAMIC RARITY MMORPG</title>
 
 <script>
   window.SUPABASE_URL = "https://mflemycqwksuktvktlko.supabase.co";
@@ -113,6 +113,7 @@ button { cursor: pointer; border: none; font-family: 'Noto Sans Thai', sans-seri
 #canvas3d { width: 100%; height: 100%; display: block; }
 #hud { position: absolute; inset: 0; pointer-events: none; }
 
+/* Player Profile Top-Left */
 #player-hud {
   position: absolute; top: 16px; left: 16px;
   display: flex; gap: 12px; align-items: center;
@@ -403,9 +404,10 @@ button { cursor: pointer; border: none; font-family: 'Noto Sans Thai', sans-seri
       <h3 class="brush-title">ค่ายกลเคลื่อนย้ายยุทธภพ</h3>
       <div class="grid-opt" style="gap:8px;">
         <button class="opt-btn" onclick="teleportTo(0, 0, 'ลานเมืองหลวงลั่วหยาง')">🏛️ ลานเมืองหลวง (Safe Zone)</button>
-        <button class="opt-btn" onclick="teleportTo(0, -60, 'ท่าเรือแม่น้ำมังกร')">⛵ ท่าเรือมังกร (Lv.1 - 5)</button>
-        <button class="opt-btn" onclick="teleportTo(-65, 15, 'ป่าไผ่ซ่อนพยัคฆ์')">🎋 ป่าไผ่ซ่อนพยัคฆ์ (Lv.10 - 20)</button>
-        <button class="opt-btn" onclick="teleportTo(80, -50, 'รังมังกรศิลาพันปี')">🐉 หุบเขามังกรศิลา (Boss Lv.50)</button>
+        <button class="opt-btn" onclick="teleportTo(0, -60, 'ทุ่งหญ้าหมาป่า (Lv.1 - 3)')">🐺 ทุ่งหญ้าหมาป่า (Lv.1 - 3)</button>
+        <button class="opt-btn" onclick="teleportTo(-70, 20, 'ป่าไผ่ซ่อนพยัคฆ์ (Lv.10 - 15)')">🎋 ป่าไผ่ซ่อนพยัคฆ์ (Lv.10 - 15)</button>
+        <button class="opt-btn" onclick="teleportTo(75, 30, 'หุบเขาโกเลมศิลา (Lv.25 - 30)')">🗿 หุบเขาโกเลมศิลา (Lv.25 - 30)</button>
+        <button class="opt-btn" onclick="teleportTo(90, -70, 'รังมังกรศิลาพันปี (Boss Lv.50)')">🐉 รังมังกรศิลา (Boss Lv.50)</button>
       </div>
       <button class="menu-btn" onclick="closeModal('teleportModal')">ปิด</button>
     </div>
@@ -466,7 +468,7 @@ button { cursor: pointer; border: none; font-family: 'Noto Sans Thai', sans-seri
 (function(){
 "use strict";
 
-// ---------------- 1. Global Setup & Config ----------------
+// ---------------- 1. Global Setup, Dynamic Rarity & Stat Multipliers ----------------
 window.CONFIG = {
   SUPABASE_URL: window.SUPABASE_URL,
   SUPABASE_ANON_KEY: window.SUPABASE_ANON_KEY,
@@ -491,32 +493,52 @@ window.CONFIG = {
     { level: 9, title: 'จักรพรรดิสวรรค์', cost: 7500, atkBonus: 2.00, defBonus: 1.85, expBonus: 3.20, speedBonus: 1.50 },
     { level: 10, title: 'เทพบรรพกาลไร้ขอบเขต', cost: 11000, atkBonus: 2.50, defBonus: 2.20, expBonus: 4.00, speedBonus: 1.65 }
   ],
-  RARITY_COLORS: {
-    white: '#e2e8f0', green: '#48bb78', blue: '#4299e1', purple: '#9f7aea',
-    orange: '#ed8936', red: '#f56565', pink: '#ed64a6'
+
+  // 7 ระดับสี พร้อมตัวคูณสเตตัส และฉายานำหน้า
+  RARITY_TIERS: {
+    white:  { name: 'ธรรมดา', color: '#e2e8f0', mult: 1.0 },
+    green:  { name: 'ยุทธภพ', color: '#48bb78', mult: 1.3 },
+    blue:   { name: 'วิญญาณ', color: '#4299e1', mult: 1.7 },
+    purple: { name: 'ล้ำค่า', color: '#9f7aea', mult: 2.2 },
+    orange: { name: 'เทพยุทธ์', color: '#ed8936', mult: 2.9 },
+    red:    { name: 'เซียนสวรรค์', color: '#f56565', mult: 3.8 },
+    pink:   { name: 'บรรพกาล', color: '#ed64a6', mult: 5.0 }
   },
-  EQUIP_DATABASE: {
-    'helm_common': { name: 'หมวกสานฝึกหัด', tier: 'white', slot: 'helm', reqLvl: 1, hp: 40, def: 4 },
-    'helm_green': { name: 'หมวกเหล็กสำริด', tier: 'green', slot: 'helm', reqLvl: 5, hp: 90, def: 10 },
-    'helm_blue': { name: 'รัดเกล้าหยกวายุ', tier: 'blue', slot: 'helm', reqLvl: 15, hp: 180, def: 22 },
-    'helm_boss_pink': { name: 'มงกุฎเกล็ดมังกรสวรรค์', tier: 'pink', slot: 'helm', reqLvl: 45, hp: 750, def: 95, atk: 40 },
-    'armor_common': { name: 'ชุดผ้าป่านธรรมดา', tier: 'white', slot: 'armor', reqLvl: 1, hp: 30, def: 6 },
-    'armor_green': { name: 'เสื้อเกราะหนังเสือดาว', tier: 'green', slot: 'armor', reqLvl: 8, hp: 110, def: 18 },
-    'armor_purple': { name: 'เกราะเหล็กไหลพันปี', tier: 'purple', slot: 'armor', reqLvl: 25, hp: 280, def: 55 },
-    'armor_boss_red': { name: 'เกราะเซียนสุริยันเผาผลาญ', tier: 'red', slot: 'armor', reqLvl: 40, hp: 600, def: 110 },
-    'bracer_blue': { name: 'ปลอกแขนพยัคฆ์เหิน', tier: 'blue', slot: 'bracer', reqLvl: 12, atk: 18, def: 8 },
-    'bracer_orange': { name: 'ปลอกแขนอัคนีผลาญภพ', tier: 'orange', slot: 'bracer', reqLvl: 35, atk: 55, def: 20 },
-    'boots_green': { name: 'รองเท้าหนังสัตว์ป่า', tier: 'green', slot: 'boots', reqLvl: 3, def: 8, speed: 1.05 },
-    'boots_boss_pink': { name: 'สนับแข้งท่องดาราบรรพกาล', tier: 'pink', slot: 'boots', reqLvl: 45, def: 45, speed: 1.30 },
-    'wpn_dragon_pink': { name: 'กระบี่บรรพกาลไร้พ่าย', tier: 'pink', slot: 'weapon', reqLvl: 50, atk: 180, hp: 200 }
+
+  // ฐานข้อมูลไอเทมต้นแบบ (ทุกชิ้นสามารถสุ่มได้ครบทั้ง 7 สี)
+  EQUIP_BASE: {
+    'helm_lv1': { baseName: 'หมวกสาน', slot: 'helm', reqLvl: 1, baseHp: 30, baseDef: 4 },
+    'armor_lv1': { baseName: 'ชุดผ้าป่าน', slot: 'armor', reqLvl: 1, baseHp: 25, baseDef: 6 },
+    'boots_lv1': { baseName: 'รองเท้าฟาง', slot: 'boots', reqLvl: 1, baseDef: 3, baseSpeed: 1.02 },
+
+    'helm_lv5': { baseName: 'หมวกหนังหมาป่า', slot: 'helm', reqLvl: 5, baseHp: 65, baseDef: 9 },
+    'armor_lv5': { baseName: 'เสื้อเกราะหนังสัตว์', slot: 'armor', reqLvl: 5, baseHp: 80, baseDef: 14 },
+    'boots_lv5': { baseName: 'รองเท้าหนังสัตว์', slot: 'boots', reqLvl: 5, baseDef: 7, baseSpeed: 1.05 },
+
+    'helm_lv10': { baseName: 'รัดเกล้าหยกวายุ', slot: 'helm', reqLvl: 10, baseHp: 120, baseDef: 18 },
+    'armor_lv10': { baseName: 'เสื้อคลุมวิญญาณ', slot: 'armor', reqLvl: 10, baseHp: 150, baseDef: 28 },
+    'bracer_lv10': { baseName: 'ปลอกแขนพยัคฆ์', slot: 'bracer', reqLvl: 10, baseAtk: 14, baseDef: 7 },
+
+    'helm_lv15': { baseName: 'หมวกเหล็กแม่ทัพ', slot: 'helm', reqLvl: 15, baseHp: 200, baseDef: 30 },
+    'armor_lv15': { baseName: 'เกราะเหล็กไหล', slot: 'armor', reqLvl: 15, baseHp: 260, baseDef: 48 },
+    'bracer_lv15': { baseName: 'ปลอกแขนอัญมณี', slot: 'bracer', reqLvl: 15, baseAtk: 24, baseDef: 12 },
+
+    'armor_lv20': { baseName: 'เกราะสุริยันเพลิง', slot: 'armor', reqLvl: 20, baseHp: 380, baseDef: 70 },
+    'bracer_lv20': { baseName: 'ปลอกแขนอัคนี', slot: 'bracer', reqLvl: 20, baseAtk: 42, baseDef: 18 },
+
+    'armor_lv30': { baseName: 'เกราะมังกรสวรรค์', slot: 'armor', reqLvl: 30, baseHp: 580, baseDef: 105 },
+
+    'helm_lv40': { baseName: 'มงกุฎเกล็ดมังกร', slot: 'helm', reqLvl: 40, baseHp: 800, baseDef: 110, baseAtk: 35 },
+    'boots_lv40': { baseName: 'สนับแข้งท่องดารา', slot: 'boots', reqLvl: 40, baseDef: 50, baseSpeed: 1.25 },
+    'wpn_dragon_pink': { baseName: 'กระบี่มังกรไร้พ่าย', slot: 'weapon', reqLvl: 40, baseAtk: 180, baseHp: 250 }
   }
 };
 
 window.QUEST_LIST = [
-  { id: 1, title: 'ภารกิจที่ 1: กำจัดหมาป่าทมิฬนอกเมือง', targetType: 'wolf', reqCount: 3, curCount: 0, rewardExp: 150, rewardMoney: 100, done: false },
-  { id: 2, title: 'ภารกิจที่ 2: ปราบโจรป่าไผ่', targetType: 'bandit', reqCount: 3, curCount: 0, rewardExp: 300, rewardMoney: 200, done: false },
-  { id: 3, title: 'ภารกิจที่ 3: ท้าประลองโกเลมศิลาแดง', targetType: 'golem', reqCount: 2, curCount: 0, rewardExp: 600, rewardMoney: 450, done: false },
-  { id: 4, title: 'ภารกิจมหากาพย์: ล่ามังกรศิลาพันปี', targetType: 'boss', reqCount: 1, curCount: 0, rewardExp: 2000, rewardMoney: 1500, done: false }
+  { id: 1, title: 'ภารกิจที่ 1: กำจัดหมาป่าทมิฬ (Lv.1 - 3)', targetType: 'wolf', reqCount: 3, curCount: 0, rewardExp: 180, rewardMoney: 80, done: false },
+  { id: 2, title: 'ภารกิจที่ 2: ปราบโจรป่าไผ่ (Lv.10 - 15)', targetType: 'bandit', reqCount: 3, curCount: 0, rewardExp: 450, rewardMoney: 180, done: false },
+  { id: 3, title: 'ภารกิจที่ 3: ท้าประลองโกเลมศิลาแดง (Lv.25 - 30)', targetType: 'golem', reqCount: 2, curCount: 0, rewardExp: 900, rewardMoney: 350, done: false },
+  { id: 4, title: 'ภารกิจมหากาพย์: ล่ามังกรศิลาพันปี (Boss Lv.50)', targetType: 'boss', reqCount: 1, curCount: 0, rewardExp: 3500, rewardMoney: 1500, done: false }
 ];
 
 window.sb = null; window.channel = null;
@@ -526,12 +548,62 @@ window.gameActive = false; window.isHost = false;
 window.authMode = 'register';
 let lastSyncTime = 0;
 
+// โครงสร้างตัวละคร: เก็บ Equipment เป็น Object ที่มีทั้ง baseKey และ color (เช่น { baseKey: 'helm_lv1', color: 'green' })
 window.myProgress = {
-  level: 1, exp: 0, money: 200, swordPlus: 0,
+  level: 1, exp: 0, money: 100, swordPlus: 0,
   vipLevel: 0,
-  equipment: { helm: 'helm_common', armor: 'armor_common', bracer: null, boots: null, weapon: 'กระบี่เริ่มต้น' },
-  inventory: { potion: 3, spiritStone: 2, herb: 4 },
+  equipment: {
+    helm: { baseKey: 'helm_lv1', color: 'white' },
+    armor: { baseKey: 'armor_lv1', color: 'white' },
+    bracer: null,
+    boots: { baseKey: 'boots_lv1', color: 'white' },
+    weapon: 'กระบี่เริ่มต้น'
+  },
+  // กระเป๋าเก็บไอเทมแบบ Dynamic: [{ id, baseKey, color }]
+  inventoryItems: [
+    { id: 'item_init_1', baseKey: 'helm_lv1', color: 'green' }
+  ],
+  inventoryMaterials: { potion: 3, spiritStone: 2, herb: 4 },
   unlockedCostumes: [0], activeQuestIdx: 0
+};
+
+// ฟังก์ชันสุ่มระดับสี (Rarity Roll)
+window.rollRarity = function(isBoss = false) {
+  const rand = Math.random() * 100;
+  if (isBoss) {
+    if (rand < 3) return 'pink';    // 3%
+    if (rand < 12) return 'red';    // 9%
+    if (rand < 30) return 'orange'; // 18%
+    if (rand < 60) return 'purple'; // 30%
+    return 'blue';
+  }
+  if (rand < 0.5) return 'pink';    // 0.5% (ยากมาก)
+  if (rand < 2.5) return 'red';     // 2%
+  if (rand < 8.0) return 'orange';  // 5.5%
+  if (rand < 20.0) return 'purple'; // 12%
+  if (rand < 45.0) return 'blue';   // 25%
+  if (rand < 75.0) return 'green';  // 30%
+  return 'white';                   // 25%
+};
+
+// ฟังก์ชันคำนวณสเตตัสไอเทมตามสี
+window.getItemStats = function(baseKey, color) {
+  const base = window.CONFIG.EQUIP_BASE[baseKey];
+  if (!base) return null;
+  const tier = window.CONFIG.RARITY_TIERS[color] || window.CONFIG.RARITY_TIERS.white;
+  const mult = tier.mult;
+
+  return {
+    fullName: `[${tier.name}] ${base.baseName}`,
+    color: tier.color,
+    tierKey: color,
+    reqLvl: base.reqLvl,
+    slot: base.slot,
+    hp: base.baseHp ? Math.round(base.baseHp * mult) : 0,
+    def: base.baseDef ? Math.round(base.baseDef * mult) : 0,
+    atk: base.baseAtk ? Math.round(base.baseAtk * mult) : 0,
+    speed: base.baseSpeed || 1.0
+  };
 };
 
 // ---------------- 2. UI Action Handlers ----------------
@@ -624,6 +696,12 @@ window.World3D = {
     sun.castShadow = true;
     sun.shadow.mapSize.width = 2048;
     sun.shadow.mapSize.height = 2048;
+    sun.shadow.camera.near = 0.5;
+    sun.shadow.camera.far = 250;
+    sun.shadow.camera.left = -90;
+    sun.shadow.camera.right = 90;
+    sun.shadow.camera.top = 90;
+    sun.shadow.camera.bottom = -90;
     this.scene.add(sun);
 
     const ground = new THREE.Mesh(
@@ -673,15 +751,15 @@ window.World3D = {
     const bambooMat = new THREE.MeshStandardMaterial({ color: 0x234d2c, roughness: 0.6 });
     for (let i = 0; i < 35; i++) {
       const b = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.18, 10), bambooMat);
-      b.position.set(-65 + (Math.random() - 0.5) * 35, 5, 15 + (Math.random() - 0.5) * 35);
+      b.position.set(-70 + (Math.random() - 0.5) * 45, 5, 20 + (Math.random() - 0.5) * 45);
       b.castShadow = true;
       this.scene.add(b);
     }
 
     const rockMat = new THREE.MeshStandardMaterial({ color: 0x2d2522, roughness: 0.9 });
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 12; i++) {
       const r = new THREE.Mesh(new THREE.DodecahedronGeometry(3 + Math.random() * 3), rockMat);
-      r.position.set(80 + (Math.random() - 0.5) * 25, 2, -50 + (Math.random() - 0.5) * 25);
+      r.position.set(75 + (Math.random() - 0.5) * 35, 2, 30 + (Math.random() - 0.5) * 35);
       r.castShadow = true;
       this.scene.add(r);
     }
@@ -707,7 +785,7 @@ window.World3D = {
   }
 };
 
-// ---------------- 4. Distinct Class Character Models & Pet ----------------
+// ---------------- 4. Character, Aura Effect & Pet ----------------
 window.PlayerManager = {
   me: {
     id: '', x: 0, y: 0, z: 0,
@@ -715,7 +793,7 @@ window.PlayerManager = {
     yaw: 0, pitch: 0.24, hp: 200, maxHp: 200,
     isDead: false, respawnAt: 0, joinedAt: 0
   },
-  myHeroMesh: null, petMesh: null, otherPlayers: {}, keys: {}, isRightMouseDown: false,
+  myHeroMesh: null, petMesh: null, auraMesh: null, otherPlayers: {}, keys: {}, isRightMouseDown: false,
 
   createHeroMesh(colorIdx = 0, gender = 'male', classIdx = 0) {
     const hero = new THREE.Group();
@@ -738,6 +816,14 @@ window.PlayerManager = {
     const hair = new THREE.Mesh(new THREE.ConeGeometry(isFemale ? 0.4 : 0.36, isFemale ? 1.5 : 1.2, 8), new THREE.MeshStandardMaterial({ color: 0x110d0a }));
     hair.position.set(0, 1.85, -0.2); hair.rotation.x = -0.3;
     hero.add(head, hair);
+
+    const auraGeo = new THREE.RingGeometry(0.8, 1.2, 32);
+    const auraMat = new THREE.MeshBasicMaterial({ color: 0xd4af37, side: THREE.DoubleSide, transparent: true, opacity: 0.45 });
+    const aura = new THREE.Mesh(auraGeo, auraMat);
+    aura.rotation.x = -Math.PI / 2;
+    aura.position.y = 0.05;
+    hero.add(aura);
+    this.auraMesh = aura;
 
     if (classIdx === 0) {
       const cape = new THREE.Mesh(new THREE.BoxGeometry(0.85, 1.6, 0.05), new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.7 }));
@@ -856,6 +942,10 @@ window.PlayerManager = {
       this.myHeroMesh.rotation.y = this.me.yaw;
     }
 
+    if (this.auraMesh) {
+      this.auraMesh.rotation.z += 0.02;
+    }
+
     this.updatePetFollow();
 
     const camDist = 8.5;
@@ -885,7 +975,7 @@ window.PlayerManager = {
   }
 };
 
-// ---------------- 5. Class Distinct Skills, Boss AI & 3D Nameplates ----------------
+// ---------------- 5. Combat & Dynamic Drop System ----------------
 window.CombatSystem = {
   cooldowns: {
     atk: { cd: 280, until: 0, mult: 1.0, range: 5.5 },
@@ -894,19 +984,27 @@ window.CombatSystem = {
     R: { cd: 7500, until: 0, mult: 5.2, range: 16.0 }
   },
   vfxObjects: [],
+
   monsters: [
-    { id: 'm1', type: 'wolf', name: 'หมาป่าทมิฬ', lvl: 3, x: 20, z: -40, hp: 180, maxHp: 180, atk: 14, aggroRange: 10, alive: true, mesh: null, hpBarMesh: null, isBoss: false },
-    { id: 'm2', type: 'wolf', name: 'หมาป่าทมิฬ', lvl: 3, x: -20, z: -40, hp: 180, maxHp: 180, atk: 14, aggroRange: 10, alive: true, mesh: null, hpBarMesh: null, isBoss: false },
-    { id: 'm3', type: 'bandit', name: 'จอมโจรป่าไผ่', lvl: 12, x: -65, z: 20, hp: 450, maxHp: 450, atk: 28, aggroRange: 12, alive: true, mesh: null, hpBarMesh: null, isBoss: false },
-    { id: 'm4', type: 'golem', name: 'โกเลมศิลาแดง', lvl: 28, x: 70, z: 30, hp: 950, maxHp: 950, atk: 52, aggroRange: 14, alive: true, mesh: null, hpBarMesh: null, isBoss: false },
-    { id: 'boss_dragon', type: 'boss', name: 'มังกรศิลาพันปี', lvl: 50, x: 80, z: -50, hp: 3500, maxHp: 3500, atk: 95, aggroRange: 26, alive: true, mesh: null, hpBarMesh: null, isBoss: true }
+    { id: 'w1', type: 'wolf', name: 'หมาป่าทมิฬ', lvl: 2, x: 25, z: -50, hp: 120, maxHp: 120, atk: 12, aggroRange: 10, alive: true, mesh: null, hpBarMesh: null, isBoss: false },
+    { id: 'w2', type: 'wolf', name: 'หมาป่าทมิฬ', lvl: 2, x: -30, z: -60, hp: 120, maxHp: 120, atk: 12, aggroRange: 10, alive: true, mesh: null, hpBarMesh: null, isBoss: false },
+    { id: 'w3', type: 'wolf', name: 'หมาป่าดุร้าย', lvl: 3, x: 45, z: -45, hp: 160, maxHp: 160, atk: 15, aggroRange: 10, alive: true, mesh: null, hpBarMesh: null, isBoss: false },
+    { id: 'w4', type: 'wolf', name: 'หมาป่าดุร้าย', lvl: 3, x: -15, z: -75, hp: 160, maxHp: 160, atk: 15, aggroRange: 10, alive: true, mesh: null, hpBarMesh: null, isBoss: false },
+
+    { id: 'b1', type: 'bandit', name: 'โจรป่าไผ่', lvl: 10, x: -65, z: 15, hp: 380, maxHp: 380, atk: 26, aggroRange: 12, alive: true, mesh: null, hpBarMesh: null, isBoss: false },
+    { id: 'b2', type: 'bandit', name: 'โจรป่าไผ่', lvl: 12, x: -80, z: 35, hp: 450, maxHp: 450, atk: 30, aggroRange: 12, alive: true, mesh: null, hpBarMesh: null, isBoss: false },
+    { id: 'b3', type: 'bandit', name: 'มือสังหารเงาไผ่', lvl: 15, x: -55, z: 45, hp: 550, maxHp: 550, atk: 38, aggroRange: 12, alive: true, mesh: null, hpBarMesh: null, isBoss: false },
+
+    { id: 'g1', type: 'golem', name: 'โกเลมหินผา', lvl: 25, x: 65, z: 20, hp: 850, maxHp: 850, atk: 50, aggroRange: 14, alive: true, mesh: null, hpBarMesh: null, isBoss: false },
+    { id: 'g2', type: 'golem', name: 'โกเลมศิลาแดง', lvl: 28, x: 85, z: 40, hp: 1100, maxHp: 1100, atk: 62, aggroRange: 14, alive: true, mesh: null, hpBarMesh: null, isBoss: false },
+    { id: 'g3', type: 'golem', name: 'โกเลมศิลาแดง', lvl: 30, x: 60, z: 60, hp: 1300, maxHp: 1300, atk: 70, aggroRange: 14, alive: true, mesh: null, hpBarMesh: null, isBoss: false },
+
+    { id: 'boss_dragon', type: 'boss', name: 'มังกรศิลาพันปี', lvl: 50, x: 90, z: -70, hp: 4500, maxHp: 4500, atk: 120, aggroRange: 26, alive: true, mesh: null, hpBarMesh: null, isBoss: true }
   ],
 
-  // สร้างป้ายชื่อภาษาไทย + เลเวล ลอยเหนือหัวมอนสเตอร์
   createNameplateSprite(text, isBoss = false) {
     const canvas = document.createElement('canvas');
-    canvas.width = 512;
-    canvas.height = 128;
+    canvas.width = 512; canvas.height = 128;
     const ctx = canvas.getContext('2d');
 
     ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
@@ -943,7 +1041,6 @@ window.CombatSystem = {
       body.position.y = 1.2 * scale; body.castShadow = true;
       mon.add(body);
 
-      // หลอดเลือด 3D
       const hpBg = new THREE.Mesh(new THREE.PlaneGeometry(2.8, 0.35), new THREE.MeshBasicMaterial({ color: 0x000000 }));
       const hpFill = new THREE.Mesh(new THREE.PlaneGeometry(2.7, 0.26), new THREE.MeshBasicMaterial({ color: m.isBoss ? 0xff3b30 : 0x22c55e }));
       hpFill.position.z = 0.01;
@@ -951,7 +1048,6 @@ window.CombatSystem = {
       hpBg.position.set(0, scale * 2.3 + 0.6, 0);
       mon.add(hpBg);
 
-      // ป้ายชื่อ + เลเวล 3D
       const nameplateText = `${m.isBoss ? '👑 ' : ''}${m.name} [Lv.${m.lvl}]`;
       const nameSprite = this.createNameplateSprite(nameplateText, m.isBoss);
       nameSprite.position.set(0, scale * 2.3 + 1.3, 0);
@@ -1000,12 +1096,27 @@ window.CombatSystem = {
 
       if (dist <= 3.2 && Date.now() > (m.lastAttackTime || 0)) {
         m.lastAttackTime = Date.now() + (m.isBoss ? 1600 : 2200);
+
+        const myLvl = window.myProgress.level;
+        const lvlDiff = m.lvl - myLvl;
+        let gapMult = 1.0;
+
+        if (lvlDiff > 2) {
+          gapMult = 2.2;
+        }
+
         const myDef = window.getBaseDef();
-        const actualDmg = Math.max(8, m.atk - Math.round(myDef * 0.35));
+        let rawDmg = m.atk * gapMult;
+        const actualDmg = Math.max(8, Math.round(rawDmg - (myDef * 0.35)));
 
         me.hp = Math.max(0, me.hp - actualDmg);
         window.updateMeHUD();
-        window.showToast(`โดน [${m.name}] โจมตี! -${actualDmg} HP`);
+
+        if (lvlDiff > 2) {
+          window.showToast(`⚠️ โดน [${m.name}] ฟาดแรงคูณ 2! (-${actualDmg} HP)`);
+        } else {
+          window.showToast(`โดน [${m.name}] โจมตี! -${actualDmg} HP`);
+        }
 
         if (me.hp <= 0) {
           me.isDead = true;
@@ -1079,54 +1190,68 @@ window.CombatSystem = {
       if (!m.alive) return;
       const dist = Math.hypot((atk.x || 0) - m.x, (atk.z || 0) - m.z);
       if (dist < (atk.range || 5.2)) {
-        m.hp = Math.max(0, m.hp - (atk.dmg || 24));
+        const myLvl = window.myProgress.level;
+        const lvlDiff = m.lvl - myLvl;
+
+        let finalDmg = atk.dmg || 24;
+
+        if (lvlDiff > 2) {
+          finalDmg = Math.max(1, Math.round(finalDmg * 0.12));
+          window.showToast(`พลังปราณไม่ถึง! ตีเข้าเพียง [${finalDmg}] ดาเมจ`);
+        }
+
+        m.hp = Math.max(0, m.hp - finalDmg);
         if (m.hpBarMesh) m.hpBarMesh.scale.x = Math.max(0.01, m.hp / m.maxHp);
 
         if (m.hp <= 0 && m.alive) {
           m.alive = false;
           m.mesh.visible = false;
-          const rewardExp = m.isBoss ? 1200 : (m.lvl * 25);
-          const rewardMoney = m.isBoss ? 800 : (m.lvl * 15);
-          const drops = this.rollDrops(m);
+
+          const rewardExp = m.isBoss ? 550 : Math.round(m.lvl * 18);
+          const rewardMoney = m.isBoss ? 400 : Math.round(m.lvl * 8);
+          const droppedEquips = this.rollDynamicEquips(m);
 
           if (window.channel) {
             window.channel.send({
               type: 'broadcast', event: 'reward',
-              payload: { targetName: atk.name, exp: rewardExp, money: rewardMoney, drops, sourceName: m.name, monsterType: m.type }
+              payload: { targetName: atk.name, exp: rewardExp, money: rewardMoney, drops: ['spiritStone', 'potion'], droppedEquips, sourceName: m.name, monsterType: m.type }
             });
           }
           if (atk.name === window.myName) {
-            window.gainRewards(rewardExp, rewardMoney, drops, m.name, m.type);
+            window.gainRewards(rewardExp, rewardMoney, ['spiritStone', 'potion'], m.name, m.type, droppedEquips);
           }
 
           setTimeout(() => {
             m.hp = m.maxHp; m.alive = true; m.mesh.visible = true;
             if (m.hpBarMesh) m.hpBarMesh.scale.x = 1.0;
-          }, m.isBoss ? 20000 : 7000);
+          }, m.isBoss ? 25000 : 8000);
         }
       }
     });
   },
 
-  rollDrops(m) {
-    const drops = ['spiritStone', 'potion'];
-    const rand = Math.random() * 100;
+  // สุ่มดรอปไอเทม พร้อมสุ่มระดับสีอิสระ
+  rollDynamicEquips(m) {
+    const dropped = [];
+    let pool = ['helm_lv1', 'armor_lv1', 'boots_lv1'];
+
     if (m.isBoss) {
-      if (rand < 6) drops.push('wpn_dragon_pink');
-      else if (rand < 22) drops.push('helm_boss_pink');
-      else if (rand < 55) drops.push('armor_boss_red');
-      else drops.push('boots_boss_pink');
+      pool = ['helm_lv40', 'boots_lv40', 'armor_lv30', 'wpn_dragon_pink'];
     } else if (m.type === 'golem') {
-      if (rand < 30) drops.push('armor_purple');
-      else if (rand < 60) drops.push('bracer_orange');
+      pool = ['armor_lv20', 'bracer_lv20', 'helm_lv15'];
     } else if (m.type === 'bandit') {
-      if (rand < 35) drops.push('helm_blue');
-      else if (rand < 65) drops.push('bracer_blue');
+      pool = ['helm_lv10', 'armor_lv10', 'bracer_lv10'];
     } else if (m.type === 'wolf') {
-      if (rand < 40) drops.push('helm_green');
-      else if (rand < 70) drops.push('boots_green');
+      pool = ['helm_lv5', 'armor_lv5', 'boots_lv5'];
     }
-    return drops;
+
+    const dropChance = m.isBoss ? 0.90 : 0.40;
+    if (Math.random() < dropChance) {
+      const chosenBase = pool[Math.floor(Math.random() * pool.length)];
+      const rolledColor = window.rollRarity(m.isBoss);
+      dropped.push({ baseKey: chosenBase, color: rolledColor });
+    }
+    return dropped;
   },
 
   updateVFX() {
@@ -1146,37 +1271,41 @@ window.CombatSystem = {
   }
 };
 
-// ---------------- 6. Stats & Logic ----------------
-function expNeeded(lvl) { return 100 * lvl; }
+// ---------------- 6. Stats & Hardcore Leveling Formula ----------------
+function expNeeded(lvl) {
+  return Math.round(150 * Math.pow(lvl, 1.6));
+}
 
 window.calculateRP = function() {
   const atk = window.getBaseAtk();
   const def = window.getBaseDef();
   const hp = window.PlayerManager.me.maxHp;
-  const vipBonus = window.myProgress.vipLevel * 200;
-  return Math.round((atk * 3.0) + (def * 2.2) + (hp * 0.4) + vipBonus);
+  const vipBonus = window.myProgress.vipLevel * 100;
+  return Math.round((atk * 2.8) + (def * 2.0) + (hp * 0.3) + vipBonus);
 };
 
 window.getBaseAtk = function() {
   let extraAtk = 0;
-  Object.values(window.myProgress.equipment).forEach(itemKey => {
-    if (itemKey && window.CONFIG.EQUIP_DATABASE[itemKey]) {
-      extraAtk += window.CONFIG.EQUIP_DATABASE[itemKey].atk || 0;
+  Object.values(window.myProgress.equipment).forEach(eq => {
+    if (eq && eq.baseKey) {
+      const s = window.getItemStats(eq.baseKey, eq.color);
+      if (s) extraAtk += s.atk || 0;
     }
   });
-  const rawAtk = 24 + (window.myProgress.swordPlus * 8) + extraAtk;
+  const rawAtk = 20 + (window.myProgress.swordPlus * 6) + extraAtk;
   const vipMult = window.CONFIG.VIP_DATA[window.myProgress.vipLevel]?.atkBonus || 1.0;
   return Math.round(rawAtk * vipMult);
 };
 
 window.getBaseDef = function() {
   let extraDef = 0;
-  Object.values(window.myProgress.equipment).forEach(itemKey => {
-    if (itemKey && window.CONFIG.EQUIP_DATABASE[itemKey]) {
-      extraDef += window.CONFIG.EQUIP_DATABASE[itemKey].def || 0;
+  Object.values(window.myProgress.equipment).forEach(eq => {
+    if (eq && eq.baseKey) {
+      const s = window.getItemStats(eq.baseKey, eq.color);
+      if (s) extraDef += s.def || 0;
     }
   });
-  const rawDef = 12 + (window.myProgress.level * 2) + extraDef;
+  const rawDef = 10 + (window.myProgress.level * 2) + extraDef;
   const vipMult = window.CONFIG.VIP_DATA[window.myProgress.vipLevel]?.defBonus || 1.0;
   return Math.round(rawDef * vipMult);
 };
@@ -1227,11 +1356,20 @@ async function handleAuth() {
 
       window.myProgress.level = prow.level || 1;
       window.myProgress.exp = prow.exp || 0;
-      window.myProgress.money = prow.money != null ? prow.money : 200;
+      window.myProgress.money = prow.money != null ? prow.money : 100;
       window.myProgress.swordPlus = prow.sword_plus != null ? prow.sword_plus : 0;
       window.myProgress.vipLevel = prow.vip_level || 0;
-      window.myProgress.inventory = prow.inventory || { potion: 3, spiritStone: 2, herb: 4 };
-      window.myProgress.equipment = prow.equipment || { helm: 'helm_common', armor: 'armor_common', bracer: null, boots: null, weapon: 'กระบี่เริ่มต้น' };
+      window.myProgress.inventoryMaterials = prow.inventory || { potion: 3, spiritStone: 2, herb: 4 };
+      window.myProgress.inventoryItems = prow.inventory_items || [
+        { id: 'item_init_1', baseKey: 'helm_lv1', color: 'green' }
+      ];
+      window.myProgress.equipment = prow.equipment || {
+        helm: { baseKey: 'helm_lv1', color: 'white' },
+        armor: { baseKey: 'armor_lv1', color: 'white' },
+        bracer: null,
+        boots: { baseKey: 'boots_lv1', color: 'white' },
+        weapon: 'กระบี่เริ่มต้น'
+      };
       window.myGender = prow.gender || 'male';
       window.myClassIdx = prow.class_idx != null ? prow.class_idx : 0;
       window.myColorIdx = prow.costume || 0;
@@ -1242,14 +1380,15 @@ async function handleAuth() {
       await window.sb.from('mmo_players').insert({
         name: window.myName, password: pwd,
         gender: window.myGender, class_idx: window.myClassIdx,
-        level: 1, exp: 0, money: 200, sword_plus: 0, vip_level: 0,
+        level: 1, exp: 0, money: 100, sword_plus: 0, vip_level: 0,
         costume: window.myColorIdx,
-        inventory: window.myProgress.inventory,
+        inventory: window.myProgress.inventoryMaterials,
+        inventory_items: window.myProgress.inventoryItems,
         equipment: window.myProgress.equipment
       });
     }
 
-    window.channel = window.sb.channel('justice_v15_' + window.roomCode, {
+    window.channel = window.sb.channel('justice_v18_' + window.roomCode, {
       config: { broadcast: { ack: false, self: false }, presence: { key: myId } }
     });
 
@@ -1274,7 +1413,7 @@ async function handleAuth() {
 
     window.channel.on('broadcast', { event: 'reward' }, ({ payload }) => {
       if (payload && payload.targetName === window.myName) {
-        window.gainRewards(payload.exp, payload.money, payload.drops, payload.sourceName, payload.monsterType);
+        window.gainRewards(payload.exp, payload.money, payload.drops, payload.sourceName, payload.monsterType, payload.droppedEquips);
       }
     });
 
@@ -1385,49 +1524,64 @@ window.teleportTo = function(x, z, locationName) {
   window.showToast(`🌀 วาร์ปมายัง: ${locationName}`);
 };
 
-window.equipItem = async function(itemKey) {
-  const item = window.CONFIG.EQUIP_DATABASE[itemKey];
-  if (!item) return;
+window.equipItem = async function(invItemId) {
+  const itemIdx = window.myProgress.inventoryItems.findIndex(i => i.id === invItemId);
+  if (itemIdx === -1) return;
 
-  if (window.myProgress.level < item.reqLvl) {
-    window.showToast(`เลเวลไม่ถึง! ต้องการ Lv.${item.reqLvl}`);
+  const item = window.myProgress.inventoryItems[itemIdx];
+  const stats = window.getItemStats(item.baseKey, item.color);
+  if (!stats) return;
+
+  const myLvl = window.myProgress.level;
+  if (myLvl < stats.reqLvl) {
+    window.showToast(`เลเวลไม่ถึง! ต้องการเลเวล ${stats.reqLvl}`);
     return;
   }
 
-  const currentEquipped = window.myProgress.equipment[item.slot];
-  if (currentEquipped) {
-    window.myProgress.inventory[currentEquipped] = (window.myProgress.inventory[currentEquipped] || 0) + 1;
+  // สลับของเก่ากลับเข้ากระเป๋า
+  const currentEquipped = window.myProgress.equipment[stats.slot];
+  if (currentEquipped && currentEquipped.baseKey) {
+    window.myProgress.inventoryItems.push({
+      id: 'item_' + Math.random().toString(36).slice(2, 8),
+      baseKey: currentEquipped.baseKey,
+      color: currentEquipped.color
+    });
   }
 
-  window.myProgress.equipment[item.slot] = itemKey;
-  window.myProgress.inventory[itemKey] -= 1;
-  if (window.myProgress.inventory[itemKey] <= 0) delete window.myProgress.inventory[itemKey];
+  window.myProgress.equipment[stats.slot] = { baseKey: item.baseKey, color: item.color };
+  window.myProgress.inventoryItems.splice(itemIdx, 1);
 
   window.updateMeHUD();
   window.renderCharUI();
   window.renderInventoryUI();
-  window.showToast(`สวมใส่ [${item.name}] สำเร็จ!`);
+  window.showToast(`สวมใส่ [${stats.fullName}] สำเร็จ!`);
 
   await window.sb.from('mmo_players').update({
     equipment: window.myProgress.equipment,
-    inventory: window.myProgress.inventory
+    inventory_items: window.myProgress.inventoryItems
   }).eq('name', window.myName);
 };
 
 window.unequipItem = async function(slot) {
-  const itemKey = window.myProgress.equipment[slot];
-  if (!itemKey) return;
+  const eq = window.myProgress.equipment[slot];
+  if (!eq || !eq.baseKey) return;
+
+  window.myProgress.inventoryItems.push({
+    id: 'item_' + Math.random().toString(36).slice(2, 8),
+    baseKey: eq.baseKey,
+    color: eq.color
+  });
 
   window.myProgress.equipment[slot] = null;
-  window.myProgress.inventory[itemKey] = (window.myProgress.inventory[itemKey] || 0) + 1;
 
   window.updateMeHUD();
   window.renderCharUI();
+  window.renderInventoryUI();
   window.showToast('ถอดอุปกรณ์เรียบร้อย');
 
   await window.sb.from('mmo_players').update({
     equipment: window.myProgress.equipment,
-    inventory: window.myProgress.inventory
+    inventory_items: window.myProgress.inventoryItems
   }).eq('name', window.myName);
 };
 
@@ -1453,7 +1607,7 @@ window.upgradeVIP = async function() {
   }).eq('name', window.myName);
 };
 
-window.gainRewards = async function(expAmt, moneyAmt, drops, src, monsterType) {
+window.gainRewards = async function(expAmt, moneyAmt, drops, src, monsterType, droppedEquips = []) {
   const expMult = window.CONFIG.VIP_DATA[window.myProgress.vipLevel]?.expBonus || 1.0;
   const finalExp = Math.round(expAmt * expMult);
   const finalMoney = Math.round(moneyAmt * expMult);
@@ -1471,7 +1625,22 @@ window.gainRewards = async function(expAmt, moneyAmt, drops, src, monsterType) {
 
   if (drops && drops.length) {
     drops.forEach(k => {
-      window.myProgress.inventory[k] = (window.myProgress.inventory[k] || 0) + 1;
+      window.myProgress.inventoryMaterials[k] = (window.myProgress.inventoryMaterials[k] || 0) + 1;
+    });
+  }
+
+  // เพิ่มไอเทมที่สุ่มได้เข้าช่องเก็บของ
+  if (droppedEquips && droppedEquips.length) {
+    droppedEquips.forEach(eq => {
+      const stats = window.getItemStats(eq.baseKey, eq.color);
+      if (stats) {
+        window.myProgress.inventoryItems.push({
+          id: 'item_' + Math.random().toString(36).slice(2, 8),
+          baseKey: eq.baseKey,
+          color: eq.color
+        });
+        window.showToast(`✨ ดรอปไอเทม: ${stats.fullName} !`);
+      }
     });
   }
 
@@ -1488,7 +1657,9 @@ window.gainRewards = async function(expAmt, moneyAmt, drops, src, monsterType) {
 
   await window.sb.from('mmo_players').update({
     exp: window.myProgress.exp, level: window.myProgress.level,
-    money: window.myProgress.money, inventory: window.myProgress.inventory
+    money: window.myProgress.money,
+    inventory: window.myProgress.inventoryMaterials,
+    inventory_items: window.myProgress.inventoryItems
   }).eq('name', window.myName);
 };
 
@@ -1555,21 +1726,22 @@ window.openModal = function(id) {
     if (fCur) fCur.textContent = `+${window.myProgress.swordPlus}`;
     if (fAtk) fAtk.textContent = `${window.getBaseAtk()} ATK`;
     if (fNext) fNext.textContent = `${window.getBaseAtk() + 8} ATK`;
-    if (sCnt) sCnt.textContent = window.myProgress.inventory.spiritStone || 0;
+    if (sCnt) sCnt.textContent = window.myProgress.inventoryMaterials.spiritStone || 0;
   }
 };
 window.closeModal = function(id) { const el = document.getElementById(id); if (el) el.style.display = 'none'; };
 
 window.renderCharUI = function() {
   const eq = window.myProgress.equipment;
-  const db = window.CONFIG.EQUIP_DATABASE;
   ['helm', 'armor', 'bracer', 'boots'].forEach(slot => {
-    const key = eq[slot];
+    const item = eq[slot];
     const el = document.getElementById(`eq${slot.charAt(0).toUpperCase() + slot.slice(1)}Text`);
     if (el) {
-      if (key && db[key]) {
-        const color = window.CONFIG.RARITY_COLORS[db[key].tier];
-        el.innerHTML = `<span style="color:${color};font-weight:bold;">${db[key].name}</span> <button class="menu-btn-small" onclick="unequipItem('${slot}')">ถอด</button>`;
+      if (item && item.baseKey) {
+        const stats = window.getItemStats(item.baseKey, item.color);
+        if (stats) {
+          el.innerHTML = `<span style="color:${stats.color};font-weight:bold;">${stats.fullName} (Lv.${stats.reqLvl}+)</span> <button class="menu-btn-small" onclick="unequipItem('${slot}')">ถอด</button>`;
+        }
       } else {
         el.innerHTML = '- ไม่มี -';
       }
@@ -1586,24 +1758,26 @@ window.renderInventoryUI = function() {
   const grid = document.getElementById('invGrid');
   if (!grid) return;
   let html = `
-    <div class="inv-slot"><b>🧪 โอสถ</b><span>x${window.myProgress.inventory.potion || 0}</span><button class="menu-btn-small" onclick="usePotion()">ดื่ม</button></div>
-    <div class="inv-slot"><b>💎 หินวิญญาณ</b><span>x${window.myProgress.inventory.spiritStone || 0}</span></div>
-    <div class="inv-slot"><b>🌿 สมุนไพร</b><span>x${window.myProgress.inventory.herb || 0}</span></div>
+    <div class="inv-slot"><b>🧪 โอสถ</b><span>x${window.myProgress.inventoryMaterials.potion || 0}</span><button class="menu-btn-small" onclick="usePotion()">ดื่ม</button></div>
+    <div class="inv-slot"><b>💎 หินวิญญาณ</b><span>x${window.myProgress.inventoryMaterials.spiritStone || 0}</span></div>
+    <div class="inv-slot"><b>🌿 สมุนไพร</b><span>x${window.myProgress.inventoryMaterials.herb || 0}</span></div>
     <div class="inv-slot"><b>💰 ตำลึง</b><span>${window.myProgress.money}</span></div>
   `;
-  Object.keys(window.myProgress.inventory).forEach(k => {
-    const item = window.CONFIG.EQUIP_DATABASE[k];
-    if (item) {
-      const color = window.CONFIG.RARITY_COLORS[item.tier];
+
+  // เรนเดอร์ไอเทมสวมใส่ที่สุ่มได้ในกระเป๋า
+  window.myProgress.inventoryItems.forEach(item => {
+    const stats = window.getItemStats(item.baseKey, item.color);
+    if (stats) {
       html += `
-        <div class="inv-slot" style="border-color:${color};">
-          <b style="color:${color};">🛡️ ${item.name}</b>
-          <span style="font-size:.7em;">Lv.${item.reqLvl} | x${window.myProgress.inventory[k]}</span>
-          <button class="menu-btn-small" style="background:${color};color:#000;" onclick="equipItem('${k}')">สวมใส่</button>
+        <div class="inv-slot" style="border-color:${stats.color};">
+          <b style="color:${stats.color}; font-size:.8em;">${stats.fullName}</b>
+          <span style="font-size:.68em; color:#a89779;">Lv.${stats.reqLvl}+ | ${stats.atk ? 'ATK +' + stats.atk : 'DEF +' + stats.def}</span>
+          <button class="menu-btn-small" style="background:${stats.color}; color:#000; font-weight:700;" onclick="equipItem('${item.id}')">สวมใส่</button>
         </div>
       `;
     }
   });
+
   grid.innerHTML = html;
 };
 
@@ -1640,26 +1814,26 @@ window.renderVipUI = function() {
 };
 
 window.usePotion = async function() {
-  if ((window.myProgress.inventory.potion || 0) <= 0) { window.showToast('โอสถหมดแล้ว!'); return; }
-  window.myProgress.inventory.potion -= 1;
+  if ((window.myProgress.inventoryMaterials.potion || 0) <= 0) { window.showToast('โอสถหมดแล้ว!'); return; }
+  window.myProgress.inventoryMaterials.potion -= 1;
   window.PlayerManager.me.hp = Math.min(window.PlayerManager.me.maxHp, window.PlayerManager.me.hp + 75);
   window.updateMeHUD();
   window.renderInventoryUI();
   window.showToast('ดื่มโอสถ +75 HP!');
-  await window.sb.from('mmo_players').update({ inventory: window.myProgress.inventory }).eq('name', window.myName);
+  await window.sb.from('mmo_players').update({ inventory: window.myProgress.inventoryMaterials }).eq('name', window.myName);
 };
 
 window.upgradeSwordAction = async function() {
-  if ((window.myProgress.inventory.spiritStone || 0) < 1 || window.myProgress.money < 80) {
+  if ((window.myProgress.inventoryMaterials.spiritStone || 0) < 1 || window.myProgress.money < 80) {
     window.showToast('หินวิญญาณหรือตำลึงไม่พอ!'); return;
   }
-  window.myProgress.inventory.spiritStone -= 1;
+  window.myProgress.inventoryMaterials.spiritStone -= 1;
   window.myProgress.money -= 80;
   window.myProgress.swordPlus += 1;
   window.updateMeHUD();
   window.openModal('forgeModal');
   window.showToast(`⚔️ ตีบวกสำเร็จ! อาวุธกลายเป็น +${window.myProgress.swordPlus}`);
-  await window.sb.from('mmo_players').update({ money: window.myProgress.money, sword_plus: window.myProgress.swordPlus, inventory: window.myProgress.inventory }).eq('name', window.myName);
+  await window.sb.from('mmo_players').update({ money: window.myProgress.money, sword_plus: window.myProgress.swordPlus, inventory: window.myProgress.inventoryMaterials }).eq('name', window.myName);
 };
 
 window.changeCostume = async function(idx) {
