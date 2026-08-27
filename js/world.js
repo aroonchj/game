@@ -1,52 +1,55 @@
 window.World3D = {
-  scene: null,
-  camera: null,
-  renderer: null,
-  petals: [],
+  scene: null, camera: null, renderer: null, petals: [], raycaster: new THREE.Raycaster(), mouse: new THREE.Vector2(),
+  cameraAngle: 0, cameraDist: 14, cameraHeight: 12, isDragging: false, previousMousePosition: { x: 0, y: 0 }, clickRingMesh: null,
 
   init(containerId) {
     const container = document.getElementById(containerId);
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x070503);
-    this.scene.fog = new THREE.FogExp2(0x0a0705, 0.008);
+    this.scene.background = new THREE.Color(0x06080e);
+    this.scene.fog = new THREE.FogExp2(0x080b12, 0.007);
 
-    this.camera = new THREE.PerspectiveCamera(48, window.innerWidth / window.innerHeight, 0.1, 1000);
-
+    // มุมกล้อง Quarter-View ที่ปรับหมุนและซูมได้
+    this.camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
     this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(this.renderer.domElement);
 
-    const ambient = new THREE.AmbientLight(0xffecd0, 0.65);
-    this.scene.add(ambient);
-
-    const sun = new THREE.DirectionalLight(0xffdfba, 1.5);
-    sun.position.set(60, 90, 45);
+    const hemiLight = new THREE.HemisphereLight(0xffecd0, 0x1a2130, 0.7);
+    this.scene.add(hemiLight);
+    const sun = new THREE.DirectionalLight(0xffdfba, 1.8);
+    sun.position.set(70, 95, 45);
     sun.castShadow = true;
-    sun.shadow.mapSize.width = 2048;
-    sun.shadow.mapSize.height = 2048;
     this.scene.add(sun);
 
-    // ขยายพื้นแมพ Open-World ขนาดใหญ่ 300 x 300 เมตร
-    const groundGeo = new THREE.PlaneGeometry(300, 300);
-    const groundMat = new THREE.MeshStandardMaterial({ color: 0x18110a, roughness: 0.85 });
-    const ground = new THREE.Mesh(groundGeo, groundMat);
+    const ground = new THREE.Mesh(
+      new THREE.PlaneGeometry(300, 300),
+      new THREE.MeshStandardMaterial({ color: 0x14100c, roughness: 0.85 })
+    );
     ground.rotation.x = -Math.PI / 2;
     ground.receiveShadow = true;
+    ground.name = "ground";
     this.scene.add(ground);
 
-    // ท่าเรือน้ำกว้าง
-    const water = new THREE.Mesh(
-      new THREE.PlaneGeometry(300, 100),
-      new THREE.MeshStandardMaterial({ color: 0x05131a, roughness: 0.1, metalness: 0.85 })
+    // ลานประลองยุทธ์ PvP Arena (โซนขอบแดง)
+    const pvpZone = new THREE.Mesh(
+      new THREE.RingGeometry(15, 18, 32),
+      new THREE.MeshBasicMaterial({ color: 0xff4d4f, side: THREE.DoubleSide, transparent: true, opacity: 0.7 })
     );
-    water.rotation.x = -Math.PI / 2;
-    water.position.set(0, -0.15, -90);
-    this.scene.add(water);
+    pvpZone.rotation.x = -Math.PI / 2;
+    pvpZone.position.set(0, 0.05, 50);
+    this.scene.add(pvpZone);
 
-    this.buildCityArchitecture();
-    this.initPetals();
+    // วงแหวนเอฟเฟคตอนคลิกเมาส์
+    const ringGeo = new THREE.RingGeometry(0.5, 0.8, 32);
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0xd4af37, side: THREE.DoubleSide, transparent: true, opacity: 0 });
+    this.clickRingMesh = new THREE.Mesh(ringGeo, ringMat);
+    this.clickRingMesh.rotation.x = -Math.PI / 2;
+    this.clickRingMesh.position.y = 0.08;
+    this.scene.add(this.clickRingMesh);
+
+    this.buildCity();
+    this.initControls();
 
     window.addEventListener('resize', () => {
       this.camera.aspect = window.innerWidth / window.innerHeight;
@@ -55,93 +58,86 @@ window.World3D = {
     });
   },
 
-  buildCityArchitecture() {
-    // ศาลาเมืองหลวง
+  buildCity() {
     const pagoda = new THREE.Group();
-    const base = new THREE.Mesh(new THREE.BoxGeometry(20, 6, 14), new THREE.MeshStandardMaterial({ color: 0x3a1910 }));
-    base.position.y = 3.0;
-    base.castShadow = true;
-    const roof = new THREE.Mesh(new THREE.ConeGeometry(16, 3.5, 4), new THREE.MeshStandardMaterial({ color: 0x6e1b24, roughness: 0.3 }));
-    roof.position.y = 7.5;
-    roof.rotation.y = Math.PI / 4;
+    const base = new THREE.Mesh(new THREE.BoxGeometry(22, 7, 16), new THREE.MeshStandardMaterial({ color: 0x2b1510, roughness: 0.7 }));
+    base.position.y = 3.5; base.castShadow = true;
+    const roof = new THREE.Mesh(new THREE.ConeGeometry(18, 4.0, 4), new THREE.MeshStandardMaterial({ color: 0x5a141c, roughness: 0.4, metalness: 0.3 }));
+    roof.position.y = 8.5; roof.rotation.y = Math.PI / 4;
     pagoda.add(base, roof);
-    pagoda.position.set(0, 0, -20);
+    pagoda.position.set(0, 0, -22);
     this.scene.add(pagoda);
 
-    // ประตูเมือง 3 ทิศ
-    this.createGate(0, 30, 0);
-    this.createGate(-30, 0, Math.PI / 2);
-    this.createGate(30, 0, Math.PI / 2);
-
-    // ป่าไผ่ทิศตะวันตก
-    const bambooMat = new THREE.MeshStandardMaterial({ color: 0x2e5c38 });
-    for (let i = 0; i < 25; i++) {
-      const b = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 8 + Math.random() * 4), bambooMat);
-      b.position.set(-60 + (Math.random() - 0.5) * 35, 4, 15 + (Math.random() - 0.5) * 35);
+    const bambooMat = new THREE.MeshStandardMaterial({ color: 0x234d2c, roughness: 0.6 });
+    for (let i = 0; i < 35; i++) {
+      const b = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.18, 10), bambooMat);
+      b.position.set(-70 + (Math.random() - 0.5) * 45, 5, 20 + (Math.random() - 0.5) * 45);
+      b.castShadow = true;
       this.scene.add(b);
     }
-
-    // หินผาหุบเขาบอสทิศตะวันออก
-    const rockMat = new THREE.MeshStandardMaterial({ color: 0x3d352e, roughness: 0.9 });
-    for (let i = 0; i < 8; i++) {
-      const r = new THREE.Mesh(new THREE.DodecahedronGeometry(3 + Math.random() * 3), rockMat);
-      r.position.set(65 + (Math.random() - 0.5) * 20, 2, (Math.random() - 0.5) * 30);
-      this.scene.add(r);
-    }
-
-    // โคมไฟเมืองหลวง
-    for (let i = 0; i < 10; i++) {
-      const ang = (i / 10) * Math.PI * 2;
-      this.createLantern(Math.cos(ang) * 20, Math.sin(ang) * 20);
-    }
   },
 
-  createGate(x, z, rot) {
-    const g = new THREE.Group();
-    const p1 = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 9), new THREE.MeshStandardMaterial({ color: 0x4a1218 }));
-    p1.position.set(-3.5, 4.5, 0);
-    const p2 = p1.clone();
-    p2.position.set(3.5, 4.5, 0);
-    const roof = new THREE.Mesh(new THREE.ConeGeometry(7, 2.2, 4), new THREE.MeshStandardMaterial({ color: 0xd4af37 }));
-    roof.position.y = 9.8;
-    roof.rotation.y = Math.PI / 4;
-    g.add(p1, p2, roof);
-    g.position.set(x, 0, z);
-    g.rotation.y = rot;
-    this.scene.add(g);
-  },
+  initControls() {
+    // หมุนมุมกล้อง 360 ด้วยคลิกขวา
+    window.addEventListener('mousedown', e => { if (e.button === 2) this.isDragging = true; });
+    window.addEventListener('mouseup', e => { if (e.button === 2) this.isDragging = false; });
+    window.addEventListener('contextmenu', e => e.preventDefault());
 
-  createLantern(x, z) {
-    const g = new THREE.Group();
-    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.15, 4.5), new THREE.MeshStandardMaterial({ color: 0x22150c }));
-    post.position.y = 2.25;
-    const l = new THREE.Mesh(new THREE.SphereGeometry(0.55, 10, 10), new THREE.MeshBasicMaterial({ color: 0xff3b30 }));
-    l.position.y = 4.2;
-    const light = new THREE.PointLight(0xff5533, 1.2, 9);
-    light.position.y = 4.2;
-    g.add(post, l, light);
-    g.position.set(x, 0, z);
-    this.scene.add(g);
-  },
-
-  initPetals() {
-    const pGeo = new THREE.PlaneGeometry(0.2, 0.2);
-    const pMat = new THREE.MeshBasicMaterial({ color: 0xffb7c5, side: THREE.DoubleSide });
-    for (let i = 0; i < 60; i++) {
-      const petal = new THREE.Mesh(pGeo, pMat);
-      petal.position.set((Math.random() - 0.5) * 120, Math.random() * 15, (Math.random() - 0.5) * 120);
-      petal.userData = { vy: 0.03 + Math.random() * 0.03, vx: 0.02 + Math.random() * 0.02 };
-      this.scene.add(petal);
-      this.petals.push(petal);
-    }
-  },
-
-  updatePetals() {
-    this.petals.forEach(p => {
-      p.position.y -= p.userData.vy;
-      p.position.x += p.userData.vx;
-      if (p.position.y < 0) p.position.y = 15;
-      if (p.position.x > 60) p.position.x = -60;
+    window.addEventListener('mousemove', e => {
+      if (this.isDragging) {
+        const deltaX = e.movementX || e.clientX - this.previousMousePosition.x;
+        this.cameraAngle -= deltaX * 0.008;
+      }
+      this.previousMousePosition = { x: e.clientX, y: e.clientY };
     });
+
+    // ซูมเข้า-ออก (Wheel)
+    window.addEventListener('wheel', e => {
+      this.cameraDist = Math.max(6, Math.min(25, this.cameraDist + e.deltaY * 0.02));
+      this.cameraHeight = Math.max(5, Math.min(20, this.cameraHeight + e.deltaY * 0.015));
+    });
+
+    // คลิกซ้ายเดิน + แสดงเอฟเฟกต์คลิก
+    window.addEventListener('pointerdown', e => {
+      if (!window.gameActive || window.PlayerManager.me.isDead) return;
+      if (e.target.closest('#hud') || e.target.closest('.modal') || e.target.closest('#debugPanel')) return;
+      if (e.button !== 0) return;
+
+      this.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+      this.mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+      this.raycaster.setFromCamera(this.mouse, this.camera);
+
+      // เช็คการคลิกโดนผู้เล่นอื่นเพื่อเช็คข้อมูลเพื่อน
+      const otherMeshes = Object.values(window.PlayerManager.otherPlayers).map(p => p.mesh).filter(Boolean);
+      const intersectsPlayers = this.raycaster.intersectObjects(otherMeshes, true);
+      if (intersectsPlayers.length > 0) {
+        let hit = intersectsPlayers[0].object;
+        while (hit.parent && !hit.userData.playerId) hit = hit.parent;
+        if (hit.userData.playerId) { window.inspectPlayer(hit.userData.playerId); return; }
+      }
+
+      const groundObj = this.scene.getObjectByName("ground");
+      if (groundObj) {
+        const intersects = this.raycaster.intersectObject(groundObj);
+        if (intersects.length > 0) {
+          const pt = intersects[0].point;
+          window.PlayerManager.targetPos = pt;
+
+          // แสดงวงแหวนแสงกระพริบที่พื้น
+          if (this.clickRingMesh) {
+            this.clickRingMesh.position.set(pt.x, 0.08, pt.z);
+            this.clickRingMesh.material.opacity = 1.0;
+            this.clickRingMesh.scale.set(0.5, 0.5, 0.5);
+          }
+        }
+      }
+    });
+  },
+
+  updateEffect() {
+    if (this.clickRingMesh && this.clickRingMesh.material.opacity > 0) {
+      this.clickRingMesh.material.opacity -= 0.03;
+      this.clickRingMesh.scale.addScalar(0.04);
+    }
   }
 };
