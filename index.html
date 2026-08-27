@@ -1,1057 +1,190 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>刃義 · Justice Online MMORPG 3D</title>
-
-<script>
-  window.SUPABASE_URL = "https://mflemycqwksuktvktlko.supabase.co";
-  window.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mbGVteWNxd2tzdWt0dmt0bGtvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3OTA1MjksImV4cCI6MjEwMzM2NjUyOX0.8SCV1ZDz3lOulzzh7jONZj73McRwn-duAaaoGC6XTso";
-</script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Noto+Serif+SC:wght@600;900&family=Noto+Sans+Thai:wght@400;600;700&display=swap');
-
-:root{
-  --gold:#d4af37; --gold-bright:#fae17d;
-  --panel-bg: rgba(14, 10, 8, 0.94);
-  --border:#5a452d;
-}
-*{ box-sizing:border-box; margin:0; padding:0; }
-html,body{ width:100%; height:100%; background:#050302; color:#efe6d5; font-family:'Noto Sans Thai',sans-serif; overflow:hidden; user-select:none; }
-.brush-title{ font-family:'Noto Serif SC','Cinzel',serif; font-weight:900; }
-#app{ width:100%; height:100%; position:relative; }
-
-/* 1. Login & Character Creation Screen */
-#login-screen{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:radial-gradient(circle at 60% 40%,#26150c 0%,#050302 85%); z-index:100; }
-#login-box{ background:var(--panel-bg); border:1px solid var(--border); border-radius:8px; padding:26px; width:480px; max-width:92%; display:flex; flex-direction:column; gap:12px; box-shadow:0 12px 50px rgba(0,0,0,0.9); max-height:92vh; overflow-y:auto; }
-#login-box h1{ font-size:2.0em; text-align:center; color:var(--gold-bright); text-shadow:0 0 20px rgba(250,225,125,.4); }
-.field{ display:flex; flex-direction:column; gap:4px; text-align:left; }
-.field label{ font-size:.78em; color:#d2c4a7; font-weight:600; }
-.field input{ background:#1c140e; border:1px solid var(--border); color:#efe6d5; padding:8px 12px; border-radius:4px; font-size:.95em; outline:none; }
-.field input:focus{ border-color:var(--gold-bright); }
-
-.grid-opt{ display:grid; grid-template-columns:repeat(2,1fr); gap:6px; }
-.grid-opt-4{ display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
-.opt-btn{ background:#1c140e; border:1px solid #4a3822; color:#bfae91; padding:7px 4px; border-radius:4px; font-size:.78em; cursor:pointer; text-align:center; }
-.opt-btn.active{ border-color:var(--gold-bright); color:var(--gold-bright); background:#312316; font-weight:700; }
-
-button{ cursor:pointer; border:none; font-family:'Noto Sans Thai',sans-serif; font-weight:600; }
-#startBtn{ width:100%; background:linear-gradient(180deg,#f3d36b,var(--gold)); color:#1a1205; padding:12px; font-size:1.05em; border-radius:4px; font-weight:700; margin-top:4px; box-shadow:0 4px 15px rgba(212,175,55,.3); }
-
-/* 2. In-Game HUD */
-#game-view{ width:100%; height:100%; display:none; position:relative; }
-#canvas3d{ width:100%; height:100%; display:block; }
-#hud{ position:absolute; inset:0; pointer-events:none; }
-
-/* Top Left Profile */
-#player-hud{ position:absolute; top:16px; left:16px; display:flex; gap:12px; align-items:center; pointer-events:auto; }
-#avatar{ width:56px; height:56px; border-radius:50%; border:2px solid var(--gold); background:url('https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150') center/cover; box-shadow:0 0 14px rgba(212,175,55,0.4); }
-#bars-box{ width:210px; display:flex; flex-direction:column; gap:4px; }
-.hud-bar{ width:100%; height:9px; background:rgba(0,0,0,0.7); border:1px solid #4a3822; border-radius:4px; overflow:hidden; }
-.hud-hp{ height:100%; background:linear-gradient(90deg,#9e1b2f,#f24962); transition:width .2s; }
-.hud-exp{ height:100%; background:linear-gradient(90deg,var(--gold),var(--gold-bright)); transition:width .3s; }
-
-/* Top Center Nav Menu */
-#top-menu{ position:absolute; top:16px; left:50%; transform:translateX(-50%); display:flex; gap:8px; pointer-events:auto; }
-.menu-btn{ background:rgba(20,15,11,0.85); border:1px solid #5a452d; color:var(--gold-bright); padding:6px 14px; border-radius:4px; font-size:.76em; box-shadow:0 4px 10px rgba(0,0,0,0.6); }
-.menu-btn:hover{ background:rgba(40,30,20,0.9); }
-
-/* Top Right Quest & Minimap */
-#top-right{ position:absolute; top:16px; right:16px; display:flex; flex-direction:column; align-items:flex-end; gap:8px; }
-#minimap{ width:96px; height:96px; border-radius:50%; border:2px solid var(--gold); background:radial-gradient(circle,#1c2d27,#080f0c); position:relative; box-shadow:0 0 15px rgba(0,0,0,0.9); overflow:hidden; }
-#minimap .p-dot{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:6px; height:6px; border-radius:50%; background:#22c55e; box-shadow:0 0 6px #22c55e; }
-#quest-box{ background:rgba(18,13,9,0.85); border:1px solid #4a3822; padding:8px 12px; border-radius:4px; font-size:.76em; text-align:right; max-width:230px; pointer-events:auto; }
-#quest-box b{ color:var(--gold-bright); }
-
-/* Bottom Right Skill Wheel */
-#skill-wheel{ position:absolute; right:20px; bottom:20px; width:220px; height:220px; pointer-events:auto; }
-.btn-main-atk{ position:absolute; right:10px; bottom:10px; width:76px; height:76px; border-radius:50%; background:radial-gradient(circle,#5a1c1a,#180606); border:2px solid var(--gold); color:#fff; font-size:1.7em; display:flex; align-items:center; justify-content:center; box-shadow:0 0 22px rgba(212,175,55,0.4); cursor:pointer; }
-.btn-sub-skill{ position:absolute; width:48px; height:48px; border-radius:50%; background:rgba(20,15,10,0.92); border:1.5px solid #6b5334; color:var(--gold-bright); display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:.72em; cursor:pointer; overflow:hidden; }
-.btn-sub-skill .cd-overlay{ position:absolute; inset:0; background:rgba(0,0,0,0.8); height:0%; top:0; }
-
-#btnQ{ right:95px; bottom:15px; }
-#btnE{ right:85px; bottom:75px; }
-#btnR{ right:20px; bottom:95px; }
-#btnDodge{ right:100px; bottom:135px; width:44px; height:44px; font-size:.65em; }
-
-#chatlog{ position:absolute; left:16px; bottom:60px; width:280px; max-height:120px; overflow:hidden; font-size:.75em; color:#dcd2be; display:flex; flex-direction:column-reverse; gap:3px; pointer-events:none; }
-#chatform{ position:absolute; left:16px; bottom:16px; display:flex; gap:6px; width:300px; pointer-events:auto; }
-#chatInput{ flex:1; background:rgba(18,13,9,0.85); border:1px solid #4a3822; color:#efe6d5; padding:6px 10px; border-radius:4px; font-size:.8em; outline:none; }
-#chatSendBtn{ background:linear-gradient(180deg,#f3d36b,var(--gold)); color:#1a1205; padding:0 12px; border-radius:4px; font-size:.8em; font-weight:700; }
-
-/* Modals */
-.modal{ display:none; position:absolute; inset:0; background:rgba(0,0,0,0.85); align-items:center; justify-content:center; z-index:90; pointer-events:auto; }
-.modal-box{ background:var(--panel-bg); border:1px solid var(--border); border-radius:8px; padding:22px; width:460px; max-width:92%; max-height:85vh; overflow-y:auto; display:flex; flex-direction:column; gap:12px; }
-.modal-box h3{ color:var(--gold-bright); text-align:center; font-size:1.3em; margin-bottom:4px; }
-.inv-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
-.inv-slot{ background:#1c140e; border:1px solid #4a3822; border-radius:6px; padding:8px 4px; text-align:center; font-size:.75em; min-height:64px; display:flex; flex-direction:column; justify-content:center; gap:2px; }
-.inv-slot b{ color:var(--gold-bright); }
-
-#toast{ position:absolute; top:60px; left:50%; transform:translateX(-50%); font-size:.88em; color:var(--gold-bright); background:rgba(18,13,9,.94); padding:8px 24px; border-radius:20px; border:1px solid var(--gold); display:none; z-index:80; box-shadow:0 4px 20px rgba(0,0,0,.8); }
-
-/* Debug Log Panel */
-#debugPanel{ position:fixed; right:10px; bottom:10px; width:340px; max-height:220px; overflow-y:auto; background:rgba(0,0,0,0.92); border:1px solid #5a452d; border-radius:6px; padding:6px 10px; font-family:monospace; font-size:.72em; color:#8fda8f; z-index:9999; }
-#debugPanel .hdr{ display:flex; justify-content:space-between; color:#fae17d; margin-bottom:4px; font-weight:bold; font-family:'Noto Sans Thai',sans-serif; }
-#debugPanel .hdr button{ background:#2b1c11; border:1px solid #5a452d; color:#efe6d5; font-size:.8em; padding:1px 6px; border-radius:2px; cursor:pointer; }
-#debugPanel .line{ white-space:pre-wrap; word-break:break-all; border-top:1px solid #222; padding:2px 0; }
-#debugPanel .err{ color:#ff6b6b; }
-#debugPanel .warn{ color:#ffd13b; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>刃義 · Justice Online MMORPG 3D</title>
+  
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
-<div id="app">
+  <div id="app">
+    <!-- หน้าจอ Login & สร้างตัวละคร -->
+    <div id="login-screen">
+      <div id="login-box">
+        <div class="brush-title header-tag">WHERE WINDS MEET · 3D</div>
+        <h1 class="brush-title main-title">ยุทธภพเปิด</h1>
+        <div class="sub-desc">โลกแห่งจอมยุทธ์ Open-World MMORPG</div>
 
-  <!-- 1. Login Screen -->
-  <div id="login-screen">
-    <div id="login-box">
-      <div class="brush-title" style="font-size:.85em;letter-spacing:.3em;text-align:center;color:#a89779;">JUSTICE ONLINE</div>
-      <h1 class="brush-title">สร้างจอมยุทธ์</h1>
-
-      <div class="field">
-        <label>ชื่อจอมยุทธ์</label>
-        <input id="nameInput" maxlength="12" placeholder="เช่น เอี้ยก้วย" />
-      </div>
-
-      <div class="field">
-        <label>สำนักเพลงยุทธ์</label>
-        <div class="grid-opt" id="classGrid">
-          <div class="opt-btn active" data-c="0">⚔️ กระบี่เมฆา (ว่องไว)</div>
-          <div class="opt-btn" data-c="1">🗡️ ดาบสุริยัน (ไฟเพลิง)</div>
-          <div class="opt-btn" data-c="2">🥊 หมัดมังกร (พลังปราณ)</div>
-          <div class="opt-btn" data-c="3">🏹 ธนูพฤกษา (ลมกรด)</div>
+        <div class="field">
+          <label>ชื่อจอมยุทธ์</label>
+          <input id="nameInput" maxlength="12" placeholder="เช่น หวงเฟยหง" autocomplete="off" />
         </div>
-      </div>
 
-      <div class="field">
-        <label>สีชุดคลุมเริ่มต้น</label>
-        <div class="grid-opt-4" id="colorGrid">
-          <div class="opt-btn active" data-col="0">หิมะขาว</div>
-          <div class="opt-btn" data-col="1">ทองคำ</div>
-          <div class="opt-btn" data-col="2">อัคคี</div>
-          <div class="opt-btn" data-col="3">ราตรี</div>
-        </div>
-      </div>
-
-      <div class="field">
-        <label>รหัสห้อง</label>
-        <input id="roomInput" maxlength="16" placeholder="เช่น luoyang888" />
-      </div>
-
-      <button id="startBtn">ก้าวสู่ยุทธภพ 3D</button>
-    </div>
-  </div>
-
-  <!-- 2. Game View -->
-  <div id="game-view">
-    <div id="toast"></div>
-
-    <div id="hud">
-      <!-- Player Profile Top-Left -->
-      <div id="player-hud">
-        <div id="avatar"></div>
-        <div id="bars-box">
-          <div style="font-size:.78em;font-weight:700;color:var(--gold-bright);display:flex;justify-content:space-between;">
-            <span id="pNameText">จอมยุทธ์</span>
-            <span id="pLvText">Lv.1</span>
-          </div>
-          <div class="hud-bar"><div class="hud-hp" id="myHpBar" style="width:100%"></div></div>
-          <div class="hud-bar"><div class="hud-exp" id="myExpBar" style="width:0%"></div></div>
-          <div style="font-size:.72em;color:#fae17d;display:flex;justify-content:space-between;margin-top:2px;">
-            <span>💰 <span id="moneyText">100</span> ตำลึง</span>
-            <span>⚔️ กระบี่ <span id="swordPlusText">+0</span> (ATK <span id="atkText">24</span>)</span>
+        <div class="field">
+          <label>สำนักวิชายุทธ์</label>
+          <div class="grid-opt" id="classGrid">
+            <div class="opt-btn active" data-c="0">⚔️ กระบี่เมฆา (ว่องไว)</div>
+            <div class="opt-btn" data-c="1">🗡️ ดาบสุริยัน (ไฟเพลิง)</div>
+            <div class="opt-btn" data-c="2">🥊 หมัดมังกร (พลังปราณ)</div>
+            <div class="opt-btn" data-c="3">🏹 ธนูพฤกษา (ลมกรด)</div>
           </div>
         </div>
-      </div>
 
-      <!-- Top Nav Menu -->
-      <div id="top-menu">
-        <button class="menu-btn" onclick="openModal('invModal')">🎒 ช่องเก็บของ</button>
-        <button class="menu-btn" onclick="openModal('forgeModal')">🔨 ตีบวกกระบี่</button>
-        <button class="menu-btn" onclick="openModal('craftModal')">🧪 ปรุงโอสถ</button>
-        <button class="menu-btn" onclick="openModal('wardrobeModal')">🥋 ตู้เสื้อผ้า</button>
-      </div>
-
-      <!-- Top Right Quest -->
-      <div id="top-right">
-        <div id="minimap"><div class="p-dot"></div></div>
-        <div id="quest-box">
-          <b>ภารกิจ: ล่าอสูรนอกเมือง</b><br>
-          <span style="color:#a89679;" id="questProgressText">ปราบอสูร (0/3)</span><br>
-          <button class="menu-btn" style="padding:2px 8px;font-size:.7em;margin-top:4px;" onclick="claimQuest()">รับรางวัลเควสต์</button>
+        <div class="field">
+          <label>สีชุดคลุมเริ่มต้น</label>
+          <div class="grid-opt-4" id="colorGrid">
+            <div class="opt-btn active" data-col="0">หิมะขาว</div>
+            <div class="opt-btn" data-col="1">ทองคำ</div>
+            <div class="opt-btn" data-col="2">อัคคี</div>
+            <div class="opt-btn" data-col="3">ราตรี</div>
+          </div>
         </div>
-      </div>
 
-      <!-- Skill Wheel -->
-      <div id="skill-wheel">
-        <div class="btn-main-atk" id="btnAtk">⚔️</div>
-        <div class="btn-sub-skill" id="btnQ"><span id="nameQ">ตัดเมฆา</span><div class="cd-overlay" id="cdQ"></div></div>
-        <div class="btn-sub-skill" id="btnE"><span id="nameE">หมื่นกระบี่</span><div class="cd-overlay" id="cdE"></div></div>
-        <div class="btn-sub-skill" id="btnR"><span id="nameR">ไม้ตาย</span><div class="cd-overlay" id="cdR"></div></div>
-        <div class="btn-sub-skill" id="btnDodge"><span>Space</span><span style="font-size:.6em">เหาะ</span></div>
-      </div>
+        <div class="field">
+          <label>รหัสห้อง</label>
+          <input id="roomInput" maxlength="16" placeholder="เช่น luoyang888" value="luoyang888" autocomplete="off" />
+        </div>
 
-      <!-- Chat System -->
-      <div id="chatlog"></div>
-      <form id="chatform">
-        <input id="chatInput" maxlength="60" placeholder="คุยในยุทธภพ..." autocomplete="off" />
-        <button id="chatSendBtn" type="submit">ส่ง</button>
-      </form>
+        <button id="startBtn">ก้าวสู่ยุทธภพ</button>
+      </div>
     </div>
 
-    <div id="canvas3d"></div>
-  </div>
+    <!-- หน้าจอเกม 3D และ UI HUD -->
+    <div id="game-view">
+      <div id="toast"></div>
 
-  <!-- 3. Modals -->
-  <div class="modal" id="invModal">
-    <div class="modal-box">
-      <h3 class="brush-title">ช่องเก็บของ</h3>
-      <div class="inv-grid" id="invGrid"></div>
-      <button class="menu-btn" onclick="closeModal('invModal')">ปิด</button>
-    </div>
-  </div>
+      <div id="hud">
+        <!-- ข้อมูลโปรไฟล์ & หลอดเลือด (มุมซ้ายบน) -->
+        <div id="player-hud">
+          <div id="avatar"></div>
+          <div id="bars-box">
+            <div class="hud-name-row">
+              <span id="pNameText">จอมยุทธ์</span>
+              <span class="vip-badge" id="vipBadge">VIP 0</span>
+              <span id="pLvText">Lv.1</span>
+            </div>
+            <div class="hud-bar"><div class="hud-hp" id="myHpBar" style="width:100%"></div></div>
+            <div class="hud-bar"><div class="hud-exp" id="myExpBar" style="width:0%"></div></div>
+            <div class="hud-stats-row">
+              <span>💰 <span id="moneyText">100</span> ตำลึง</span>
+              <span>⚔️ ATK: <span id="atkText">35</span> | 🛡️ DEF: <span id="defText">12</span></span>
+            </div>
+          </div>
+        </div>
 
-  <div class="modal" id="forgeModal">
-    <div class="modal-box">
-      <h3 class="brush-title">โรงตีเหล็กหลวง</h3>
-      <div style="background:#1c140e;border:1px solid #4a3822;padding:14px;border-radius:6px;font-size:.85em;display:flex;flex-direction:column;gap:6px;">
-        <p>ระดับกระบี่: <b style="color:var(--gold-bright)" id="forgeCurLvl">+0</b></p>
-        <p>พลังโจมตี: <b style="color:#ff6b6b" id="forgeAtk">24 ATK</b> ➜ <b style="color:#22c55e" id="forgeNextAtk">32 ATK</b></p>
-        <p>วัตถุดิบที่ใช้: หินวิญญาณ 1 ชิ้น (<span id="stoneCountText">0</span>) + 80 ตำลึง</p>
+        <!-- เมนูลัดด้านบน -->
+        <div id="top-menu">
+          <button class="menu-btn" onclick="openModal('invModal')">🎒 ช่องเก็บของ</button>
+          <button class="menu-btn" onclick="openModal('forgeModal')">🔨 ตีบวกกระบี่</button>
+          <button class="menu-btn" onclick="openModal('vipModal')">👑 สิทธิพิเศษ VIP</button>
+          <button class="menu-btn" onclick="openModal('wardrobeModal')">🥋 ตู้เสื้อผ้า</button>
+        </div>
+
+        <!-- เควสต์ & มินิแมพ (มุมขวาบน) -->
+        <div id="top-right">
+          <div id="minimap"><div class="p-dot"></div></div>
+          <div id="quest-box">
+            <b>📜 ภารกิจ: พิทักษ์ลานเมืองหลวง</b><br>
+            <span id="questProgressText">ปราบอสูร (0/3)</span><br>
+            <button class="menu-btn-small" onclick="claimQuest()">รับรางวัล</button>
+          </div>
+        </div>
+
+        <!-- วงล้อสกิลแอ็กชัน (มุมขวาล่าง) -->
+        <div id="skill-wheel">
+          <div class="btn-main-atk" id="btnAtk">⚔️</div>
+          <div class="btn-sub-skill" id="btnQ"><span id="nameQ">ตัดเมฆา</span><div class="cd-overlay" id="cdQ"></div></div>
+          <div class="btn-sub-skill" id="btnE"><span id="nameE">หมื่นกระบี่</span><div class="cd-overlay" id="cdE"></div></div>
+          <div class="btn-sub-skill" id="btnR"><span id="nameR">ไม้ตาย</span><div class="cd-overlay" id="cdR"></div></div>
+          <div class="btn-sub-skill" id="btnDodge"><span>Space</span><span style="font-size:.6em">เหาะ</span></div>
+        </div>
+
+        <!-- ระบบแชท -->
+        <div id="chatlog"></div>
+        <form id="chatform">
+          <input id="chatInput" maxlength="60" placeholder="พิมพ์คุยกับชาวยุทธภพ..." autocomplete="off" />
+          <button id="chatSendBtn" type="submit">ส่ง</button>
+        </form>
       </div>
-      <button class="menu-btn" style="background:linear-gradient(180deg,#f3d36b,var(--gold));color:#1a1205;padding:10px;font-weight:700;" onclick="upgradeSwordAction()">ตีบวกกระบี่</button>
-      <button class="menu-btn" onclick="closeModal('forgeModal')">ปิด</button>
-    </div>
-  </div>
 
-  <div class="modal" id="craftModal">
-    <div class="modal-box">
-      <h3 class="brush-title">เตาหลอมโอสถ</h3>
-      <div style="background:#1c140e;border:1px solid #4a3822;padding:14px;border-radius:6px;font-size:.85em;display:flex;flex-direction:column;gap:6px;">
-        <p>สูตร: <b>โอสถฟื้นพลังปราณ (+60 HP)</b></p>
-        <p>วัตถุดิบ: สมุนไพรวิญญาณ 2 ต้น (<span id="herbCountText">0</span>) + 30 ตำลึง</p>
+      <!-- 3D Canvas Container -->
+      <div id="canvas3d"></div>
+    </div>
+
+    <!-- Modals -->
+    <!-- ช่องเก็บของ -->
+    <div class="modal" id="invModal">
+      <div class="modal-box">
+        <h3 class="brush-title">กระเป๋ายุทธภพ</h3>
+        <div class="inv-grid" id="invGrid"></div>
+        <button class="menu-btn" onclick="closeModal('invModal')">ปิด</button>
       </div>
-      <button class="menu-btn" style="background:linear-gradient(180deg,#f3d36b,var(--gold));color:#1a1205;padding:10px;font-weight:700;" onclick="craftPotionAction()">หลอมโอสถ</button>
-      <button class="menu-btn" onclick="closeModal('craftModal')">ปิด</button>
     </div>
-  </div>
 
-  <div class="modal" id="wardrobeModal">
-    <div class="modal-box">
-      <h3 class="brush-title">ตู้เสื้อผ้ายุทธภพ</h3>
-      <div class="grid-opt" style="gap:8px;">
-        <button class="opt-btn" onclick="changeCostume(0)">🥋 หิมะขาว (เริ่มต้น)</button>
-        <button class="opt-btn" onclick="changeCostume(1)">🥋 ทองคำอำพัน (200 ตำลึง)</button>
-        <button class="opt-btn" onclick="changeCostume(2)">🥋 อัคคีเพลิง (300 ตำลึง)</button>
-        <button class="opt-btn" onclick="changeCostume(3)">🥋 ราตรีทมิฬ (450 ตำลึง)</button>
+    <!-- โรงตีเหล็ก -->
+    <div class="modal" id="forgeModal">
+      <div class="modal-box">
+        <h3 class="brush-title">ช่างตีเหล็กหลวง</h3>
+        <div class="modal-content-box">
+          <p>ระดับกระบี่: <b style="color:var(--gold-bright)" id="forgeCurLvl">+0</b></p>
+          <p>พลังโจมตี: <b style="color:#ff6b6b" id="forgeAtk">35 ATK</b> ➜ <b style="color:#22c55e" id="forgeNextAtk">45 ATK</b></p>
+          <p>วัตถุดิบที่ใช้: หินวิญญาณ 1 ชิ้น (<span id="stoneCountText">0</span>) + 80 ตำลึง</p>
+        </div>
+        <button class="btn-action-gold" onclick="upgradeSwordAction()">ตีบวกกระบี่</button>
+        <button class="menu-btn" onclick="closeModal('forgeModal')">ปิด</button>
       </div>
-      <button class="menu-btn" onclick="closeModal('wardrobeModal')">ปิด</button>
+    </div>
+
+    <!-- ระบบ VIP 1 -->
+    <div class="modal" id="vipModal">
+      <div class="modal-box">
+        <h3 class="brush-title">สิทธิพิเศษ VIP ประจำยุทธภพ</h3>
+        <div class="modal-content-box">
+          <p>สถานะปัจจุบัน: <b style="color:var(--gold-bright)" id="vipStatusText">VIP 0</b></p>
+          <ul style="text-align:left; font-size:.85em; padding-left:20px; line-height:1.6;">
+            <li>⭐ เพิ่มพลังโจมตี (ATK) +20%</li>
+            <li>⭐ เพิ่มพลังป้องกัน (DEF) +15%</li>
+            <li>⭐ ค่าประสบการณ์ (EXP) & เงินดรอป +30%</li>
+            <li>⭐ เพิ่มความเร็ววิชาตัวเบาเหาะเหิน</li>
+          </ul>
+          <p style="margin-top:6px;">ค่าเลื่อนขั้น: <b style="color:#ffd13b">300 ตำลึง</b></p>
+        </div>
+        <button class="btn-action-gold" onclick="unlockVip1()">เปิดใช้งาน VIP 1</button>
+        <button class="menu-btn" onclick="closeModal('vipModal')">ปิด</button>
+      </div>
+    </div>
+
+    <!-- ตู้เสื้อผ้า -->
+    <div class="modal" id="wardrobeModal">
+      <div class="modal-box">
+        <h3 class="brush-title">ตู้เสื้อผ้ายุทธภพ</h3>
+        <div class="grid-opt" style="gap:8px;">
+          <button class="opt-btn" onclick="changeCostume(0)">🥋 หิมะขาว (เริ่มต้น)</button>
+          <button class="opt-btn" onclick="changeCostume(1)">🥋 ทองคำอำพัน (200 ตำลึง)</button>
+          <button class="opt-btn" onclick="changeCostume(2)">🥋 อัคคีเพลิง (300 ตำลึง)</button>
+          <button class="opt-btn" onclick="changeCostume(3)">🥋 ราตรีทมิฬ (450 ตำลึง)</button>
+        </div>
+        <button class="menu-btn" onclick="closeModal('wardrobeModal')">ปิด</button>
+      </div>
+    </div>
+
+    <!-- Debug Log Panel -->
+    <div id="debugPanel">
+      <div class="hdr"><span>🔧 Debug Log</span><button id="clearDebugBtn">ล้าง</button></div>
+      <div id="debugLines"></div>
     </div>
   </div>
 
-  <!-- Debug Panel -->
-  <div id="debugPanel">
-    <div class="hdr"><span>🔧 Debug Log</span><button id="clearDebugBtn">ล้าง</button></div>
-    <div id="debugLines"></div>
-  </div>
-
-</div>
-
-<script>
-(function(){
-"use strict";
-
-const debugLinesEl = document.getElementById('debugLines');
-document.getElementById('clearDebugBtn').addEventListener('click', ()=>{ debugLinesEl.innerHTML=''; });
-
-function debugLog(msg, level='info'){
-  const time = new Date().toLocaleTimeString('th-TH', {hour12:false});
-  const div = document.createElement('div');
-  div.className = 'line' + (level==='error' ? ' err' : level==='warn' ? ' warn' : '');
-  div.textContent = `[${time}] ${msg}`;
-  debugLinesEl.appendChild(div);
-  debugLinesEl.parentElement.scrollTop = debugLinesEl.parentElement.scrollHeight;
-  if(level === 'error') console.error(msg);
-}
-
-window.onerror = function(msg, url, line){
-  debugLog(`JS Error: ${msg} (Line ${line})`, 'error');
-};
-window.onunhandledrejection = function(e){
-  debugLog(`Promise Rejection: ${e.reason}`, 'error');
-};
-
-const ROBE_COLORS = [0xf4efe6, 0xd4af37, 0xc53030, 0x1f242d];
-const PLAYER_MAX_HP = 180;
-const MONSTER_MAX_HP = 280;
-
-const CLASS_DATA = [
-  { name: 'กระบี่เมฆา', color: 0xd4af37, atkName: 'กระบี่ลม', qName: 'ตัดเมฆา', eName: 'หมื่นกระบี่', rName: 'จักรพรรดิ' },
-  { name: 'ดาบสุริยัน', color: 0xe63950, atkName: 'ดาบเพลิง', qName: 'เพลิงผลาญ', eName: 'คลื่นสุริยัน', rName: 'มังกรเพลิง' },
-  { name: 'หมัดมังกร', color: 0x9f7aea, atkName: 'หมัดสุญญา', qName: 'คลื่นปราณ', eName: 'ฝ่ามือมังกร', rName: 'มิติมังกร' },
-  { name: 'ธนูพฤกษา', color: 0x38a169, atkName: 'ศรสายลม', qName: 'ศรทะลวง', eName: 'พายุใบไม้', rName: 'ฝนธนู' }
-];
-
-let sb = null, channel = null;
-let myName = "", roomCode = "", myId = "";
-let myClassIdx = 0, myColorIdx = 0;
-let gameActive = false, isHost = false;
-let keys = {};
-let otherPlayers = {};
-let lastSyncTime = 0;
-
-let myProgress = {
-  level: 1, exp: 0, money: 150, swordPlus: 0,
-  inventory: { potion: 2, spiritStone: 2, herb: 4 },
-  unlockedCostumes: [0], questKills: 0
-};
-
-let me = {
-  id: '', x: 0, y: 0, z: 0,
-  vy: 0, isGrounded: true, jumpsLeft: 2, isFlying: false,
-  yaw: 0, pitch: 0.24,
-  hp: PLAYER_MAX_HP, maxHp: PLAYER_MAX_HP,
-  isDead: false, respawnAt: 0, joinedAt: 0
-};
-
-let cooldowns = {
-  atk: { cd: 280, until: 0, mult: 1.0, range: 5.5 },
-  Q: { cd: 1800, until: 0, mult: 2.2, range: 10.0 },
-  E: { cd: 4000, until: 0, mult: 3.4, range: 12.5 },
-  R: { cd: 7500, until: 0, mult: 5.2, range: 16.0 }
-};
-
-const MONSTER_SPAWNS = [
-  { id: 'm1', x: 26, z: -22, hp: MONSTER_MAX_HP, maxHp: MONSTER_MAX_HP, alive: true, mesh: null, hpBarMesh: null, isBoss: false },
-  { id: 'm2', x: 28, z: 22, hp: MONSTER_MAX_HP, maxHp: MONSTER_MAX_HP, alive: true, mesh: null, hpBarMesh: null, isBoss: false },
-  { id: 'boss', x: 44, z: 0, hp: 750, maxHp: 750, alive: true, mesh: null, hpBarMesh: null, isBoss: true }
-];
-let monsters = JSON.parse(JSON.stringify(MONSTER_SPAWNS));
-
-let scene, camera, renderer;
-let myHeroMesh = null;
-let vfxObjects = [];
-let isRightMouseDown = false;
-
-const loginScreen = document.getElementById('login-screen');
-const gameView = document.getElementById('game-view');
-const startBtn = document.getElementById('startBtn');
-const nameInput = document.getElementById('nameInput');
-const roomInput = document.getElementById('roomInput');
-const pNameText = document.getElementById('pNameText');
-const pLvText = document.getElementById('pLvText');
-const myHpBar = document.getElementById('myHpBar');
-const myExpBar = document.getElementById('myExpBar');
-const moneyText = document.getElementById('moneyText');
-const swordPlusText = document.getElementById('swordPlusText');
-const atkText = document.getElementById('atkText');
-const chatlogEl = document.getElementById('chatlog');
-const chatform = document.getElementById('chatform');
-const chatInput = document.getElementById('chatInput');
-const toastEl = document.getElementById('toast');
-
-document.querySelectorAll('#classGrid .opt-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('#classGrid .opt-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    myClassIdx = parseInt(btn.dataset.c, 10);
-  });
-});
-
-document.querySelectorAll('#colorGrid .opt-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('#colorGrid .opt-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    myColorIdx = parseInt(btn.dataset.col, 10);
-  });
-});
-
-function genId(){ return 'p_' + Math.random().toString(36).slice(2,8); }
-function expNeeded(lvl){ return 100 * lvl; }
-function getBaseAtk(){ return 24 + (myProgress.swordPlus * 8); }
-
-function showToast(msg){
-  toastEl.textContent = msg;
-  toastEl.style.display = 'block';
-  clearTimeout(showToast._t);
-  showToast._t = setTimeout(()=>{ toastEl.style.display='none'; }, 3000);
-}
-
-// ---------------- Initialize 3D Graphics ----------------
-function init3D(){
-  try{
-    const container = document.getElementById('canvas3d');
-    scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x070503);
-    scene.fog = new THREE.FogExp2(0x0a0705, 0.014);
-
-    camera = new THREE.PerspectiveCamera(48, window.innerWidth / window.innerHeight, 0.1, 1000);
-
-    renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    container.appendChild(renderer.domElement);
-
-    const ambient = new THREE.AmbientLight(0xffecd0, 0.6);
-    scene.add(ambient);
-
-    const sun = new THREE.DirectionalLight(0xffdfba, 1.5);
-    sun.position.set(35, 55, 25);
-    sun.castShadow = true;
-    scene.add(sun);
-
-    const ground = new THREE.Mesh(
-      new THREE.PlaneGeometry(160, 160),
-      new THREE.MeshStandardMaterial({ color: 0x1b130c, roughness: 0.8 })
-    );
-    ground.rotation.x = -Math.PI / 2;
-    ground.receiveShadow = true;
-    scene.add(ground);
-
-    const water = new THREE.Mesh(
-      new THREE.PlaneGeometry(160, 60),
-      new THREE.MeshStandardMaterial({ color: 0x07151e, roughness: 0.1, metalness: 0.85 })
-    );
-    water.rotation.x = -Math.PI / 2;
-    water.position.set(0, -0.15, -50);
-    scene.add(water);
-
-    buildEnvironment();
-    updateHeroMesh();
-
-    monsters.forEach(m => {
-      m.mesh = createMonster3D(m.isBoss);
-      m.mesh.position.set(m.x, 0, m.z);
-      
-      const hpBg = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 0.3), new THREE.MeshBasicMaterial({ color: 0x000000 }));
-      const hpFill = new THREE.Mesh(new THREE.PlaneGeometry(2.3, 0.22), new THREE.MeshBasicMaterial({ color: 0xe63950 }));
-      hpFill.position.z = 0.01;
-      hpBg.add(hpFill);
-      hpBg.position.set(0, m.isBoss ? 3.8 : 2.6, 0);
-      m.mesh.add(hpBg);
-      m.hpBarMesh = hpFill;
-
-      scene.add(m.mesh);
-    });
-
-    setupCameraControls();
-    updateSkillUI();
-    updateMeHUD();
-
-    window.addEventListener('resize', onWindowResize);
-    debugLog('โหลดกราฟิก 3D สำเร็จสมบูรณ์');
-  }catch(err){
-    debugLog('เกิดข้อผิดพลาดในการสร้างฉาก 3D: ' + err.message, 'error');
-  }
-}
-
-function updateSkillUI(){
-  const c = CLASS_DATA[myClassIdx];
-  document.getElementById('nameQ').textContent = c.qName;
-  document.getElementById('nameE').textContent = c.eName;
-  document.getElementById('nameR').textContent = c.rName;
-}
-
-function buildEnvironment(){
-  const pagoda = new THREE.Group();
-  const base = new THREE.Mesh(new THREE.BoxGeometry(16, 5, 10), new THREE.MeshStandardMaterial({ color: 0x3a1910 }));
-  base.position.y = 2.5;
-  const roof = new THREE.Mesh(new THREE.ConeGeometry(13, 3, 4), new THREE.MeshStandardMaterial({ color: 0x6e1b24 }));
-  roof.position.y = 6.5; roof.rotation.y = Math.PI/4;
-  pagoda.add(base, roof);
-  pagoda.position.set(0, 0, -18);
-  scene.add(pagoda);
-
-  for(let i=0; i<8; i++){
-    const ang = (i/8)*Math.PI*2;
-    createLantern(Math.cos(ang)*15, Math.sin(ang)*15);
-  }
-}
-
-function createLantern(x, z){
-  const g = new THREE.Group();
-  const post = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.15, 4.5), new THREE.MeshStandardMaterial({ color: 0x22150c }));
-  post.position.y = 2.25;
-  const lantern = new THREE.Mesh(new THREE.SphereGeometry(0.55, 10, 10), new THREE.MeshBasicMaterial({ color: 0xff3b30 }));
-  lantern.position.y = 4.2;
-  const light = new THREE.PointLight(0xff5533, 1.2, 9);
-  light.position.y = 4.2;
-  g.add(post, lantern, light);
-  g.position.set(x, 0, z);
-  scene.add(g);
-}
-
-function updateHeroMesh(){
-  if(myHeroMesh) scene.remove(myHeroMesh);
-  myHeroMesh = createHero3D(myColorIdx);
-  scene.add(myHeroMesh);
-}
-
-function createHero3D(colorIdx = 0){
-  const hero = new THREE.Group();
-  const cColor = ROBE_COLORS[colorIdx] || ROBE_COLORS[0];
-
-  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.65, 1.7, 12), new THREE.MeshStandardMaterial({ color: cColor, roughness: 0.3 }));
-  body.position.y = 1.0;
-  body.castShadow = true;
-  hero.add(body);
-
-  const cape = new THREE.Mesh(new THREE.BoxGeometry(0.85, 1.6, 0.05), new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.75 }));
-  cape.position.set(0, 1.0, -0.38);
-  hero.add(cape);
-
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.34, 16, 16), new THREE.MeshStandardMaterial({ color: 0xfce5cd }));
-  head.position.y = 2.05;
-  const hair = new THREE.Mesh(new THREE.ConeGeometry(0.36, 1.2, 8), new THREE.MeshStandardMaterial({ color: 0x110d0a }));
-  hair.position.set(0, 1.9, -0.2); hair.rotation.x = -0.3;
-  hero.add(head, hair);
-
-  const sword = new THREE.Mesh(new THREE.BoxGeometry(0.06, 1.9, 0.2), new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.8 }));
-  sword.position.set(0.35, 1.2, -0.42); sword.rotation.z = Math.PI/6;
-  hero.add(sword);
-
-  return hero;
-}
-
-function createMonster3D(isBoss = false){
-  const mon = new THREE.Group();
-  const scale = isBoss ? 1.8 : 1.0;
-  const body = new THREE.Mesh(new THREE.DodecahedronGeometry(1.2 * scale), new THREE.MeshStandardMaterial({ color: isBoss?0x2d182e:0x4a1843 }));
-  body.position.y = 1.2 * scale;
-  body.castShadow = true;
-  const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.18 * scale, 8, 8), new THREE.MeshBasicMaterial({ color: 0xff2233 }));
-  eyeL.position.set(-0.35*scale, 1.4*scale, 0.95*scale);
-  const eyeR = eyeL.clone();
-  eyeR.position.set(0.35*scale, 1.4*scale, 0.95*scale);
-  mon.add(body, eyeL, eyeR);
-  return mon;
-}
-
-function setupCameraControls(){
-  window.addEventListener('mousedown', e => { if(e.button === 2) isRightMouseDown = true; });
-  window.addEventListener('mouseup', e => { if(e.button === 2) isRightMouseDown = false; });
-  window.addEventListener('contextmenu', e => e.preventDefault());
-
-  window.addEventListener('mousemove', e => {
-    if(isRightMouseDown){
-      me.yaw -= e.movementX * 0.0035;
-      me.pitch = Math.max(0.05, Math.min(1.2, me.pitch + e.movementY * 0.0035));
-    }
-  });
-}
-
-function onWindowResize(){
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-}
-
-// ---------------- Realtime Networking ----------------
-async function joinRoom(){
-  const nm = nameInput.value.trim();
-  const rc = roomInput.value.trim().toLowerCase().replace(/\s+/g,'');
-  if(!nm || !rc) return;
-
-  myName = nm; roomCode = rc; myId = genId();
-  me.id = myId;
-  startBtn.disabled = true; startBtn.textContent = 'กำลังเชื่อมต่อยุทธภพ...';
-
-  try{
-    debugLog(`เริ่มเข้าสู่ห้อง: name=${myName}, room=${roomCode}`);
-    sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-
-    const { data: prow, error: prowErr } = await sb.from('mmo_players').select('*').eq('name', myName).maybeSingle();
-    if(prowErr) debugLog('โหลดผู้เล่น: ' + prowErr.message, 'warn');
-
-    if(prow){
-      debugLog('พบข้อมูลผู้เล่นเดิม: Lv.' + (prow.level||1));
-      myProgress.level = prow.level || 1;
-      myProgress.exp = prow.exp || 0;
-      myProgress.money = prow.money != null ? prow.money : 150;
-      myProgress.swordPlus = prow.sword_plus != null ? prow.sword_plus : 0;
-      myProgress.inventory = prow.inventory || { potion: 2, spiritStone: 2, herb: 4 };
-    } else {
-      await sb.from('mmo_players').insert({
-        name: myName, level: 1, exp: 0, money: 150, sword_plus: 0,
-        costume: myColorIdx, inventory: myProgress.inventory
-      });
-      debugLog('สร้างผู้เล่นใหม่สำเร็จ');
-    }
-
-    me.joinedAt = Date.now();
-
-    channel = sb.channel('justice_' + roomCode, {
-      config: { broadcast: { ack: false, self: false }, presence: { key: myId } }
-    });
-
-    channel.on('broadcast', { event: 'pos' }, ({ payload }) => {
-      if(payload && payload.id && payload.id !== myId){
-        if(!otherPlayers[payload.id]){
-          const mesh = createHero3D(payload.costume || 0);
-          scene.add(mesh);
-          otherPlayers[payload.id] = { ...payload, mesh };
-        } else {
-          Object.assign(otherPlayers[payload.id], payload);
-        }
-      }
-    });
-
-    channel.on('broadcast', { event: 'skill' }, ({ payload }) => {
-      if(payload && payload.id !== myId){
-        triggerSkillVFX(payload.skill, payload.x, payload.y, payload.z, payload.yaw);
-      }
-      if(isHost) checkSkillHitMonster(payload);
-      checkSkillHitMe(payload);
-    });
-
-    channel.on('broadcast', { event: 'reward' }, ({ payload }) => {
-      if(payload && payload.targetName === myName){
-        gainRewards(payload.exp, payload.money, payload.drops, payload.sourceName);
-      }
-    });
-
-    channel.on('presence', { event: 'sync' }, () => {
-      const state = channel.presenceState();
-      const keys = Object.keys(state);
-
-      Object.keys(otherPlayers).forEach(id => {
-        if(!state[id]){
-          if(otherPlayers[id].mesh) scene.remove(otherPlayers[id].mesh);
-          delete otherPlayers[id];
-        }
-      });
-
-      let earliest = myId;
-      let earliestTime = me.joinedAt;
-      keys.forEach(k => {
-        const u = state[k]?.[0];
-        if(u && u.joinedAt < earliestTime){ earliest = k; earliestTime = u.joinedAt; }
-      });
-      isHost = (earliest === myId);
-    });
-
-    channel.subscribe((status) => {
-      debugLog('Channel Status: ' + status);
-      if(status === 'SUBSCRIBED'){
-        channel.track({ name: myName, costume: myColorIdx, joinedAt: me.joinedAt });
-        loginScreen.style.display = 'none';
-        gameView.style.display = 'block';
-        init3D();
-        updateMeHUD();
-        gameActive = true;
-        animate();
-      }
-    });
-
-  }catch(e){
-    debugLog('Join Error: ' + e.message, 'error');
-    startBtn.disabled = false; startBtn.textContent = 'ก้าวสู่ยุทธภพ 3D';
-    alert('เชื่อมต่อไม่สำเร็จ: ' + e.message);
-  }
-}
-
-// ---------------- Skills VFX Engine ----------------
-function castSkill(k){
-  if(!gameActive || me.isDead) return;
-  const sk = cooldowns[k];
-  const now = Date.now();
-  if(now < sk.until) return;
-
-  sk.until = now + sk.cd;
-  triggerSkillVFX(k, me.x, me.y, me.z, me.yaw);
-
-  const totalDmg = Math.round(getBaseAtk() * sk.mult);
-  const payload = { id: myId, name: myName, x: me.x, y: me.y, z: me.z, yaw: me.yaw, skill: k, dmg: totalDmg, range: sk.range };
-  if(channel) channel.send({ type: 'broadcast', event: 'skill', payload });
-  if(isHost) checkSkillHitMonster(payload);
-}
-
-function triggerSkillVFX(skill, x, y, z, yaw){
-  if(skill === 'atk'){
-    const slash = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.5, 4.2, 8), new THREE.MeshBasicMaterial({ color: 0xffaa33 }));
-    slash.position.set(x - Math.sin(yaw)*2, y + 1.2, z - Math.cos(yaw)*2);
-    slash.rotation.y = yaw + Math.PI/2; slash.rotation.z = Math.PI/4;
-    scene.add(slash);
-    vfxObjects.push({ mesh: slash, life: 1.0, decay: 0.08, scaleSpeed: 0.1 });
-  }
-  else if(skill === 'Q'){
-    const beam = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.8, 6), new THREE.MeshBasicMaterial({ color: 0xfae17d }));
-    beam.position.set(x - Math.sin(yaw)*4, y + 1.0, z - Math.cos(yaw)*4);
-    beam.rotation.y = yaw;
-    scene.add(beam);
-    vfxObjects.push({ mesh: beam, life: 1.0, decay: 0.04, vx: -Math.sin(yaw)*0.85, vz: -Math.cos(yaw)*0.85 });
-  }
-  else if(skill === 'E'){
-    for(let i=0; i<12; i++){
-      setTimeout(()=>{
-        const sw = new THREE.Mesh(new THREE.BoxGeometry(0.12, 3.0, 0.35), new THREE.MeshBasicMaterial({ color: 0x48bb78 }));
-        sw.position.set(x + (Math.random()-0.5)*10, y + 14, z + (Math.random()-0.5)*10);
-        scene.add(sw);
-        vfxObjects.push({ mesh: sw, vy: -0.9, life: 1.0, decay: 0.03 });
-      }, i * 30);
-    }
-  }
-  else if(skill === 'R'){
-    const dragonRing = new THREE.Mesh(new THREE.TorusGeometry(4.0, 0.4, 16, 32), new THREE.MeshBasicMaterial({ color: 0xff3b30, wireframe: true }));
-    dragonRing.position.set(x, y + 1.5, z);
-    dragonRing.rotation.x = Math.PI/2;
-    scene.add(dragonRing);
-    vfxObjects.push({ mesh: dragonRing, life: 1.0, decay: 0.03, rotSpeed: 0.12, scaleSpeed: 0.4 });
-  }
-}
-
-function checkSkillHitMe(atk){
-  if(me.isDead || !atk) return;
-  const dist = Math.hypot((atk.x||0) - me.x, (atk.z||0) - me.z);
-  if(dist < (atk.range || 5.2)){
-    me.hp = Math.max(0, me.hp - (atk.dmg || 24));
-    updateMeHUD();
-    if(me.hp <= 0){
-      me.isDead = true;
-      me.respawnAt = Date.now() + 3500;
-      showToast(`ท่านพ่ายแพ้ให้กับ [${atk.name}] !`);
-      if(channel){
-        channel.send({ type: 'broadcast', event: 'reward', payload: { targetName: atk.name, exp: 60, money: 30, drops: [], sourceName: myName } });
-      }
-    }
-  }
-}
-
-function checkSkillHitMonster(atk){
-  if(!atk) return;
-  monsters.forEach(m => {
-    if(!m.alive) return;
-    const dist = Math.hypot((atk.x||0) - m.x, (atk.z||0) - m.z);
-    if(dist < (atk.range || 5.2)){
-      m.hp = Math.max(0, m.hp - (atk.dmg || 24));
-      
-      if(m.hpBarMesh){
-        m.hpBarMesh.scale.x = Math.max(0.01, m.hp / m.maxHp);
-      }
-
-      if(m.hp <= 0 && m.alive){
-        m.alive = false;
-        m.mesh.visible = false;
-        const rewardExp = m.isBoss ? 260 : 60;
-        const rewardMoney = m.isBoss ? 200 : 35;
-        const drops = m.isBoss ? ['spiritStone', 'spiritStone', 'potion'] : ['herb', 'spiritStone'];
-
-        if(channel) channel.send({ type: 'broadcast', event: 'reward', payload: { targetName: atk.name, exp: rewardExp, money: rewardMoney, drops, sourceName: m.isBoss ? 'จอมอสูรหิน' : 'อสูร' } });
-        if(atk.name === myName) gainRewards(rewardExp, rewardMoney, drops, m.isBoss ? 'จอมอสูรหิน' : 'อสูร');
-
-        setTimeout(()=>{
-          m.hp = m.maxHp;
-          m.alive = true;
-          m.mesh.visible = true;
-          if(m.hpBarMesh) m.hpBarMesh.scale.x = 1.0;
-        }, 8000);
-      }
-    }
-  });
-}
-
-async function gainRewards(expAmt, moneyAmt, drops, src){
-  myProgress.exp += expAmt;
-  myProgress.money += moneyAmt;
-  myProgress.questKills += 1;
-
-  if(drops && drops.length){
-    drops.forEach(itemKey => {
-      myProgress.inventory[itemKey] = (myProgress.inventory[itemKey] || 0) + 1;
-    });
-  }
-
-  showToast(`+${expAmt} EXP | +${moneyAmt} ตำลึง | ดรอปไอเทม! (${src})`);
-
-  while(myProgress.exp >= expNeeded(myProgress.level)){
-    myProgress.exp -= expNeeded(myProgress.level);
-    myProgress.level += 1;
-    showToast(`🌟 บรรลุวิชา! เลเวลอัปเป็น Lv.${myProgress.level} 🌟`);
-  }
-
-  updateMeHUD();
-  updateQuestUI();
-  await sb.from('mmo_players').update({
-    exp: myProgress.exp, level: myProgress.level,
-    money: myProgress.money, inventory: myProgress.inventory
-  }).eq('name', myName);
-}
-
-// ---------------- Modals, Forge, Craft & Costumes ----------------
-window.openModal = function(id){
-  document.getElementById(id).style.display = 'flex';
-  if(id === 'invModal') renderInventoryUI();
-  if(id === 'forgeModal') updateForgeUI();
-  if(id === 'craftModal') updateCraftUI();
-};
-window.closeModal = function(id){ document.getElementById(id).style.display = 'none'; };
-
-function renderInventoryUI(){
-  const grid = document.getElementById('invGrid');
-  grid.innerHTML = `
-    <div class="inv-slot"><b>🧪 โอสถฟื้นพลัง</b><span>x${myProgress.inventory.potion || 0}</span><button class="menu-btn" style="padding:2px 4px;font-size:.7em;" onclick="usePotion()">ใช้</button></div>
-    <div class="inv-slot"><b>💎 หินวิญญาณ</b><span>x${myProgress.inventory.spiritStone || 0}</span></div>
-    <div class="inv-slot"><b>🌿 สมุนไพร</b><span>x${myProgress.inventory.herb || 0}</span></div>
-    <div class="inv-slot"><b>💰 ตำลึงทอง</b><span>${myProgress.money}</span></div>
-  `;
-}
-
-window.usePotion = async function(){
-  if((myProgress.inventory.potion || 0) <= 0){ showToast('โอสถหมดแล้ว!'); return; }
-  myProgress.inventory.potion -= 1;
-  me.hp = Math.min(me.maxHp, me.hp + 60);
-  updateMeHUD();
-  renderInventoryUI();
-  showToast('ดื่มโอสถ +60 HP!');
-  await sb.from('mmo_players').update({ inventory: myProgress.inventory }).eq('name', myName);
-};
-
-function updateForgeUI(){
-  document.getElementById('forgeCurLvl').textContent = `+${myProgress.swordPlus}`;
-  document.getElementById('forgeAtk').textContent = `${getBaseAtk()} ATK`;
-  document.getElementById('forgeNextAtk').textContent = `${getBaseAtk() + 8} ATK`;
-  document.getElementById('stoneCountText').textContent = myProgress.inventory.spiritStone || 0;
-}
-
-window.upgradeSwordAction = async function(){
-  if((myProgress.inventory.spiritStone || 0) < 1 || myProgress.money < 80){
-    showToast('หินวิญญาณหรือตำลึงไม่พอ!'); return;
-  }
-  myProgress.inventory.spiritStone -= 1;
-  myProgress.money -= 80;
-  myProgress.swordPlus += 1;
-  updateMeHUD();
-  updateForgeUI();
-  showToast(`⚔️ ตีบวกสำเร็จ! กระบี่กลายเป็น +${myProgress.swordPlus}`);
-  await sb.from('mmo_players').update({
-    money: myProgress.money, sword_plus: myProgress.swordPlus, inventory: myProgress.inventory
-  }).eq('name', myName);
-};
-
-function updateCraftUI(){
-  document.getElementById('herbCountText').textContent = myProgress.inventory.herb || 0;
-}
-
-window.craftPotionAction = async function(){
-  if((myProgress.inventory.herb || 0) < 2 || myProgress.money < 30){
-    showToast('สมุนไพรหรือตำลึงไม่พอ!'); return;
-  }
-  myProgress.inventory.herb -= 2;
-  myProgress.money -= 30;
-  myProgress.inventory.potion = (myProgress.inventory.potion || 0) + 1;
-  updateMeHUD();
-  updateCraftUI();
-  showToast('🧪 หลอมโอสถฟื้นพลังสำเร็จ 1 ขวด!');
-  await sb.from('mmo_players').update({ money: myProgress.money, inventory: myProgress.inventory }).eq('name', myName);
-};
-
-window.changeCostume = async function(idx){
-  const costs = [0, 200, 300, 450];
-  if(myProgress.unlockedCostumes.includes(idx)){
-    myColorIdx = idx;
-    updateHeroMesh();
-    showToast('เปลี่ยนชุดยุทธภพเรียบร้อย!');
-    await sb.from('mmo_players').update({ costume: idx }).eq('name', myName);
-    return;
-  }
-  if(myProgress.money < costs[idx]){ showToast(`ตำลึงไม่พอ! ต้องการ ${costs[idx]} ตำลึง`); return; }
-  myProgress.money -= costs[idx];
-  myProgress.unlockedCostumes.push(idx);
-  myColorIdx = idx;
-  updateHeroMesh();
-  updateMeHUD();
-  showToast('ปลดล็อกและสวมใส่ชุดใหม่แล้ว!');
-  await sb.from('mmo_players').update({ money: myProgress.money, costume: idx }).eq('name', myName);
-};
-
-function updateQuestUI(){
-  document.getElementById('questProgressText').textContent = `ปราบอสูร (${Math.min(3, myProgress.questKills)}/3)`;
-}
-
-window.claimQuest = async function(){
-  if(myProgress.questKills < 3){ showToast('ยังปราบอสูรไม่ครบ 3 ตัว!'); return; }
-  myProgress.questKills = 0;
-  myProgress.money += 150;
-  myProgress.exp += 150;
-  updateMeHUD();
-  updateQuestUI();
-  showToast('🎉 สำเร็จภารกิจ! ได้รับ +150 EXP และ +150 ตำลึง!');
-  await sb.from('mmo_players').update({ money: myProgress.money, exp: myProgress.exp }).eq('name', myName);
-};
-
-function updateMeHUD(){
-  pNameText.textContent = myName;
-  pLvText.textContent = `Lv.${myProgress.level}`;
-  myHpBar.style.width = Math.max(0, (me.hp / me.maxHp) * 100) + '%';
-  myExpBar.style.width = Math.min(100, (myProgress.exp / expNeeded(myProgress.level)) * 100) + '%';
-  moneyText.textContent = myProgress.money;
-  swordPlusText.textContent = `+${myProgress.swordPlus}`;
-  atkText.textContent = getBaseAtk();
-}
-
-// ---------------- Game Loop & Physics ----------------
-function animate(){
-  if(!gameActive) return;
-  requestAnimationFrame(animate);
-
-  if(!me.isDead){
-    let moveSpeed = me.isFlying ? 0.42 : 0.22;
-    let forward = 0, strafe = 0;
-
-    if(keys['w']) forward += 1;
-    if(keys['s']) forward -= 1;
-    if(keys['a']) strafe -= 1;
-    if(keys['d']) strafe += 1;
-
-    if(forward !== 0 || strafe !== 0){
-      const moveAng = me.yaw + Math.atan2(strafe, forward);
-      me.x -= Math.sin(moveAng) * moveSpeed;
-      me.z -= Math.cos(moveAng) * moveSpeed;
-    }
-
-    me.y += me.vy;
-    if(me.y > 0){
-      me.vy -= me.isFlying ? 0.008 : 0.022;
-      me.isGrounded = false;
-    } else {
-      me.y = 0;
-      me.vy = 0;
-      me.isGrounded = true;
-      me.jumpsLeft = 2;
-      me.isFlying = false;
-    }
-
-    me.x = Math.max(-75, Math.min(75, me.x));
-    me.z = Math.max(-75, Math.min(75, me.z));
-  } else {
-    if(Date.now() > me.respawnAt){
-      me.isDead = false;
-      me.hp = PLAYER_MAX_HP;
-      me.x = 0; me.y = 0; me.z = 0;
-      updateMeHUD();
-      showToast('ฟื้นคืนชีพแล้ว!');
-    }
-  }
-
-  if(myHeroMesh){
-    myHeroMesh.position.set(me.x, me.y + (me.isDead ? -0.8 : 0), me.z);
-    myHeroMesh.rotation.y = me.yaw;
-  }
-
-  const camDist = 8.5;
-  camera.position.x = me.x + Math.sin(me.yaw) * Math.cos(me.pitch) * camDist;
-  camera.position.y = me.y + Math.sin(me.pitch) * camDist + 2.0;
-  camera.position.z = me.z + Math.cos(me.yaw) * Math.cos(me.pitch) * camDist;
-  camera.lookAt(me.x, me.y + 1.5, me.z);
-
-  Object.values(otherPlayers).forEach(p => {
-    if(p.mesh){
-      p.mesh.position.set(p.x, p.y || 0, p.z);
-      p.mesh.rotation.y = p.yaw || 0;
-    }
-  });
-
-  monsters.forEach((m, idx) => {
-    if(m.mesh && m.alive){
-      m.mesh.position.y = 1.0 + Math.sin(Date.now()*0.003 + idx)*0.3;
-      m.mesh.rotation.y += 0.015;
-      if(m.hpBarMesh && m.hpBarMesh.parent){
-        m.hpBarMesh.parent.lookAt(camera.position);
-      }
-    }
-  });
-
-  for(let i = vfxObjects.length - 1; i >= 0; i--){
-    const p = vfxObjects[i];
-    p.life -= p.decay;
-    if(p.vy) p.mesh.position.y += p.vy;
-    if(p.vx) p.mesh.position.x += p.vx;
-    if(p.vz) p.mesh.position.z += p.vz;
-    if(p.rotSpeed) p.mesh.rotation.z += p.rotSpeed;
-    if(p.scaleSpeed) p.mesh.scale.addScalar(p.scaleSpeed);
-
-    if(p.life <= 0){
-      scene.remove(p.mesh);
-      vfxObjects.splice(i, 1);
-    }
-  }
-
-  const now = Date.now();
-  ['Q','E','R'].forEach(k => {
-    const el = document.getElementById('cd' + k);
-    if(el){
-      const rem = Math.max(0, cooldowns[k].until - now);
-      el.style.height = (rem / cooldowns[k].cd) * 100 + '%';
-    }
-  });
-
-  if(now - lastSyncTime > 150 && channel){
-    lastSyncTime = now;
-    channel.send({
-      type: 'broadcast',
-      event: 'pos',
-      payload: { id: myId, name: myName, costume: myColorIdx, x: me.x, y: me.y, z: me.z, yaw: me.yaw, hp: me.hp, isDead: me.isDead }
-    });
-  }
-
-  renderer.render(scene, camera);
-}
-
-// ---------------- Event Listeners & Controls ----------------
-window.addEventListener('keydown', e => {
-  if(!e || !e.key) return;
-  const k = e.key.toLowerCase();
-  keys[k] = true;
-
-  if(e.key === ' '){
-    e.preventDefault();
-    if(me.jumpsLeft > 0){
-      me.vy = me.jumpsLeft === 2 ? 0.38 : 0.28;
-      if(me.jumpsLeft === 1) {
-        me.isFlying = true;
-        showToast('วิชาตัวเบา: เหาะเหินกลางเวหา!');
-      }
-      me.jumpsLeft -= 1;
-    }
-  }
-
-  if(k === 'f') castSkill('atk');
-  if(k === 'q') castSkill('Q');
-  if(k === 'e') castSkill('E');
-  if(k === 'r') castSkill('R');
-});
-
-window.addEventListener('keyup', e => {
-  if(e && e.key) keys[e.key.toLowerCase()] = false;
-});
-
-window.addEventListener('mousedown', e => {
-  if(e.button === 0 && gameActive) castSkill('atk');
-});
-
-document.getElementById('btnAtk').addEventListener('click', ()=>castSkill('atk'));
-document.getElementById('btnQ').addEventListener('click', ()=>castSkill('Q'));
-document.getElementById('btnE').addEventListener('click', ()=>castSkill('E'));
-document.getElementById('btnR').addEventListener('click', ()=>castSkill('R'));
-
-startBtn.addEventListener('click', joinRoom);
-[nameInput, roomInput].forEach(inp => inp.addEventListener('keydown', e => { if(e.key==='Enter') joinRoom(); }));
-
-chatform.addEventListener('submit', e => {
-  e.preventDefault();
-  const text = chatInput.value.trim();
-  if(!text) return;
-  chatInput.value = '';
-  const d = document.createElement('div');
-  d.innerHTML = `<b style="color:var(--gold-bright)">${myName}:</b> ${text}`;
-  chatlogEl.prepend(d);
-});
-
-})();
-</script>
+  <!-- Javascript Modules -->
+  <script src="js/config.js"></script>
+  <script src="js/world.js"></script>
+  <script src="js/player.js"></script>
+  <script src="js/combat.js"></script>
+  <script src="js/main.js"></script>
 </body>
 </html>
