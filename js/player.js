@@ -1,153 +1,156 @@
 window.PlayerManager = {
-  me: {
-    id: '', x: 0, y: 0, z: 0,
-    vy: 0, isGrounded: true, jumpsLeft: 2, isFlying: false,
-    yaw: 0, pitch: 0.24,
-    hp: 200, maxHp: 200,
-    isDead: false, respawnAt: 0, joinedAt: 0
+  me: { id: '', x: 0, z: 0, yaw: 0, hp: 200, maxHp: 200, isDead: false, respawnAt: 0 },
+  myHeroMesh: null, petMesh: null, auraMesh: null, targetPos: null, otherPlayers: {},
+
+  createNameplateSprite(name, lvl, vip, isMe = false) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512; canvas.height = 128;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+    ctx.roundRect(10, 20, 492, 88, 16);
+    ctx.fill();
+    ctx.strokeStyle = isMe ? '#fae17d' : '#4299e1';
+    ctx.lineWidth = 4;
+    ctx.stroke();
+    ctx.font = 'bold 38px "Noto Sans Thai", sans-serif';
+    ctx.fillStyle = '#efe6d5';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`${name} [Lv.${lvl}] (VIP ${vip})`, 256, 64);
+    const texture = new THREE.CanvasTexture(canvas);
+    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true }));
+    sprite.scale.set(3.6, 0.9, 1.0);
+    return sprite;
   },
-  myHeroMesh: null,
-  otherPlayers: {},
-  keys: {},
-  isRightMouseDown: false,
 
-  createHeroMesh(colorIdx = 0) {
+  createHeroMesh(colorIdx = 0, gender = 'male', classIdx = 0, name = 'จอมยุทธ์', lvl = 1, vip = 0, playerId = '') {
     const hero = new THREE.Group();
+    hero.userData.playerId = playerId;
     const cColor = window.CONFIG.ROBE_COLORS[colorIdx] || window.CONFIG.ROBE_COLORS[0];
+    const isFemale = gender === 'female';
 
-    const bodyMat = new THREE.MeshStandardMaterial({ color: cColor, roughness: 0.35 });
-    const goldTrim = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.8 });
-    const skinMat = new THREE.MeshStandardMaterial({ color: 0xfce5cd });
+    const bodyMat = new THREE.MeshStandardMaterial({ color: cColor, roughness: 0.35, metalness: 0.2 });
+    const skinMat = new THREE.MeshStandardMaterial({ color: 0xfce5cd, roughness: 0.6 });
+    const goldMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.85, roughness: 0.25 });
+    const ironMat = new THREE.MeshStandardMaterial({ color: 0x4a4a4a, metalness: 0.8, roughness: 0.3 });
 
-    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.65, 1.7, 12), bodyMat);
-    body.position.y = 1.0;
-    body.castShadow = true;
+    const bodyW = isFemale ? 0.3 : 0.38;
+    const bodyBottom = isFemale ? 0.55 : 0.68;
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(bodyW, bodyBottom, 1.7, 12), bodyMat);
+    body.position.y = 1.0; body.castShadow = true;
     hero.add(body);
 
-    const cape = new THREE.Mesh(new THREE.BoxGeometry(0.85, 1.6, 0.05), new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.75 }));
-    cape.position.set(0, 1.0, -0.38);
-    hero.add(cape);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(isFemale ? 0.3 : 0.34, 16, 16), skinMat);
+    head.position.y = 2.05; head.castShadow = true;
+    hero.add(head);
 
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.34, 16, 16), skinMat);
-    head.position.y = 2.05;
-    const hair = new THREE.Mesh(new THREE.ConeGeometry(0.36, 1.2, 8), new THREE.MeshStandardMaterial({ color: 0x110d0a }));
-    hair.position.set(0, 1.9, -0.2);
-    hair.rotation.x = -0.3;
-    hero.add(head, hair);
+    const nameSprite = this.createNameplateSprite(name, lvl, vip, playerId === this.me.id);
+    nameSprite.position.set(0, 2.8, 0);
+    hero.add(nameSprite);
 
-    const sword = new THREE.Mesh(new THREE.BoxGeometry(0.06, 1.9, 0.2), goldTrim);
-    sword.position.set(0.35, 1.2, -0.42);
-    sword.rotation.z = Math.PI / 6;
-    hero.add(sword);
+    const auraGeo = new THREE.RingGeometry(0.8, 1.2, 32);
+    const auraMat = new THREE.MeshBasicMaterial({ color: 0xd4af37, side: THREE.DoubleSide, transparent: true, opacity: 0.45 });
+    const aura = new THREE.Mesh(auraGeo, auraMat);
+    aura.rotation.x = -Math.PI / 2;
+    aura.position.y = 0.05;
+    hero.add(aura);
+    if (playerId === this.me.id) this.auraMesh = aura;
+
+    // รูปร่างแยกตามอาชีพ
+    if (classIdx === 0) {
+      const sword = new THREE.Mesh(new THREE.BoxGeometry(0.06, 2.0, 0.2), goldMat);
+      sword.position.set(0.35, 1.2, -0.42); sword.rotation.z = Math.PI / 6;
+      hero.add(sword);
+    } else if (classIdx === 1) {
+      const broadSword = new THREE.Mesh(new THREE.BoxGeometry(0.12, 2.3, 0.5), ironMat);
+      broadSword.position.set(0.25, 1.3, -0.45); broadSword.rotation.z = Math.PI / 5;
+      hero.add(broadSword);
+    } else if (classIdx === 2) {
+      const gloveL = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 8), goldMat);
+      gloveL.position.set(-0.45, 0.8, 0.2);
+      const gloveR = gloveL.clone(); gloveR.position.set(0.45, 0.8, 0.2);
+      hero.add(gloveL, gloveR);
+    } else if (classIdx === 3) {
+      const bow = new THREE.Mesh(new THREE.TorusGeometry(0.8, 0.05, 8, 16, Math.PI), new THREE.MeshStandardMaterial({ color: 0x8b5a2b, roughness: 0.6 }));
+      bow.position.set(-0.35, 1.2, -0.35); bow.rotation.y = Math.PI / 2;
+      hero.add(bow);
+    }
 
     return hero;
   },
 
-  setupControls() {
-    window.addEventListener('keydown', e => {
-      if (!e || !e.key) return;
-      const k = e.key.toLowerCase();
-      this.keys[k] = true;
-
-      if (e.key === ' ') {
-        e.preventDefault();
-        if (this.me.jumpsLeft > 0) {
-          this.me.vy = this.me.jumpsLeft === 2 ? 0.40 : 0.30;
-          if (this.me.jumpsLeft === 1) {
-            this.me.isFlying = true;
-            window.showToast('วิชาตัวเบา: เหาะเหินกลางเวหา!');
-          }
-          this.me.jumpsLeft -= 1;
-        }
-      }
-
-      if (k === 'f') window.CombatSystem.castSkill('atk');
-      if (k === 'q') window.CombatSystem.castSkill('Q');
-      if (k === 'e') window.CombatSystem.castSkill('E');
-      if (k === 'r') window.CombatSystem.castSkill('R');
-    });
-
-    window.addEventListener('keyup', e => {
-      if (e && e.key) this.keys[e.key.toLowerCase()] = false;
-    });
-
-    window.addEventListener('mousedown', e => {
-      if (e.button === 2) this.isRightMouseDown = true;
-      if (e.button === 0 && window.gameActive) window.CombatSystem.castSkill('atk');
-    });
-    window.addEventListener('mouseup', e => {
-      if (e.button === 2) this.isRightMouseDown = false;
-    });
-    window.addEventListener('contextmenu', e => e.preventDefault());
-
-    window.addEventListener('mousemove', e => {
-      if (this.isRightMouseDown) {
-        this.me.yaw -= e.movementX * 0.0035;
-        this.me.pitch = Math.max(0.05, Math.min(1.2, this.me.pitch + e.movementY * 0.0035));
-      }
-    });
-  },
-
-  updatePhysics(isVip1 = false) {
+  updatePhysics(speedMult = 1.0) {
     if (this.me.isDead) {
       if (Date.now() > this.me.respawnAt) {
-        this.me.isDead = false;
-        this.me.hp = this.me.maxHp;
-        this.me.x = 0; this.me.y = 0; this.me.z = 0;
-        window.updateMeHUD();
-        window.showToast('ฟื้นคืนชีพ ณ ลานเมือง!');
+        this.me.isDead = false; this.me.hp = this.me.maxHp; this.me.x = 0; this.me.z = 0;
+        window.updateMeHUD(); window.showToast('ฟื้นคืนชีพ ณ ลานเมือง!');
       }
       return;
     }
 
-    const baseSpeed = this.me.isFlying ? 0.44 : 0.24;
-    const moveSpeed = isVip1 ? baseSpeed * 1.25 : baseSpeed;
-
-    // คำนวณเวกเตอร์มุมหน้ากล้องและระนาบข้าง
-    const forwardX = -Math.sin(this.me.yaw);
-    const forwardZ = -Math.cos(this.me.yaw);
-    const rightX = Math.cos(this.me.yaw);
-    const rightZ = -Math.sin(this.me.yaw);
-
-    let moveX = 0;
-    let moveZ = 0;
-
-    if (this.keys['w']) { moveX += forwardX; moveZ += forwardZ; }
-    if (this.keys['s']) { moveX -= forwardX; moveZ -= forwardZ; }
-    if (this.keys['d']) { moveX += rightX; moveZ += rightZ; } // D = ขวาแท้จริง
-    if (this.keys['a']) { moveX -= rightX; moveZ -= rightZ; } // A = ซ้ายแท้จริง
-
-    if (moveX !== 0 || moveZ !== 0) {
-      const len = Math.hypot(moveX, moveZ);
-      this.me.x += (moveX / len) * moveSpeed;
-      this.me.z += (moveZ / len) * moveSpeed;
+    const baseSpeed = 0.22 * speedMult;
+    if (this.targetPos) {
+      const dx = this.targetPos.x - this.me.x;
+      const dz = this.targetPos.z - this.me.z;
+      const dist = Math.hypot(dx, dz);
+      if (dist > 0.3) {
+        this.me.yaw = Math.atan2(-dx, -dz);
+        this.me.x += (dx / dist) * baseSpeed;
+        this.me.z += (dz / dist) * baseSpeed;
+      } else {
+        this.targetPos = null;
+      }
     }
-
-    this.me.y += this.me.vy;
-    if (this.me.y > 0) {
-      this.me.vy -= this.me.isFlying ? 0.008 : 0.022;
-      this.me.isGrounded = false;
-    } else {
-      this.me.y = 0;
-      this.me.vy = 0;
-      this.me.isGrounded = true;
-      this.me.jumpsLeft = 2;
-      this.me.isFlying = false;
-    }
-
-    this.me.x = Math.max(-75, Math.min(75, this.me.x));
-    this.me.z = Math.max(-75, Math.min(75, this.me.z));
 
     if (this.myHeroMesh) {
-      this.myHeroMesh.position.set(this.me.x, this.me.y + (this.me.isDead ? -0.8 : 0), this.me.z);
+      this.myHeroMesh.position.set(this.me.x, 0, this.me.z);
       this.myHeroMesh.rotation.y = this.me.yaw;
     }
 
-    const camDist = 8.5;
+    if (this.auraMesh) this.auraMesh.rotation.z += 0.02;
+    this.updatePetFollow();
+
+    // หมุนมุมกล้องอิสระรอบตัว
     const cam = window.World3D.camera;
-    cam.position.x = this.me.x + Math.sin(this.me.yaw) * Math.cos(this.me.pitch) * camDist;
-    cam.position.y = this.me.y + Math.sin(this.me.pitch) * camDist + 2.0;
-    cam.position.z = this.me.z + Math.cos(this.me.yaw) * Math.cos(this.me.pitch) * camDist;
-    cam.lookAt(this.me.x, this.me.y + 1.5, this.me.z);
+    cam.position.x = this.me.x + Math.sin(World3D.cameraAngle) * World3D.cameraDist;
+    cam.position.y = World3D.cameraHeight;
+    cam.position.z = this.me.z + Math.cos(World3D.cameraAngle) * World3D.cameraDist;
+    cam.lookAt(this.me.x, 0, this.me.z);
+  },
+
+  updatePetFollow() {
+    if (!this.petMesh) {
+      const petGroup = new THREE.Group();
+      const petBody = new THREE.Mesh(new THREE.SphereGeometry(0.35, 12, 12), new THREE.MeshStandardMaterial({ color: 0x4299e1, roughness: 0.2 }));
+      const petWing = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.5, 4), new THREE.MeshBasicMaterial({ color: 0x90cdf4 }));
+      petWing.position.set(0.3, 0.2, 0); petWing.rotation.z = -Math.PI / 3;
+      petGroup.add(petBody, petWing);
+      this.petMesh = petGroup;
+      window.World3D.scene.add(petGroup);
+    }
+    const targetX = this.me.x + Math.sin(this.me.yaw + 2.2) * 1.8;
+    const targetZ = this.me.z + Math.cos(this.me.yaw + 2.2) * 1.8;
+    const targetY = 1.3 + Math.sin(Date.now() * 0.005) * 0.25;
+    this.petMesh.position.x += (targetX - this.petMesh.position.x) * 0.1;
+    this.petMesh.position.y += (targetY - this.petMesh.position.y) * 0.1;
+    this.petMesh.position.z += (targetZ - this.petMesh.position.z) * 0.1;
   }
+};
+
+window.inspectPlayer = function(targetId) {
+  const p = window.PlayerManager.otherPlayers[targetId];
+  if (!p) return;
+  const modal = document.getElementById('inspectModal');
+  const title = document.getElementById('inspectTitle');
+  const content = document.getElementById('inspectContent');
+  if (title) title.textContent = `ข้อมูลจอมยุทธ์: ${p.name}`;
+  if (content) {
+    content.innerHTML = `
+      <p>⭐ สำนัก: <b>${window.CONFIG.CLASS_DATA[p.classIdx || 0].name}</b></p>
+      <p>⭐ เลเวล: <b>Lv.${p.level || 1}</b></p>
+      <p>👑 สถานะ: <b>VIP ${p.vipLevel || 0}</b></p>
+      <p>🔥 พลังรบรวม (RP): <b style="color:var(--gold-bright);">${p.rp || 150}</b></p>
+    `;
+  }
+  if (modal) modal.style.display = 'flex';
 };
